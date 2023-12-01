@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Schedule.Dark" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <item name="colorPrimary">@color/my_dark_primary</item>
+        <item name="android:statusBarColor">@color/selected</item>
+    </style>
+
+    <style name="Theme.Schedule.Dark" parent="Base.Theme.Schedule.Dark" />
+</resources>

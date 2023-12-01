@@ -1,0 +1,19 @@
+<resources>
+    <style name="NoLeftBorderTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundMode">none</item>
+        <item name="boxStrokeWidth">0dp</item>
+    </style>
+
+    <style name="NoLeftBorderHintText" parent="TextAppearance.Design.Hint">
+        <item name="android:textColorHint">@color/my_custom_day_color</item>
+    </style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowBackground">@color/defaultcolor</item>
+    </style>
+
+    <style name="PopupMenu" parent="@style/Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@color/my_dark_primary</item>
+    </style>
+
+</resources>

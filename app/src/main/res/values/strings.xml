@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Schedule sadasd</string>
+    <string name="add_activity_button_text">Adicionar Atividade</string>
+    <string name="delete_activity_button_text">Deletar Atividade</string>
+    <string name="clear_activities_button_text">Limpar Todas as Atividades</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="salvar">Salvar</string>
+    <string name="icone">Icone</string>
+    <string name="digite_algo">Digite algo</string>
+    <string name="boxDescription" />
+    <string name="icon_view" />
+    <string name="yourImageViewId" />
+    <string name="icon">Icon</string>
+    <string name="senha">Senha</string>
+    <string name="confirmar_senha">Confirmar senha</string>
+    <string name="registrar">Registrar</string>
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="nome">Nome</string>
+    <string name="navigation_drawer_open">Abrir menu</string>
+    <string name="atividades">Atividades</string>
+    <string name="navigation_drawer_close">Fechar menu</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="homefragment">HomeFragment</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_login">Login</string>
+    <string name="clearallactivitiesdesc">clearAllActivitiesDesc</string>
+    <string name="addactivitydesc">addActivityDesc</string>
+</resources>

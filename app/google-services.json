@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "53266778154",
+    "project_id": "planpilot-6e382",
+    "storage_bucket": "planpilot-6e382.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:53266778154:android:31ab7c803b312d8ca31b53",
+        "android_client_info": {
+          "package_name": "com.israel.planpilot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAblZvnc5AJKFLDINLwr0cYSlmOyz_0pCs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
