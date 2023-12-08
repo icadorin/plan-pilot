@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Schedule sadasd</string>
+    <string name="app_name">PlanPilot</string>
     <string name="add_activity_button_text">Adicionar Atividade</string>
     <string name="delete_activity_button_text">Deletar Atividade</string>
     <string name="clear_activities_button_text">Limpar Todas as Atividades</string>

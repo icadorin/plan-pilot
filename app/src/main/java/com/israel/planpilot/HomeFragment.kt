@@ -46,8 +46,6 @@ import java.util.UUID
 
 class HomeFragment : Fragment() {
 
-    private val db = FirebaseFirestore.getInstance()
-
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onDestroyView() {
@@ -64,7 +62,7 @@ class HomeFragment : Fragment() {
     private var btnIcon: Button? = null
     private var selectedDateMillis: Long = 0
     private var selectedActivityId: String? = null
-    private var selectedIconResource: Int = -1
+    private var selectedIconResource: Int = 2131165355
     private var selectedIconResourceGlobal: Int = R.drawable.ic_default_icon
     private val iconCache = HashMap<Int, Drawable>()
 
@@ -248,18 +246,16 @@ class HomeFragment : Fragment() {
             "HH:mm:ss", Locale.getDefault()
         ).format(Date())
 
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.custom_dialog, null)
+        val dialogView =
+            LayoutInflater.from(requireContext()).inflate(R.layout.custom_dialog, null)
         btnIcon = dialogView.findViewById(R.id.btnIcon)
-        this.selectedIconResource = -1
+        this.selectedIconResource = NO_ICON
         val dialogTitle = dialogView.findViewById<TextView>(R.id.textViewDialogTitle)
 
         "Adicionar Atividade".also { dialogTitle.text = it }
 
         val btnIcon = dialogView.findViewById<Button>(R.id.btnIcon)
-
-        val builder = AlertDialog.Builder(requireContext())
-            .setView(dialogView)
-
+        val builder = AlertDialog.Builder(requireContext()).setView(dialogView)
         val input = dialogView.findViewById<EditText>(R.id.editTextActivityName)
         val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
         val btnSave = dialogView.findViewById<Button>(R.id.btnSave)
@@ -281,7 +277,7 @@ class HomeFragment : Fragment() {
             if (activityName.isNotEmpty()) {
                 val formattedDate = formattedDate(selectedDateMillis)
                 val activityId = UUID.randomUUID().toString()
-                val selectedIcon = if (selectedIconResource != -1) selectedIconResource
+                val selectedIcon = if (selectedIconResource != NO_ICON) selectedIconResource
                 else R.drawable.ic_default_icon
 
                 val activity = ActivityItem(
@@ -292,7 +288,7 @@ class HomeFragment : Fragment() {
                     selectedIcon
                 )
 
-                // Criar repository para os métodos CRUD
+                // ToDo criar repository para os metodos CRUD
                 saveActivityToFile(activity)
 
                 alertDialog.dismiss()
@@ -303,45 +299,29 @@ class HomeFragment : Fragment() {
     }
 
     private fun openEditActivityDialog(activityItem: ActivityItem) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.custom_dialog, null)
+        val dialogView =
+            LayoutInflater.from(requireContext()).inflate(R.layout.custom_dialog, null)
         val dialogTitle = dialogView.findViewById<TextView>(R.id.textViewDialogTitle)
         val input = dialogView.findViewById<EditText>(R.id.editTextActivityName)
         val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
         val btnSave = dialogView.findViewById<Button>(R.id.btnSave)
-        val localBtnIcon = dialogView.findViewById<Button>(R.id.btnIcon)
+        val btnIcon = dialogView.findViewById<Button>(R.id.btnIcon)
 
         "Editar Atividade".also { dialogTitle.text = it }
         input.setText(activityItem.name)
 
-        val builder = AlertDialog.Builder(requireContext())
-            .setView(dialogView)
-
+        val builder = AlertDialog.Builder(requireContext()).setView(dialogView)
         val alertDialog = builder.create()
 
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
-            val matchingActivity = getActivityById(activityItem.id)
-            println("Activity ID: $matchingActivity")
-            val iconResource = retrieveIconResourceForActivity(matchingActivity.id)
-            if (iconResource != NO_ICON) {
-                val iconDrawable = getIconWithoutPreloading(requireContext(), activityItem)
-                localBtnIcon.setCompoundDrawablesWithIntrinsicBounds(
-                    iconDrawable, null, null, null
-                )
-                println("22222222222 $iconDrawable")
-                localBtnIcon.text = "aa"
-                selectedIconResource = iconResource
-                selectedIconResourceGlobal = selectedIconResource
-            } else {
-                localBtnIcon.text = "ícone"
-                selectedIconResourceGlobal = R.drawable.ic_default_icon
-            }
 
+            // ToDo chamar essa função dentro do btnIcon para tentar atualizar o ícone...
+            changeBtnIcon(btnIcon, activityItem.id)
             alertDialog.show()
         }
-        println("333333333")
-        localBtnIcon.setOnClickListener {
-            println("4444444444")
+
+        btnIcon.setOnClickListener {
             selectIconAndSetBtnIcon(selectedIconResource, requireContext())
         }
 
@@ -359,14 +339,38 @@ class HomeFragment : Fragment() {
 
                     saveActivityToFile(activityItem, isEditOperation = true)
 
-                    // Fecha o diálogo
                     alertDialog.dismiss()
 
+                    updateListView(selectedDateMillis)
                 } else {
                     println("ID da atividade não encontrado")
                 }
             }
             selectedIconResourceGlobal = R.drawable.ic_default_icon
+        }
+    }
+
+    private suspend fun changeBtnIcon(btnIcon: Button?, activityId: String) {
+        withContext(Dispatchers.Main) {
+            val matchingActivity = getActivityById(activityId)
+            val iconResource = matchingActivity?.iconResource
+            if (iconResource != NO_ICON && btnIcon != null) {
+                val iconDrawable = matchingActivity?.let { getIconWithoutPreloading(requireContext(), it) }
+
+                btnIcon.setCompoundDrawablesWithIntrinsicBounds(
+                    iconDrawable, null, null, null
+                )
+
+                btnIcon.text = null
+
+                if (iconResource != null) {
+                    selectedIconResource = iconResource
+                    selectedIconResourceGlobal = selectedIconResource
+                }
+            } else if (btnIcon != null) {
+                btnIcon.text = "ícone"
+                selectedIconResourceGlobal = R.drawable.ic_default_icon
+            }
         }
     }
 
@@ -504,39 +508,7 @@ class HomeFragment : Fragment() {
             val selectedIconResource =
                 result.data?.getIntExtra(Constants.SELECTED_ICON_EXTRA, R.drawable.ic_default_icon)
             if (selectedIconResource != null) {
-                selectedIconResourceGlobal = selectedIconResource
-                this.selectedIconResource = selectedIconResourceGlobal
-
-                val iconWithPadding = ContextCompat.getDrawable(requireContext(), selectedIconResource)
-
-                val paddingInPixels =
-                    resources.getDimensionPixelSize(R.dimen.left_padding)
-
-                val insetDrawable = InsetDrawable(
-                    iconWithPadding, paddingInPixels, 0, paddingInPixels, 0
-                )
-
-                btnIcon?.setCompoundDrawablesWithIntrinsicBounds(
-                    insetDrawable, null, null, null
-                )
-                btnIcon?.text = ""
-            }
-        }
-    }
-
-    private suspend fun retrieveIconResourceForActivity(activityId: String): Int {
-        return withContext(Dispatchers.IO) {
-            try {
-                val activities = loadActivitiesFromFile()
-
-                // Encontra a atividade pelo ID
-                val matchingActivity = activities.find { it.id == activityId }
-
-                // Retorna o ícone, ou o padrão se não encontrado
-                return@withContext matchingActivity?.iconResource ?: R.drawable.ic_default_icon
-            } catch (e: Exception) {
-                println("Erro ao recuperar recurso do ícone para atividade: $e")
-                return@withContext R.drawable.ic_default_icon
+                println("Pass")
             }
         }
     }
@@ -619,7 +591,7 @@ class HomeFragment : Fragment() {
         return withContext(Dispatchers.IO) {
             try {
                 val activities = loadActivitiesFromFile()
-                return@withContext activities.find { it.id == activityId }
+                return@withContext activities.find { it.id == activityId.toString() }
             } catch (exception: Exception) {
                 println("Erro ao obter atividade pelo ID: $exception")
                 return@withContext null
