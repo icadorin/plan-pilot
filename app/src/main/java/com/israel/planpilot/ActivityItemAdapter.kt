@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import com.schedule.ActivityItem
 
 class ActivityItemAdapter(context: Context, resource: Int, items: List<ActivityItem>) :
     ArrayAdapter<ActivityItem>(context, resource, items) {

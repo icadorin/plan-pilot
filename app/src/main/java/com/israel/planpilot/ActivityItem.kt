@@ -1,4 +1,4 @@
-package com.schedule
+package com.israel.planpilot
 
 data class ActivityItem(
     var id: String = "",
