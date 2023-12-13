@@ -1,10 +1,11 @@
+@file:Suppress("SameParameterValue")
+
 package com.israel.planpilot
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.graphics.drawable.InsetDrawable
 import android.os.Bundle
 import android.util.Log
@@ -27,12 +28,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import com.google.android.material.navigation.NavigationView
-import com.google.common.reflect.TypeToken
-import com.google.gson.Gson
 import com.israel.planpilot.Constants.NO_ICON
 import com.israel.planpilot.Constants.ICON_TEXT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,6 +45,7 @@ import java.util.UUID
 
 class HomeFragment : Fragment() {
 
+    private lateinit var activityRepository: ActivityRepository
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onDestroyView() {
@@ -63,33 +64,6 @@ class HomeFragment : Fragment() {
     private var selectedActivityId: String? = null
     private var selectedIconResource: Int = NO_ICON
     private var selectedIconResourceGlobal: Int = R.drawable.ic_default_icon
-    private val iconCache = HashMap<Int, Drawable>()
-
-    private fun getIconWithoutPreloading(
-        context: Context,
-        activityItem: ActivityItem
-    ): Drawable? {
-        val iconResource = activityItem.iconResource
-
-        if (iconResource != -1) {
-            var iconDrawable = iconCache[iconResource]
-            if (iconDrawable == null) {
-                iconDrawable = ContextCompat.getDrawable(context, iconResource)
-                iconCache[iconResource] = iconDrawable as Drawable
-            }
-            val paddingInPixels = context.resources.getDimensionPixelSize(R.dimen.left_padding)
-
-            return InsetDrawable(
-                iconDrawable,
-                paddingInPixels,
-                0,
-                paddingInPixels,
-                0
-            )
-        }
-
-        return null
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -132,6 +106,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        activityRepository = ActivityRepository(requireContext())
         jsonFile = File(requireContext().filesDir, "activities.json")
 
         calendarView = view.findViewById(R.id.calendarView)
@@ -146,20 +121,17 @@ class HomeFragment : Fragment() {
         listViewActivities.adapter = activitiesAdapter
 
         btnAddActivity.setOnClickListener {
-            openAddActivityDialog(selectedDateMillis)
+            addActivity(selectedDateMillis)
         }
 
         btnClearActivities.setOnClickListener {
             clearAllActivities()
         }
 
-        // Inicializa a data atual
         selectedDateMillis = System.currentTimeMillis()
 
-        // Configura o CalendarView com a data atual
         calendarView.date = selectedDateMillis
 
-        // Atualiza a lista com os dados da data atual
         updateListView(selectedDateMillis)
 
         listViewActivities.setOnItemClickListener { _, _, position, _ ->
@@ -168,6 +140,7 @@ class HomeFragment : Fragment() {
             if (activityToDeleteOrEdit != null) {
                 lifecycleScope.launch {
                     val activityId = getActivityIdByName(activityToDeleteOrEdit.name)
+                    println("activityToDeleteOrEdit.name ${activityToDeleteOrEdit.name}")
                     val creationTime: String = getCreationTime(activityId ?: "")
 
                     if (activityId != null) {
@@ -178,6 +151,7 @@ class HomeFragment : Fragment() {
                             creationTime,
                             selectedIconResource
                         )
+
                         showOptionsDialog(activityItem)
                     } else {
                         println("ID da atividade não encontrado (listViewActivities)")
@@ -198,7 +172,7 @@ class HomeFragment : Fragment() {
 
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val activities = loadActivitiesFromFile()
+                val activities = activityRepository.getAllActivities()
                 val filteredActivities = activities.filter { it.date == formattedDate }
                     .sortedBy { it.time }
 
@@ -229,10 +203,10 @@ class HomeFragment : Fragment() {
             when (which) {
                 0 -> {
                     selectedActivityId = activityItem.id
-                    openEditActivityDialog(activityItem)
+                    editActivityOption(activityItem)
                 }
                 1 -> {
-                    deleteActivity(activityItem)
+                    deleteActivityOption(activityItem)
                 }
             }
             dialog.dismiss()
@@ -240,7 +214,7 @@ class HomeFragment : Fragment() {
         builder.show()
     }
 
-    private fun openAddActivityDialog(selectedDateMillis: Long) {
+    private fun addActivity(selectedDateMillis: Long) {
         val currentDateTime = SimpleDateFormat(
             "HH:mm:ss", Locale.getDefault()
         ).format(Date())
@@ -286,17 +260,18 @@ class HomeFragment : Fragment() {
                     selectedIcon
                 )
 
-                // ToDo criar repository para os metodos CRUD
-                saveActivityToFile(activity)
-
-                alertDialog.dismiss()
+                coroutineScope.launch {
+                    activityRepository.saveActivity(activity)
+                    alertDialog.dismiss()
+                    updateListView(selectedDateMillis)
+                }
             }
         }
 
         alertDialog.show()
     }
 
-    private fun openEditActivityDialog(activityItem: ActivityItem) {
+    private fun editActivityOption(activityItem: ActivityItem) {
         val dialogView =
             LayoutInflater.from(requireContext()).inflate(R.layout.custom_dialog, null)
         val dialogTitle = dialogView.findViewById<TextView>(R.id.textViewDialogTitle)
@@ -311,11 +286,12 @@ class HomeFragment : Fragment() {
         val builder = AlertDialog.Builder(requireContext()).setView(dialogView)
         val alertDialog = builder.create()
 
-        val scope = CoroutineScope(Dispatchers.Main)
-        scope.launch {
-            val activityId: String = activityItem.id
-            println("IDD $activityItem")
-            searchActivityIcon(activityId)
+        val ioScope = CoroutineScope(Dispatchers.IO)
+        ioScope.launch(Dispatchers.Main) {
+            val resourceActivityItem: ActivityItem? = getActivityById(activityItem.id)
+            val iconId: Int = resourceActivityItem?.iconResource ?: NO_ICON
+
+            updateIcon(iconId)
             alertDialog.show()
         }
 
@@ -331,28 +307,21 @@ class HomeFragment : Fragment() {
             val editedActivityName = input.text.toString()
             if (editedActivityName.isNotEmpty()) {
                 if (activityItem.id.isNotEmpty()) {
-                    // Atualiza os detalhes da atividade
                     activityItem.name = editedActivityName
                     activityItem.iconResource = selectedIconResourceGlobal
 
-                    saveActivityToFile(activityItem, isEditOperation = true)
-
-                    alertDialog.dismiss()
-
-                    updateListView(selectedDateMillis)
+                    ioScope.launch {
+                        activityRepository.saveActivity(activityItem, isEditOperation = true)
+                        withContext(Dispatchers.Main) {
+                            alertDialog.dismiss()
+                            updateListView(selectedDateMillis)
+                        }
+                    }
                 } else {
                     println("ID da atividade não encontrado")
                 }
             }
             selectedIconResourceGlobal = R.drawable.ic_default_icon
-        }
-    }
-
-    private suspend fun searchActivityIcon(activityId: String) {
-        withContext(Dispatchers.Main) {
-            val iconId: Int = getActivityIconId(activityId)
-            println("IDD $iconId")
-            updateIcon(iconId)
         }
     }
 
@@ -382,7 +351,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun deleteActivity(activityItem: ActivityItem) {
+    private fun deleteActivityOption(activityItem: ActivityItem) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Excluir Atividade")
         builder.setMessage("Deseja excluir a atividade '${activityItem.name}'?")
@@ -390,9 +359,12 @@ class HomeFragment : Fragment() {
         builder.setPositiveButton("Excluir") { _, _ ->
             val activityId = activityItem.id
             if (activityId.isNotEmpty()) {
-                deleteActivityById(activityId)
-
-                updateListView(selectedDateMillis)
+                coroutineScope.launch {
+                    activityRepository.deleteActivityById(activityId)
+                    withContext(Dispatchers.Main) {
+                        updateListView(selectedDateMillis)
+                    }
+                }
             } else {
                 println("ID da atividade não encontrado")
             }
@@ -403,24 +375,6 @@ class HomeFragment : Fragment() {
         }
 
         builder.show()
-    }
-
-    private fun deleteActivityById(activityId: String) {
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val activities = loadActivitiesFromFile()
-                val updatedActivities = activities.filterNot { it.id == activityId }
-                saveActivitiesToFile(updatedActivities)
-
-                withContext(Dispatchers.Main) {
-                    println("Atividade excluída do arquivo JSON com sucesso")
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    println("Erro ao excluir atividade do arquivo JSON: $e")
-                }
-            }
-        }
     }
 
     private fun getDateInMillis(year: Int, month: Int, dayOfMonth: Int): Long {
@@ -445,15 +399,15 @@ class HomeFragment : Fragment() {
 
             coroutineScope.launch(Dispatchers.IO) {
                 try {
-                    val activities = loadActivitiesFromFile()
-                    val filteredActivities = activities.filter { it.date != formattedDate }
+                    val activities = coroutineScope.async {
+                        activityRepository.loadActivitiesFromFile() }.await()
 
-                    // Limpa o arquivo antes de salvar as atividades filtradas
                     jsonFile.writeText("")
 
-                    // Salva as atividades filtradas no arquivo
-                    filteredActivities.forEach { activityItem ->
-                        saveActivityToFile(activityItem)
+                    activities.filter { it.date != formattedDate }.forEach { activityItem ->
+                        coroutineScope.launch {
+                            activityRepository.saveActivity(activityItem)
+                        }
                     }
 
                     withContext(Dispatchers.Main) {
@@ -477,7 +431,9 @@ class HomeFragment : Fragment() {
     private suspend fun getActivityIdByName(activityName: String): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val activities = loadActivitiesFromFile()
+                val activities = coroutineScope.async {
+                    activityRepository.loadActivitiesFromFile() }.await()
+
                 val matchingActivity = activities.find { it.name == activityName }
 
                 return@withContext matchingActivity?.id
@@ -491,7 +447,9 @@ class HomeFragment : Fragment() {
     private suspend fun getCreationTime(activityId: String): String {
         return withContext(Dispatchers.IO) {
             try {
-                val activities = loadActivitiesFromFile()
+                val activities = coroutineScope.async {
+                    activityRepository.loadActivitiesFromFile() }.await()
+
                 val matchingActivity = activities.find { it.id == activityId }
 
                 return@withContext matchingActivity?.time ?: SimpleDateFormat(
@@ -512,7 +470,8 @@ class HomeFragment : Fragment() {
     private val iconSelectionLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val iconId = result.data?.getIntExtra(Constants.SELECTED_ICON_EXTRA, R.drawable.ic_default_icon)
+        val iconId =
+            result.data?.getIntExtra(Constants.SELECTED_ICON_EXTRA, R.drawable.ic_default_icon)
             ?: R.drawable.ic_default_icon
 
         if (result.resultCode == Activity.RESULT_OK) {
@@ -520,85 +479,13 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun saveActivityToFile(activityItem: ActivityItem) {
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val activities = loadActivitiesFromFile()
-                activities.add(activityItem)
-
-                val json = Gson().toJson(activities)
-                jsonFile.writeText(json)
-
-                withContext(Dispatchers.Main) {
-                    println("Atividade salva no arquivo JSON com sucesso")
-                    updateListView(selectedDateMillis)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    println("Erro ao salvar atividade no arquivo JSON: $e")
-                }
-            }
-        }
-    }
-
-    private fun saveActivityToFile(activityItem: ActivityItem, isEditOperation: Boolean = false) {
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val activities = loadActivitiesFromFile()
-
-                if (isEditOperation) {
-                    activities.removeAll { it.id == activityItem.id }
-                }
-
-                activities.add(activityItem)
-
-                val json = Gson().toJson(activities)
-                jsonFile.writeText(json)
-
-                withContext(Dispatchers.Main) {
-                    println("Atividade(s) salva(s) no arquivo JSON com sucesso")
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    println("Erro ao salvar atividade(s) no arquivo JSON: $e")
-                }
-            }
-        }
-    }
-
-    private fun saveActivitiesToFile(activities: List<ActivityItem>) {
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val json = Gson().toJson(activities)
-                jsonFile.writeText(json)
-
-                withContext(Dispatchers.Main) {
-                    println("Atividades salvas no arquivo JSON com sucesso")
-                    updateListView(selectedDateMillis)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    println("Erro ao salvar atividades no arquivo JSON: $e")
-                }
-            }
-        }
-    }
-
-    private fun loadActivitiesFromFile(): MutableList<ActivityItem> {
-        return try {
-            val json = jsonFile.readText()
-            val typeToken = object : TypeToken<MutableList<ActivityItem>>() {}.type
-            Gson().fromJson(json, typeToken) ?: mutableListOf()
-        } catch (e: Exception) {
-            mutableListOf()
-        }
-    }
-
-    private suspend fun getActivityById(activityId: Int): ActivityItem? {
+    private suspend fun getActivityById(activityId: String): ActivityItem? {
         return withContext(Dispatchers.IO) {
             try {
-                val activities = loadActivitiesFromFile()
-                return@withContext activities.find { it.id.toInt() == activityId }
+                val activities = coroutineScope.async {
+                    activityRepository.loadActivitiesFromFile() }.await()
+
+                return@withContext activities.find { it.id == activityId }
             } catch (exception: Exception) {
                 println("Erro ao obter atividade pelo ID: $exception")
                 return@withContext null
@@ -606,15 +493,4 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private suspend fun getActivityIconId(activityId: String): Int {
-        return withContext(Dispatchers.IO) {
-            try {
-                val activities = loadActivitiesFromFile()
-                return@withContext activities.find { it.id.toIntOrNull() == activityId.toIntOrNull() }?.iconResource ?: 0
-            } catch (exception: Exception) {
-                println("Erro ao obter ícone da atividade pelo ID: $exception")
-                return@withContext 0
-            }
-        }
-    }
 }
