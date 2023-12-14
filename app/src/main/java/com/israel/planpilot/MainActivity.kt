@@ -8,6 +8,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.material.navigation.NavigationView
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,6 +40,26 @@ class MainActivity : AppCompatActivity() {
     private fun setupNavigation() {
         appBarConfiguration = AppBarConfiguration(setOf(R.id.nav_home, R.id.nav_login), drawerLayout)
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        val navigationView = findViewById<NavigationView>(R.id.navigationView)
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            println("Menuuu")
+            when (menuItem.itemId) {
+                R.id.nav_home -> {
+                    println("Home")
+                    navController.navigate(R.id.nav_home)
+                    drawerLayout.closeDrawers()
+                    true
+                }
+                R.id.nav_login -> {
+                    println("Login")
+                    navController.navigate(R.id.nav_login)
+                    drawerLayout.closeDrawers()
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun setupActionBarTitleListener() {

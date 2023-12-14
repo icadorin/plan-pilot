@@ -20,14 +20,10 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.Navigation
-import com.google.android.material.navigation.NavigationView
 import com.israel.planpilot.Constants.NO_ICON
 import com.israel.planpilot.Constants.ICON_TEXT
 import kotlinx.coroutines.CoroutineScope
@@ -69,37 +65,7 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_home, container, false)
-
-        val drawerLayout = view.findViewById<DrawerLayout>(R.id.homeDrawerLayout)
-        val navigationView = view.findViewById<NavigationView>(R.id.navigationView)
-
-        val toggle = ActionBarDrawerToggle(
-            requireActivity(),
-            drawerLayout,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
-
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-
-        navigationView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_home -> {
-                    drawerLayout.closeDrawers()
-                    return@setNavigationItemSelectedListener true
-                }
-                R.id.nav_login -> {
-                    Navigation.findNavController(view).navigate(R.id.nav_login)
-                    drawerLayout.closeDrawers()
-                    return@setNavigationItemSelectedListener true
-                }
-                else -> return@setNavigationItemSelectedListener false
-            }
-        }
-
-        return view
+        return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
 
