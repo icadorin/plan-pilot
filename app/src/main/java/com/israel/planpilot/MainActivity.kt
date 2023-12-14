@@ -43,17 +43,20 @@ class MainActivity : AppCompatActivity() {
 
         val navigationView = findViewById<NavigationView>(R.id.navigationView)
         navigationView.setNavigationItemSelectedListener { menuItem ->
-            println("Menuuu")
+
             when (menuItem.itemId) {
                 R.id.nav_home -> {
-                    println("Home")
                     navController.navigate(R.id.nav_home)
                     drawerLayout.closeDrawers()
                     true
                 }
                 R.id.nav_login -> {
-                    println("Login")
                     navController.navigate(R.id.nav_login)
+                    drawerLayout.closeDrawers()
+                    true
+                }
+                R.id.nav_calendar -> {
+                    navController.navigate(R.id.nav_calendar)
                     drawerLayout.closeDrawers()
                     true
                 }
@@ -67,6 +70,7 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.title = when (destination.id) {
                 R.id.nav_home -> "Home"
                 R.id.nav_login -> "Login"
+                R.id.nav_calendar -> "Calendar"
 
                 else -> "Não encontrado"
             }

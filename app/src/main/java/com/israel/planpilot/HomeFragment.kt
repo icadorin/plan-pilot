@@ -1,5 +1,3 @@
-@file:Suppress("SameParameterValue")
-
 package com.israel.planpilot
 
 import android.annotation.SuppressLint
