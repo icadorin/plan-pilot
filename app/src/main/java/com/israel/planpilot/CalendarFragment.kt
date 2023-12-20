@@ -1,10 +1,13 @@
 package com.israel.planpilot
 
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.TextView
@@ -45,29 +48,20 @@ class CalendarFragment : Fragment() {
         val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
         textMonthYear.text = monthFormat.format(calendar.time)
 
-        val days = getDaysInMonth().toMutableList()
-        val adapter = ArrayAdapter(requireContext(), R.layout.item_calendar_day, days)
+        val days = getDaysInMonth()
+        val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
         gridView.adapter = adapter
 
         gridView.setOnItemClickListener { _, _, position, _ ->
             handleItemClick(position)
         }
 
-        // Highlight data atual
-        val today = Calendar.getInstance()
-        val currentDayOfMonth = today.get(Calendar.DAY_OF_MONTH)
         val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
-        val currentDayIndex = firstDayOfWeek + currentDayOfMonth - 1
-        if (currentDayIndex >= 0 && currentDayIndex < days.size) {
-            days[currentDayIndex] = days[currentDayIndex]
-        }
 
-        // Highlight data selecionada
         selectedDate?.let {
             val calendarSelected = Calendar.getInstance()
             calendarSelected.time = it
 
-            // Verifica mês e ano do dia selecionado se correspondem ao mês e ano atual
             val selectedMonth = calendarSelected.get(Calendar.MONTH)
             val selectedYear = calendarSelected.get(Calendar.YEAR)
             val currentMonth = calendar.get(Calendar.MONTH)
@@ -75,11 +69,11 @@ class CalendarFragment : Fragment() {
 
             if (selectedMonth == currentMonth && selectedYear == currentYear) {
                 val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
-                val selectedIndex = firstDayOfWeek + selectedDay
 
-                // Highlight dia seleciondo
-                if (selectedIndex >= 0 && selectedIndex < days.size) {
-                    days[selectedIndex] = "(${days[selectedIndex]})"
+                if (selectedDay <= days.size) {
+                    val selectedIndex = selectedDay + firstDayOfWeek + 2
+
+                    adapter.setSelectedDay(selectedIndex)
                 }
             }
         }
@@ -97,29 +91,43 @@ class CalendarFragment : Fragment() {
         updateCalendar()
     }
 
-    private fun getDaysInMonth(): List<String> {
-        val days = mutableListOf<String>()
+    private fun getDaysInMonth(): List<SpannableString> {
+        val days = mutableListOf<SpannableString>()
         val cal = calendar.clone() as Calendar
         cal.set(Calendar.DAY_OF_MONTH, 1)
 
         val lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
 
         repeat(firstDayOfWeek) {
-            days.add("")
+            days.add(SpannableString(""))
         }
 
         repeat(lastDayOfMonth) { day ->
             val dayOfMonth = day + 1
-            days.add(dayOfMonth.toString())
-
-            if (dayOfMonth == today && cal.get(Calendar.MONTH) == Calendar.getInstance().get(Calendar.MONTH)) {
-                days[day + firstDayOfWeek] = "*$dayOfMonth*"
+            val isToday = isToday(cal, dayOfMonth)
+            val spannableString = if (isToday) {
+                highlightText(SpannableString(
+                    dayOfMonth.toString()),
+                    ForegroundColorSpan(Color.RED)
+                )
+            } else {
+                SpannableString(dayOfMonth.toString())
             }
+
+            days.add(spannableString)
         }
 
         return days
+    }
+
+    private fun isToday(cal: Calendar, dayOfMonth: Int): Boolean {
+        val today = Calendar.getInstance()
+        return (
+                dayOfMonth == today.get(Calendar.DAY_OF_MONTH) &&
+                        cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                )
     }
 
     private fun handleItemClick(position: Int) {
@@ -129,6 +137,11 @@ class CalendarFragment : Fragment() {
         selectedDate = cal.time
 
         updateCalendar()
+    }
+
+    private fun highlightText(text: SpannableString, span: Any): SpannableString {
+        text.setSpan(span, 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return text
     }
 
 }

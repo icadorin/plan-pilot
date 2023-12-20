@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- fragment_calendar.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,39 +9,9 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/btnPrevMonth"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_media_previous"
-            android:contentDescription="Previous Month" />
-
-        <TextView
-            android:id="@+id/textMonthYear"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:gravity="center"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/btnNextMonth"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_media_next"
-            android:contentDescription="Next Month" />
+        <include layout="@layout/include_navigation_buttons" />
     </LinearLayout>
 
-    <GridView
-        android:id="@+id/gridViewDays"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:numColumns="7"
-        android:stretchMode="columnWidth"
-        android:horizontalSpacing="1dp"
-        android:verticalSpacing="1dp"/>
+    <include layout="@layout/include_item_calendar" />
+
 </LinearLayout>

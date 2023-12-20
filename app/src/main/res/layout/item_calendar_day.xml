@@ -8,4 +8,4 @@
     android:textSize="18sp"
     android:padding="8dp"
     android:textColor="@android:color/black"
-    android:textStyle="bold"/>
+    android:textStyle="bold" />

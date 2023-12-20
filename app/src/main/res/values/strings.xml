@@ -24,6 +24,8 @@
     <string name="nav_home">Home</string>
     <string name="nav_login">Login</string>
     <string name="criar_conta">Criar conta</string>
+    <string name="previous_month">Previous Month</string>
+    <string name="next_month">Next Month</string>
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>

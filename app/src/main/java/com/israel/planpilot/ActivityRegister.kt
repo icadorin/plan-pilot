@@ -49,34 +49,34 @@ class ActivityRegister : AppCompatActivity() {
 
             progressBar.visibility = View.VISIBLE
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this) { task ->
+            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this)
+            { task ->
 
-                    progressBar.visibility = View.GONE
+                progressBar.visibility = View.GONE
 
-                    if (task.isSuccessful) {
+                if (task.isSuccessful) {
 
+                    Toast.makeText(
+                        this, "Registro bem-sucedido", Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    try {
+                        throw task.exception!!
+                    } catch (e: FirebaseAuthInvalidUserException) {
                         Toast.makeText(
-                            this, "Registro bem-sucedido", Toast.LENGTH_SHORT
+                            this, "Usuário não encontrado", Toast.LENGTH_SHORT
                         ).show()
-                    } else {
-                        try {
-                            throw task.exception!!
-                        } catch (e: FirebaseAuthInvalidUserException) {
-                            Toast.makeText(
-                                this, "Usuário não encontrado", Toast.LENGTH_SHORT
-                            ).show()
-                        } catch (e: FirebaseAuthInvalidCredentialsException) {
-                            Toast.makeText(
-                                this, "Credenciais inválidas", Toast.LENGTH_SHORT
-                            ).show()
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                this, "Erro desconhecido", Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                    } catch (e: FirebaseAuthInvalidCredentialsException) {
+                        Toast.makeText(
+                            this, "Credenciais inválidas", Toast.LENGTH_SHORT
+                        ).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this, "Erro desconhecido", Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
+            }
         }
     }
 }

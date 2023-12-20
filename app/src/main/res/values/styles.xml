@@ -9,7 +9,7 @@
     </style>
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:windowBackground">@color/defaultcolor</item>
+        <item name="android:windowBackground">@color/default_color</item>
     </style>
 
     <style name="PopupMenu" parent="@style/Widget.AppCompat.PopupMenu">

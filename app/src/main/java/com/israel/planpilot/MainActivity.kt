@@ -60,6 +60,11 @@ class MainActivity : AppCompatActivity() {
                     drawerLayout.closeDrawers()
                     true
                 }
+                R.id.nav_calendar_week -> {
+                    navController.navigate(R.id.nav_calendar_week)
+                    drawerLayout.closeDrawers()
+                    true
+                }
                 else -> false
             }
         }
@@ -71,6 +76,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_home -> "Home"
                 R.id.nav_login -> "Login"
                 R.id.nav_calendar -> "Calendar"
+                R.id.nav_calendar_week -> "Calendar Week"
 
                 else -> "Não encontrado"
             }
