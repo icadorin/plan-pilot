@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -94,11 +93,12 @@ class CalendarFragment : Fragment() {
 
     private fun getDaysInMonth(): List<SpannableString> {
         val days = mutableListOf<SpannableString>()
-        val cal = calendar.clone() as Calendar
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = calendar.timeInMillis
         cal.set(Calendar.DAY_OF_MONTH, 1)
-        val lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        var firstDayOfWeek = firstDayOfWeek(cal)
 
+        val lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val firstDayOfWeek = firstDayOfWeek(cal)
 
         repeat(firstDayOfWeek) {
             days.add(SpannableString(""))
@@ -129,11 +129,19 @@ class CalendarFragment : Fragment() {
     }
 
     private fun handleItemClick(position: Int) {
-        val cal: Calendar = calendar.clone() as Calendar
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = calendar.timeInMillis
         cal.set(Calendar.DAY_OF_MONTH, 1)
 
-        val firstDayOfWeek = firstDayOfWeek(cal)
+        var firstDayOfWeek = firstDayOfWeek(cal)
+
+        // Caso dia 1 seja segunda, reseta o index
+        if (firstDayOfWeek == 7) {
+            firstDayOfWeek = 0
+        }
+
         val selectedDayOfMonth = position - firstDayOfWeek + 1
+
         cal.set(Calendar.DAY_OF_MONTH, selectedDayOfMonth)
         selectedDate = cal.time
         println("selectedDate $selectedDate")
