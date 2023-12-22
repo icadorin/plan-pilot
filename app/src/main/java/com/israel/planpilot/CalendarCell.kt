@@ -7,18 +7,28 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
 
-class CalendarCell(context: Context, resource: Int, objects: List<SpannableString>) :
-    ArrayAdapter<SpannableString>(context, resource, objects) {
+class CalendarCell(
+    context: Context,
+    resource: Int,
+    objects: List<SpannableString>)
+    : ArrayAdapter<SpannableString>(context, resource, objects) {
 
-    private var selectedDay = -1
+    private var disabledPositions = mutableSetOf<Int>()
+    private var selectedDay: Int? = null
 
     fun setSelectedDay(day: Int) {
-        selectedDay = day
+        selectedDay = day - 2
         notifyDataSetChanged()
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = super.getView(position, convertView, parent)
+
+        if (getItem(position)?.isEmpty() == true) {
+            disabledPositions.add(position)
+        } else {
+            disabledPositions.remove(position)
+        }
 
         if (position == selectedDay) {
             val drawable = ContextCompat.getDrawable(context, R.drawable.circle)
@@ -29,5 +39,15 @@ class CalendarCell(context: Context, resource: Int, objects: List<SpannableStrin
 
         return view
     }
+
+    override fun areAllItemsEnabled(): Boolean {
+        return false
+    }
+
+    override fun isEnabled(position: Int): Boolean {
+        return !disabledPositions.contains(position)
+    }
 }
+
+
 

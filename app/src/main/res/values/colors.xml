@@ -8,5 +8,6 @@
     <color name="my_dark_primary">#2B2BF1</color>
     <color name="my_custom_day_color">#D5D5D5</color>
     <color name="blue">#1A1AFF</color>
+    <color name="default_background">#FAFAFA</color>
 </resources>
 

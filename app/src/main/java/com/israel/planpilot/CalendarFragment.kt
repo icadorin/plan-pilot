@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,7 +57,7 @@ class CalendarFragment : Fragment() {
             handleItemClick(position)
         }
 
-        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
+        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
 
         selectedDate?.let {
             val calendarSelected = Calendar.getInstance()
@@ -71,7 +72,7 @@ class CalendarFragment : Fragment() {
                 val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
 
                 if (selectedDay <= days.size) {
-                    val selectedIndex = selectedDay + firstDayOfWeek + 2
+                    val selectedIndex = selectedDay + firstDayOfWeek
 
                     adapter.setSelectedDay(selectedIndex)
                 }
@@ -95,20 +96,26 @@ class CalendarFragment : Fragment() {
         val days = mutableListOf<SpannableString>()
         val cal = calendar.clone() as Calendar
         cal.set(Calendar.DAY_OF_MONTH, 1)
-
         val lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
+        var firstDayOfWeek = firstDayOfWeek(cal)
+
 
         repeat(firstDayOfWeek) {
             days.add(SpannableString(""))
+        }
+
+        val isSixthCellEmpty = days.getOrNull(6) == SpannableString("")
+
+        if (isSixthCellEmpty) {
+            days.clear()
         }
 
         repeat(lastDayOfMonth) { day ->
             val dayOfMonth = day + 1
             val isToday = isToday(cal, dayOfMonth)
             val spannableString = if (isToday) {
-                highlightText(SpannableString(
-                    dayOfMonth.toString()),
+                highlightText(
+                    SpannableString(dayOfMonth.toString()),
                     ForegroundColorSpan(Color.RED)
                 )
             } else {
@@ -121,6 +128,22 @@ class CalendarFragment : Fragment() {
         return days
     }
 
+    private fun handleItemClick(position: Int) {
+        val cal: Calendar = calendar.clone() as Calendar
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+
+        val firstDayOfWeek = firstDayOfWeek(cal)
+        val selectedDayOfMonth = position - firstDayOfWeek + 1
+        cal.set(Calendar.DAY_OF_MONTH, selectedDayOfMonth)
+        selectedDate = cal.time
+        println("selectedDate $selectedDate")
+        updateCalendar()
+    }
+
+    private fun firstDayOfWeek(cal: Calendar): Int {
+        return (((cal.get(Calendar.DAY_OF_WEEK) - 1) - cal.firstDayOfWeek + 7) % 7) + 1
+    }
+
     private fun isToday(cal: Calendar, dayOfMonth: Int): Boolean {
         val today = Calendar.getInstance()
         return (
@@ -128,15 +151,6 @@ class CalendarFragment : Fragment() {
                         cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
                         cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
                 )
-    }
-
-    private fun handleItemClick(position: Int) {
-        val cal = calendar.clone() as Calendar
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        cal.add(Calendar.DAY_OF_MONTH, position - cal.get(Calendar.DAY_OF_WEEK) + 1)
-        selectedDate = cal.time
-
-        updateCalendar()
     }
 
     private fun highlightText(text: SpannableString, span: Any): SpannableString {

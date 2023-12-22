@@ -4,8 +4,8 @@
     android:id="@+id/textDay"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="25dp"
     android:gravity="center"
-    android:textSize="18sp"
-    android:padding="8dp"
-    android:textColor="@android:color/black"
-    android:textStyle="bold" />
+    android:textSize="14sp"
+    android:padding="10dp"
+    android:textColor="@android:color/black" />
