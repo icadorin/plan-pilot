@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_calendar">
+    app:startDestination="@id/nav_home">
 
     <fragment
         android:id="@+id/nav_home"
@@ -18,15 +18,21 @@
         tools:layout="@layout/fragment_login" />
 
     <fragment
-        android:id="@+id/nav_calendar"
-        android:name="com.israel.planpilot.CalendarFragment"
+        android:id="@+id/nav_cal_mon_small"
+        android:name="com.israel.planpilot.SmallMonCalFragment"
         android:label="fragment_calendar"
-        tools:layout="@layout/fragment_calendar" />
+        tools:layout="@layout/fragment_small_mon_cal" />
 
     <fragment
-        android:id="@+id/nav_calendar_week"
-        android:name="com.israel.planpilot.WeekViewFragment"
+        android:id="@+id/nav_cal_week"
+        android:name="com.israel.planpilot.WeeklyCalFragment"
         android:label="fragment_week_view"
-        tools:layout="@layout/fragment_week_view" />
+        tools:layout="@layout/fragment_weekly_cal" />
+
+    <fragment
+        android:id="@+id/nav_cal_mon_large"
+        android:name="com.israel.planpilot.WeeklyCalFragment"
+        android:label="fragment_week_view"
+        tools:layout="@layout/fragment_large_mon_cal" />
 
 </navigation>

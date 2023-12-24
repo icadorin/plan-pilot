@@ -26,6 +26,11 @@
     <string name="criar_conta">Criar conta</string>
     <string name="previous_month">Previous Month</string>
     <string name="next_month">Next Month</string>
+    <string name="today">Hoje</string>
+    <string name="nav_cal_mon_small">Cal. Mensal</string>
+    <string name="nav_cal_week">Cal. Semanal</string>
+    <string name="nav_cal_mon_large">Cal. Mensal Full Screen</string>
+    <string name="nav_not_found">Não encontrado</string>
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>

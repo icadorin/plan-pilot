@@ -23,6 +23,9 @@ class MainActivity : AppCompatActivity() {
         initializeViews()
         setupNavigation()
         setupActionBarTitleListener()
+
+        //ToDo arrumar ícone do menu
+        //ToDo arrumar estrutura dos calendário, criar uma classe base para semanal e mensal
     }
 
     private fun initializeViews() {
@@ -55,13 +58,18 @@ class MainActivity : AppCompatActivity() {
                     drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_calendar -> {
-                    navController.navigate(R.id.nav_calendar)
+                R.id.nav_cal_mon_small -> {
+                    navController.navigate(R.id.nav_cal_mon_small)
                     drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_calendar_week -> {
-                    navController.navigate(R.id.nav_calendar_week)
+                R.id.nav_cal_week -> {
+                    navController.navigate(R.id.nav_cal_week)
+                    drawerLayout.closeDrawers()
+                    true
+                }
+                R.id.nav_cal_mon_large -> {
+                    navController.navigate(R.id.nav_cal_mon_large)
                     drawerLayout.closeDrawers()
                     true
                 }
@@ -75,8 +83,9 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.title = when (destination.id) {
                 R.id.nav_home -> "Home"
                 R.id.nav_login -> "Login"
-                R.id.nav_calendar -> "Calendar"
-                R.id.nav_calendar_week -> "Calendar Week"
+                R.id.nav_cal_mon_small -> "Cal. Mensal"
+                R.id.nav_cal_week -> "Cal. Semanal"
+                R.id.nav_cal_mon_large -> "Cal. Mensal Full Screen"
 
                 else -> "Não encontrado"
             }

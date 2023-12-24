@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/nav_home"
         android:title="@string/nav_home" />
@@ -9,11 +12,15 @@
         android:title="@string/nav_login" />
 
     <item
-        android:id="@+id/nav_calendar"
-        android:title="Calendar" />
+        android:id="@+id/nav_cal_mon_small"
+        android:title="@string/nav_cal_mon_small" />
 
     <item
-        android:id="@+id/nav_calendar_week"
-        android:title="Calendar Week" />
+        android:id="@+id/nav_cal_week"
+        android:title="@string/nav_cal_week" />
+
+    <item
+        android:id="@+id/nav_cal_mon_large"
+        android:title="@string/nav_cal_mon_large" />
 
 </menu>
