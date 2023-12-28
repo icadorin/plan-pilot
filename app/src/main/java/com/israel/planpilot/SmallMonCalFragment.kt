@@ -3,86 +3,113 @@ package com.israel.planpilot
 import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
-import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
-class SmallMonCalFragment : Fragment() {
+import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
 
-    private lateinit var calendar: Calendar
-    private lateinit var gridView: GridView
-    private lateinit var textMonthYear: TextView
-    private lateinit var btnPrevMonth: ImageButton
-    private lateinit var btnNextMonth: ImageButton
-    private var selectedDate: Date? = null
+class SmallMonCalFragment : BaseCalendarFragment() {
+
+    private lateinit var textYear: TextView
+    private lateinit var btnPrev: ImageButton
+    private lateinit var btnNext: ImageButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_small_mon_cal, container, false)
-
-        gridView = view.findViewById(R.id.gridViewDays)
-        textMonthYear = view.findViewById(R.id.textYear)
-        btnPrevMonth = view.findViewById(R.id.btnPrev)
-        btnNextMonth = view.findViewById(R.id.btnNext)
-
-        btnPrevMonth.setOnClickListener { showPreviousMonth() }
-        btnNextMonth.setOnClickListener { showNextMonth() }
-
-        calendar = Calendar.getInstance()
-        val today = Calendar.getInstance()
-        selectedDate = today.time
-        
+        val view = inflater.inflate(getLayoutId(), container, false)
+        initViews(view)
+        setupListeners()
+        calendar = createCalendarInstance()
+        selectedDate = createCalendarInstance().time
         updateCalendar()
-
         return view
     }
 
-    private fun updateCalendar() {
-        val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-        textMonthYear.text = monthFormat.format(calendar.time)
+    override fun getLayoutId(): Int {
+        return R.layout.fragment_small_mon_cal
+    }
+
+    override fun initViews(view: View) {
+        gridView = view.findViewById(R.id.gridViewDays)
+        textYear = view.findViewById(R.id.textYear)
+        btnPrev = view.findViewById(R.id.btnPrev)
+        btnNext = view.findViewById(R.id.btnNext)
+    }
+
+    override fun updateCalendar() {
+        val monthFormat = getDateFormat()
+        textYear.text = monthFormat.format(calendar.time)
 
         val days = getDaysInMonth()
         val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
+
         gridView.adapter = adapter
 
         gridView.setOnItemClickListener { _, _, position, _ ->
             handleItemClick(position)
         }
 
-        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val firstDayOfWeek = firstDayOfWeek()
 
-        selectedDate?.let {
+        selectedDate.let {
             val calendarSelected = Calendar.getInstance()
             calendarSelected.time = it
 
-            val selectedMonth = calendarSelected.get(Calendar.MONTH)
-            val selectedYear = calendarSelected.get(Calendar.YEAR)
-            val currentMonth = calendar.get(Calendar.MONTH)
-            val currentYear = calendar.get(Calendar.YEAR)
-
-            if (selectedMonth == currentMonth && selectedYear == currentYear) {
+            if (isSameMonth(calendarSelected, calendar)) {
                 val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
 
                 if (selectedDay <= days.size) {
                     val selectedIndex = calculateSelectedIndex(it, firstDayOfWeek)
-
                     adapter.setSelectedDay(selectedIndex)
                 }
             }
         }
 
         adapter.notifyDataSetChanged()
+    }
+
+    override fun handleItemClick(position: Int) {
+        val firstDayOfWeek = firstDayOfWeek()
+        val selectedDayOfMonth = position - firstDayOfWeek + 1
+        selectedDate = calculateSelectedDate(selectedDayOfMonth)
+        updateCalendar()
+    }
+
+    override fun isToday(cal: Calendar, day: Int): Boolean {
+        val today = Calendar.getInstance()
+        return (
+            day == today.get(Calendar.DAY_OF_MONTH) &&
+            cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+            cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+        )
+    }
+
+    override fun getDateFormat(): SimpleDateFormat {
+        return SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    }
+
+    override fun isSameCalendarType(calendar1: Calendar, calendar2: Calendar): Boolean {
+        return isSameMonth(calendar1, calendar2)
+    }
+
+    private fun setupListeners() {
+        btnPrev.setOnClickListener { showPreviousMonth() }
+        btnNext.setOnClickListener { showNextMonth() }
+    }
+
+    private fun getMonthAndYear(calendar: Calendar): Pair<Int, Int> {
+        return Pair(calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR))
     }
 
     private fun showPreviousMonth() {
@@ -99,10 +126,9 @@ class SmallMonCalFragment : Fragment() {
         val days = mutableListOf<SpannableString>()
         val cal = Calendar.getInstance()
         cal.timeInMillis = calendar.timeInMillis
-        cal.set(Calendar.DAY_OF_MONTH, 1)
 
         val lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-        val firstDayOfWeek = firstDayOfWeek(cal)
+        val firstDayOfWeek = firstDayOfWeek()
 
         repeat(firstDayOfWeek) {
             days.add(SpannableString(""))
@@ -136,67 +162,41 @@ class SmallMonCalFragment : Fragment() {
         return days
     }
 
+    private fun firstDayOfWeek(): Int {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = calendar.timeInMillis
+        cal.set(Calendar.DAY_OF_MONTH, 1)
 
-    private fun handleItemClick(position: Int) {
-        val selectedDayOfMonth = calculateSelectedDayOfMonth(position)
-        selectedDate = calculateSelectedDate(selectedDayOfMonth)
-        updateCalendar()
+        val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
+        val firstDayOfWeek = (((dayOfWeek - 1) - cal.firstDayOfWeek + 7) % 7) + 1
+
+        // Caso o dia 1 seja uma segunda-feira, reseta o índice
+        if (firstDayOfWeek == LAST_DAY_OF_WEEK) {
+            return 0
+        }
+
+        return firstDayOfWeek
     }
 
-    private fun firstDayOfWeek(cal: Calendar): Int {
-        return (((cal.get(Calendar.DAY_OF_WEEK) - 1) - cal.firstDayOfWeek + 7) % 7) + 1
-    }
-
-    private fun isToday(cal: Calendar, dayOfMonth: Int): Boolean {
-        val today = Calendar.getInstance()
-        return (
-                dayOfMonth == today.get(Calendar.DAY_OF_MONTH) &&
-                        cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-                )
-    }
-
-    private fun highlightText(text: SpannableString, span: Any): SpannableString {
-        text.setSpan(span, 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return text
+    private fun calculateSelectedDate(selectedDay: Int): Date {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = calendar.timeInMillis
+        cal.set(Calendar.DAY_OF_MONTH, selectedDay)
+        return cal.time
     }
 
     private fun calculateSelectedIndex(selectedDate: Date, firstDayOfWeek: Int): Int {
         val calendarSelected = Calendar.getInstance()
         calendarSelected.time = selectedDate
 
-        val selectedMonth = calendarSelected.get(Calendar.MONTH)
-        val selectedYear = calendarSelected.get(Calendar.YEAR)
-        val currentMonth = calendar.get(Calendar.MONTH)
-        val currentYear = calendar.get(Calendar.YEAR)
+        val (selectedMonth, selectedYear) = getMonthAndYear(calendarSelected)
+        val (currentMonth, currentYear) = getMonthAndYear(calendar)
 
         if (selectedMonth == currentMonth && selectedYear == currentYear) {
             val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
-            return selectedDay + firstDayOfWeek - 1
+            return selectedDay + firstDayOfWeek + 1
         }
 
         return -1
-    }
-
-    private fun calculateSelectedDate(selectedDayOfMonth: Int): Date {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = calendar.timeInMillis
-        cal.set(Calendar.DAY_OF_MONTH, selectedDayOfMonth)
-        return cal.time
-    }
-
-    private fun calculateSelectedDayOfMonth(position: Int): Int {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = calendar.timeInMillis
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-
-        var firstDayOfWeek = firstDayOfWeek(cal)
-
-        // Caso dia 1 seja segunda, reseta o index
-        if (firstDayOfWeek == 7) {
-            firstDayOfWeek = 0
-        }
-
-        return position - firstDayOfWeek + 1
     }
 }

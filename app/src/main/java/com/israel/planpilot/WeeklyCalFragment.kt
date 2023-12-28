@@ -2,72 +2,61 @@ package com.israel.planpilot
 
 import android.graphics.Color
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.text.SpannableString
-import android.text.Spanned
-import androidx.core.content.ContextCompat
 import android.text.style.ForegroundColorSpan
-import java.text.SimpleDateFormat
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Button
-import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.NumberPicker
 import android.widget.TextView
-import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class WeeklyCalFragment : Fragment() {
+import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
 
-    private lateinit var calendar: Calendar
-    private lateinit var gridView: GridView
+class WeeklyCalFragment : BaseCalendarFragment() {
+
     private lateinit var textWeekYear: TextView
     private lateinit var btnPrevWeek: ImageButton
     private lateinit var btnNextWeek: ImageButton
     private lateinit var weekPicker: NumberPicker
     private lateinit var btnToday: Button
-    private var selectedDate: Date? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_weekly_cal, container, false)
+        val view = inflater.inflate(getLayoutId(), container, false)
+        initViews(view)
+        setupListeners()
+        calendar = createCalendarInstance()
+        val today = createCalendarInstance()
+        setupWeekPicker()
+        selectedDate = today.time
+        updateCalendar()
+        return view
+    }
 
+    override fun getLayoutId(): Int {
+        return R.layout.fragment_weekly_cal
+    }
+    override fun initViews(view: View) {
         gridView = view.findViewById(R.id.gridViewDays)
         textWeekYear = view.findViewById(R.id.textYear)
         btnPrevWeek = view.findViewById(R.id.btnPrev)
         btnNextWeek = view.findViewById(R.id.btnNext)
         weekPicker = view.findViewById(R.id.weekPicker)
         btnToday = view.findViewById(R.id.btnToday)
-
-        calendar = Calendar.getInstance()
-        val today = Calendar.getInstance()
-        selectedDate = today.time
-
-        btnPrevWeek.setOnClickListener { showPreviousWeek() }
-        btnNextWeek.setOnClickListener { showNextWeek() }
-        btnToday.setOnClickListener {
-            backToCurrentWeek()
-        }
-
-        weekPicker.minValue = 1
-        weekPicker.maxValue = calendar.getActualMaximum(Calendar.WEEK_OF_YEAR)
-        weekPicker.value = calendar.get(Calendar.WEEK_OF_YEAR)
-        weekPicker.wrapSelectorWheel = false
-        weekPicker.setOnValueChangedListener { _, _, newVal -> onWeekPickerValueChanged(newVal) }
-
-        updateCalendar()
-
-        return view
     }
 
-    private fun updateCalendar() {
-        val weekFormat = SimpleDateFormat("w yyyy", Locale.getDefault())
+    override fun updateCalendar() {
+        val weekFormat = getDateFormat()
         val formattedDate = weekFormat.format(calendar.time)
 
         val weekNumber = formattedDate.substring(0, 2)
@@ -91,24 +80,56 @@ class WeeklyCalFragment : Fragment() {
             handleItemClick(position)
         }
 
-        selectedDate?.let {
+        selectedDate.let {
             val calendarSelected = Calendar.getInstance()
             calendarSelected.time = it
 
-            val selectedWeek = calendarSelected.get(Calendar.WEEK_OF_YEAR)
-            val selectedYear = calendarSelected.get(Calendar.YEAR)
-            val currentWeek = calendar.get(Calendar.WEEK_OF_YEAR)
-            val currentYear = calendar.get(Calendar.YEAR)
-
-            if (selectedWeek == currentWeek && selectedYear == currentYear) {
+            if (isSameWeek(calendarSelected, calendar)) {
                 val selectedDay = calendarSelected.get(Calendar.DAY_OF_WEEK)
-                val selectedIndex = calculateSelectedIndex(selectedDay)
+                val selectedIndex = selectedDay + 1
 
                 adapter.setSelectedDay(selectedIndex)
             }
         }
 
         adapter.notifyDataSetChanged()
+    }
+
+    override fun handleItemClick(position: Int) {
+        val selectedDayOfWeek = position + 1
+        selectedDate = calculateSelectedDate(selectedDayOfWeek)
+        updateCalendar()
+    }
+
+    override fun isToday(cal: Calendar, day: Int): Boolean {
+        val today = Calendar.getInstance()
+        return (
+            day == today.get(Calendar.DAY_OF_WEEK) &&
+            cal.get(Calendar.WEEK_OF_YEAR) == today.get(Calendar.WEEK_OF_YEAR) &&
+            cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+        )
+    }
+
+    override fun getDateFormat(): SimpleDateFormat {
+        return SimpleDateFormat("w yyyy", Locale.getDefault())
+    }
+
+    override fun isSameCalendarType(calendar1: Calendar, calendar2: Calendar): Boolean {
+        return isSameWeek(calendar1, calendar2)
+    }
+
+    private fun setupListeners() {
+        btnPrevWeek.setOnClickListener { showPreviousWeek() }
+        btnNextWeek.setOnClickListener { showNextWeek() }
+        btnToday.setOnClickListener { backToCurrentWeek() }
+    }
+
+    private fun setupWeekPicker() {
+        weekPicker.minValue = 1
+        weekPicker.maxValue = calendar.getActualMaximum(Calendar.WEEK_OF_YEAR)
+        weekPicker.value = calendar.get(Calendar.WEEK_OF_YEAR)
+        weekPicker.wrapSelectorWheel = false
+        weekPicker.setOnValueChangedListener { _, _, newVal -> onWeekPickerValueChanged(newVal) }
     }
 
     private fun updateWeekPickerValue() {
@@ -134,7 +155,7 @@ class WeeklyCalFragment : Fragment() {
             ContextCompat.getColor(it, R.color.green)
         } ?: Color.BLACK
 
-        repeat(7) { dayOfWeek ->
+        repeat(LAST_DAY_OF_WEEK) { dayOfWeek ->
             val cal = Calendar.getInstance()
             cal.timeInMillis = calendar.timeInMillis
             cal.set(Calendar.DAY_OF_WEEK, dayOfWeek + 1)
@@ -155,30 +176,6 @@ class WeeklyCalFragment : Fragment() {
         return days
     }
 
-    private fun handleItemClick(position: Int) {
-        val selectedDayOfWeek = position + 1
-        selectedDate = calculateSelectedDate(selectedDayOfWeek)
-        updateCalendar()
-    }
-
-    private fun isToday(cal: Calendar, dayOfWeek: Int): Boolean {
-        val today = Calendar.getInstance()
-        return (
-                dayOfWeek == today.get(Calendar.DAY_OF_WEEK) &&
-                        cal.get(Calendar.WEEK_OF_YEAR) == today.get(Calendar.WEEK_OF_YEAR) &&
-                        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-                )
-    }
-
-    private fun highlightText(text: SpannableString, span: Any): SpannableString {
-        text.setSpan(span, 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return text
-    }
-
-    private fun calculateSelectedIndex(selectedDayOfWeek: Int): Int {
-        return selectedDayOfWeek + 1
-    }
-
     private fun onWeekPickerValueChanged(newVal: Int) {
         calendar.set(Calendar.WEEK_OF_YEAR, newVal)
         updateCalendar()
@@ -193,19 +190,18 @@ class WeeklyCalFragment : Fragment() {
 
     private fun backToCurrentWeek() {
         val today = Calendar.getInstance()
-        val currentWeek = today.get(Calendar.WEEK_OF_YEAR)
 
-        if (calendar.get(Calendar.WEEK_OF_YEAR) != currentWeek) {
+        if (!isSameWeek(calendar, today)) {
             calendar.time = today.time
             updateWeekPickerValue()
             updateCalendar()
         } else {
-            btnToday.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.btn_today_feedback))
+            btnToday.startAnimation(
+                AnimationUtils.loadAnimation(
+                    requireContext(),
+                    R.anim.btn_today_feedback
+                )
+            )
         }
     }
 }
-
-
-
-
-
