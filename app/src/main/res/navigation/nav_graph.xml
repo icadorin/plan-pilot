@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_home">
+    app:startDestination="@id/nav_cal_mon_large">
 
     <fragment
         android:id="@+id/nav_home"
@@ -31,8 +31,8 @@
 
     <fragment
         android:id="@+id/nav_cal_mon_large"
-        android:name="com.israel.planpilot.WeeklyCalFragment"
-        android:label="fragment_week_view"
+        android:name="com.israel.planpilot.LargeMonCalFragment"
+        android:label="fragment_calendar_full_screen"
         tools:layout="@layout/fragment_large_mon_cal" />
 
 </navigation>

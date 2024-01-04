@@ -25,13 +25,13 @@ class MainActivity : AppCompatActivity() {
         setupActionBarTitleListener()
 
         //ToDo arrumar ícone do menu
-        //ToDo arrumar estrutura dos calendário, criar uma classe base para semanal e mensal
     }
 
     private fun initializeViews() {
         drawerLayout = findViewById(R.id.homeDrawerLayout)
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
         navController = navHostFragment.navController
 
@@ -41,7 +41,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupNavigation() {
-        appBarConfiguration = AppBarConfiguration(setOf(R.id.nav_home, R.id.nav_login), drawerLayout)
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.nav_home,
+                R.id.nav_login,
+                R.id.nav_cal_mon_small,
+                R.id.nav_cal_week,
+                R.id.nav_cal_mon_large
+            ),
+            drawerLayout
+        )
+
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         val navigationView = findViewById<NavigationView>(R.id.navigationView)
