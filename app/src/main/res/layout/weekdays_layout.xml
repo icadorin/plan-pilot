@@ -22,7 +22,7 @@
             android:layout_weight="1"
             android:text="D"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck,TextContrastCheck" />
 
@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:text="S"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck,TextContrastCheck" />
 
@@ -43,7 +43,7 @@
             android:layout_weight="1"
             android:text="T"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck" />
 
@@ -53,7 +53,7 @@
             android:layout_weight="1"
             android:text="Q"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck" />
 
@@ -63,7 +63,7 @@
             android:layout_weight="1"
             android:text="Q"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck" />
 
@@ -73,7 +73,7 @@
             android:layout_weight="1"
             android:text="S"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck" />
 
@@ -83,7 +83,7 @@
             android:layout_weight="1"
             android:text="S"
             android:textAlignment="center"
-            android:textColor="@color/grey"
+            android:textColor="@color/gray"
             android:textSize="16sp"
             tools:ignore="HardcodedText,TextContrastCheck" />
 
