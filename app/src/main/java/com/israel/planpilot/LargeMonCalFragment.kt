@@ -7,13 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
+import com.israel.planpilot.Constants.VERTICAL_VISIBLE_CELLS
 import java.util.Calendar
 import java.util.Date
-
-import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
 
 class LargeMonCalFragment : Fragment() {
 
@@ -38,6 +39,37 @@ class LargeMonCalFragment : Fragment() {
         layoutManager = GridLayoutManager(activity, LAST_DAY_OF_WEEK)
         recyclerView.layoutManager = layoutManager
 
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            var lastDx = 0
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                // Verifique se o usuário arrastou a tela para a direita
+                if (dx != 0 && dx != lastDx) {
+                    lastDx = dx
+                    // O usuário arrastou a tela para a direita, então vá para o próximo mês
+                    selectedDate = Calendar.getInstance().apply {
+                        time = selectedDate
+                        add(Calendar.MONTH, 1)
+                    }.time
+                    updateCalendar()
+                }
+
+                // Verifique se o usuário arrastou a tela para a esquerda
+                if (dx < 0) {
+                    // O usuário arrastou a tela para a esquerda, então vá para o mês anterior
+                    selectedDate = Calendar.getInstance().apply {
+                        time = selectedDate
+                        add(Calendar.MONTH, -1)
+                    }.time
+                    updateCalendar()
+                }
+            }
+        })
+    }
+
+    private fun updateCalendar() {
         val verticalDivider = GridDividerDecoration(Color.BLACK, 1f, isVertical = true)
         val horizontalDivider = GridDividerDecoration(Color.BLACK, 1f, isVertical = false)
 
@@ -60,25 +92,43 @@ class LargeMonCalFragment : Fragment() {
         )
     }
 
-    private fun updateCalendar() {
-        //
-    }
+    private inner class DayItem(val day: String, val isCurrentMonth: Boolean)
 
-    private fun getDaysInMonth(): List<String> {
-        val days = mutableListOf<String>()
+    private fun getDaysInMonth(): List<DayItem> {
+        val days = mutableListOf<DayItem>()
         val calendar = Calendar.getInstance()
         calendar.time = selectedDate
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+
+        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
         val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
+        // Adiciona os dias do mes anterior
+        calendar.add(Calendar.MONTH, -1)
+        val lastMonthMaxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val daysBefore = (firstDayOfWeek - 1) % LAST_DAY_OF_WEEK
+        for (i in lastMonthMaxDays - daysBefore + 1..lastMonthMaxDays) {
+            days.add(DayItem(i.toString(), false))
+        }
+
+        // Adiciona os dias do mes atual
         for (dayOfMonth in 1..lastDayOfMonth) {
-            days.add(dayOfMonth.toString())
+            days.add(DayItem(dayOfMonth.toString(), true))
+        }
+
+        // Adiciona os dias do proximo mes
+        calendar.add(Calendar.MONTH, 2)
+        val totalCells = LAST_DAY_OF_WEEK * VERTICAL_VISIBLE_CELLS
+        val daysAfter = totalCells - (days.size % totalCells)
+        for (dayOfMonth in 1..daysAfter) {
+            days.add(DayItem(dayOfMonth.toString(), false))
         }
 
         return days
     }
 
     private inner class CalendarAdapter(
-        private val days: List<String>,
+        private val days: List<DayItem>,
         private val screenHeight: Int
     ) : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
 
@@ -96,10 +146,23 @@ class LargeMonCalFragment : Fragment() {
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.textView.text = days[position]
+            val dayItem = days[position]
 
-            val numberOfVisibleCells = 5
-            val adjustedHeight = screenHeight / numberOfVisibleCells
+            holder.textView.text = dayItem.day
+
+            if (dayItem.isCurrentMonth) {
+                holder.textView.setTextColor(ContextCompat.getColor(
+                    holder.itemView.context,
+                    android.R.color.black)
+                )
+            } else {
+                holder.textView.setTextColor(ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.grey)
+                )
+            }
+
+            val adjustedHeight = screenHeight / VERTICAL_VISIBLE_CELLS
 
             val layoutParams = holder.itemView.layoutParams
             layoutParams.height = adjustedHeight
