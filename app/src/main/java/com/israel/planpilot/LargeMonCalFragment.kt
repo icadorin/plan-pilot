@@ -45,10 +45,8 @@ class LargeMonCalFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                // Verifique se o usuário arrastou a tela para a direita
                 if (dx != 0 && dx != lastDx) {
                     lastDx = dx
-                    // O usuário arrastou a tela para a direita, então vá para o próximo mês
                     selectedDate = Calendar.getInstance().apply {
                         time = selectedDate
                         add(Calendar.MONTH, 1)
@@ -56,9 +54,7 @@ class LargeMonCalFragment : Fragment() {
                     updateCalendar()
                 }
 
-                // Verifique se o usuário arrastou a tela para a esquerda
                 if (dx < 0) {
-                    // O usuário arrastou a tela para a esquerda, então vá para o mês anterior
                     selectedDate = Calendar.getInstance().apply {
                         time = selectedDate
                         add(Calendar.MONTH, -1)
@@ -103,7 +99,6 @@ class LargeMonCalFragment : Fragment() {
         val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
         val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        // Adiciona os dias do mes anterior
         calendar.add(Calendar.MONTH, -1)
         val lastMonthMaxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
         val daysBefore = (firstDayOfWeek - 1) % LAST_DAY_OF_WEEK
@@ -111,12 +106,10 @@ class LargeMonCalFragment : Fragment() {
             days.add(DayItem(i.toString(), false))
         }
 
-        // Adiciona os dias do mes atual
         for (dayOfMonth in 1..lastDayOfMonth) {
             days.add(DayItem(dayOfMonth.toString(), true))
         }
 
-        // Adiciona os dias do proximo mes
         calendar.add(Calendar.MONTH, 2)
         val totalCells = LAST_DAY_OF_WEEK * VERTICAL_VISIBLE_CELLS
         val daysAfter = totalCells - (days.size % totalCells)
