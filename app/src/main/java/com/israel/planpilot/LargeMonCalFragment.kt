@@ -1,6 +1,7 @@
 package com.israel.planpilot
 
-import android.graphics.Color
+import android.content.Context
+import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,19 +34,12 @@ class LargeMonCalFragment : Fragment() {
         return view
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//        viewPager.layoutParams.height = RelativeLayout.LayoutParams.MATCH_PARENT
-//    }
-
     private fun initViews(view: View) {
         viewPager = view.findViewById(R.id.viewPager)
         selectedDate = Calendar.getInstance().time
 
         val adapter = CalendarPagerAdapter()
         viewPager.adapter = adapter
-
-        viewPager.adapter = CalendarPagerAdapter()
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
 
@@ -66,13 +60,13 @@ class LargeMonCalFragment : Fragment() {
         }
 
         override fun getItemCount(): Int {
-            // Você pode ajustar a quantidade de páginas aqui, por exemplo, retornando 12 para um ano inteiro
             return 12
         }
 
         private inner class CalendarViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val recyclerView: RecyclerView = itemView.findViewById(R.id.recyclerViewDays)
-            private val adapter = CalendarAdapter()
+            val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+            private val adapter = CalendarAdapter(screenHeight)
 
             init {
                 recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
@@ -82,7 +76,6 @@ class LargeMonCalFragment : Fragment() {
             fun setDays(newDays: List<DayItem>) {
                 adapter.setDays(newDays)
             }
-
         }
     }
 
@@ -102,7 +95,7 @@ class LargeMonCalFragment : Fragment() {
 
             val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-            for (dayOfMonth in 1..42) { // Ajuste para garantir 6
+            for (dayOfMonth in 1..42) {
 
                 var firstDay = dayOfMonth
 
@@ -127,7 +120,7 @@ class LargeMonCalFragment : Fragment() {
         return daysInYear
     }
 
-    private inner class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
+    private inner class CalendarAdapter(private val screenHeight: Int) : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
 
         private var days: List<DayItem> = emptyList()
 
@@ -140,6 +133,11 @@ class LargeMonCalFragment : Fragment() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_calendar_day_large, parent, false)
+
+            val numberOfVisibleCells = 6
+            val adjustedHeight = (screenHeight - getActionBarHeight(view.context)) / numberOfVisibleCells
+            view.layoutParams.height = adjustedHeight
+
             return ViewHolder(view)
         }
 
@@ -164,9 +162,7 @@ class LargeMonCalFragment : Fragment() {
                 )
             }
 
-            // Adicionando o ouvinte de clique
             holder.textView.setOnClickListener {
-                // Ação que você deseja realizar ao clicar no número
                 Toast.makeText(
                     holder.itemView.context,
                     "Número clicado: ${dayItem.day}",
@@ -201,16 +197,10 @@ class LargeMonCalFragment : Fragment() {
         }
     }
 
-    private fun addDecoratorsToRecyclerView(viewPager: ViewPager2) {
-        val recyclerViewField = ViewPager2::class.java.getDeclaredField("mRecyclerView")
-        recyclerViewField.isAccessible = true
-        val recyclerView = recyclerViewField.get(viewPager) as RecyclerView
-
-        val verticalDivider = GridDividerDecoration(Color.BLACK, 1f, isVertical = true)
-        val horizontalDivider = GridDividerDecoration(Color.BLACK, 1f, isVertical = false)
-
-        recyclerView.addItemDecoration(verticalDivider)
-        recyclerView.addItemDecoration(horizontalDivider)
+    private fun getActionBarHeight(context: Context): Int {
+        val styledAttributes = context.theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
+        val actionBarSize = styledAttributes.getDimension(0, 0f).toInt()
+        styledAttributes.recycle()
+        return actionBarSize
     }
-
 }
