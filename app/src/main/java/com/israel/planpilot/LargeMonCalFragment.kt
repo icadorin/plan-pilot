@@ -1,6 +1,6 @@
 package com.israel.planpilot
 
-import android.graphics.Color
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -52,7 +52,8 @@ class LargeMonCalFragment : Fragment() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CalendarViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_calendar_page, parent, false)
-            return CalendarViewHolder(view)
+
+            return CalendarViewHolder(view, parent.context)
         }
 
         override fun onBindViewHolder(holder: CalendarViewHolder, position: Int) {
@@ -64,13 +65,19 @@ class LargeMonCalFragment : Fragment() {
             return 12
         }
 
-        private inner class CalendarViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private inner class CalendarViewHolder(
+            itemView: View,
+            context: Context
+        ) : RecyclerView.ViewHolder(itemView) {
             private val recyclerView: RecyclerView = itemView.findViewById(R.id.recyclerViewDays)
             private val adapter = CalendarAdapter()
 
             init {
                 recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
                 recyclerView.adapter = adapter
+
+                recyclerView.addItemDecoration(HorizontalDividerItemDecoration(context))
+                recyclerView.addItemDecoration(VerticalDividerItemDecoration(context))
             }
 
             fun setDays(newDays: List<DayItem>) {
