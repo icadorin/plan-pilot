@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 class GridDividerDecoration(
     color: Int,
     private val size: Float,
-    private val isVertical: Boolean = true
+    private val isVertical: Boolean
 ) : RecyclerView.ItemDecoration() {
 
     private val paint = Paint()
@@ -29,8 +29,7 @@ class GridDividerDecoration(
         val left = parent.paddingLeft
         val right = parent.width - parent.paddingRight
 
-        val childCount = parent.childCount
-        for (i in 0 until childCount) {
+        for (i in 0 until parent.childCount) {
             val child = parent.getChildAt(i)
             val params = child.layoutParams as RecyclerView.LayoutParams
 
@@ -45,8 +44,7 @@ class GridDividerDecoration(
         val top = parent.paddingTop
         val bottom = parent.height - parent.paddingBottom
 
-        val childCount = parent.childCount
-        for (i in 0 until childCount) {
+        for (i in 0 until parent.childCount) {
             val child = parent.getChildAt(i)
             val params = child.layoutParams as RecyclerView.LayoutParams
 
@@ -57,4 +55,5 @@ class GridDividerDecoration(
         }
     }
 }
+
 

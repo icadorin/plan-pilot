@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.israel.planpilot"
-        minSdk = 24
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.window:window:1.2.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
