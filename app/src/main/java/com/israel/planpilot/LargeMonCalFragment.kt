@@ -1,7 +1,5 @@
 package com.israel.planpilot
 
-import android.content.Context
-import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -41,9 +39,11 @@ class LargeMonCalFragment : Fragment() {
         val adapter = CalendarPagerAdapter()
         viewPager.adapter = adapter
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        viewPager.registerOnPageChangeCallback(
+            object : ViewPager2.OnPageChangeCallback() {
 
-        })
+            }
+        )
     }
 
     private inner class CalendarPagerAdapter : RecyclerView.Adapter<CalendarPagerAdapter.CalendarViewHolder>() {
@@ -65,8 +65,7 @@ class LargeMonCalFragment : Fragment() {
 
         private inner class CalendarViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val recyclerView: RecyclerView = itemView.findViewById(R.id.recyclerViewDays)
-            val screenHeight = Resources.getSystem().displayMetrics.heightPixels
-            private val adapter = CalendarAdapter(screenHeight)
+            private val adapter = CalendarAdapter()
 
             init {
                 recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
@@ -120,7 +119,7 @@ class LargeMonCalFragment : Fragment() {
         return daysInYear
     }
 
-    private inner class CalendarAdapter(private val screenHeight: Int) : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
+    private inner class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
 
         private var days: List<DayItem> = emptyList()
 
@@ -134,9 +133,13 @@ class LargeMonCalFragment : Fragment() {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_calendar_day_large, parent, false)
 
-            val numberOfVisibleCells = 6
-            val adjustedHeight = (screenHeight - getActionBarHeight(view.context)) / numberOfVisibleCells
-            view.layoutParams.height = adjustedHeight
+            val viewPagerHeight = viewPager.measuredHeight
+
+            val itemHeight = viewPagerHeight / 6
+
+            val params = view.layoutParams
+            params.height = itemHeight
+            view.layoutParams = params
 
             return ViewHolder(view)
         }
@@ -195,12 +198,5 @@ class LargeMonCalFragment : Fragment() {
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             return oldList[oldItemPosition] == newList[newItemPosition]
         }
-    }
-
-    private fun getActionBarHeight(context: Context): Int {
-        val styledAttributes = context.theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
-        val actionBarSize = styledAttributes.getDimension(0, 0f).toInt()
-        styledAttributes.recycle()
-        return actionBarSize
     }
 }
