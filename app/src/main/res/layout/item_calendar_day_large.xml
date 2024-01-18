@@ -1,23 +1,29 @@
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center"
     xmlns:tools="http://schemas.android.com/tools">
 
     <View
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
+        android:id="@+id/dividerTop"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentTop="true"
         android:background="@color/gray" />
 
     <TextView
         android:id="@+id/textDay"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dividerTop"
         android:gravity="top|center_horizontal"
         android:textSize="16sp"
         tools:ignore="SpeakableTextPresentCheck" />
 
-</LinearLayout>
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:background="@color/gray" />
+
+</RelativeLayout>

@@ -3,12 +3,15 @@
     <color name="white">#FFFFFFFF</color>
     <color name="selected">#FF4081</color>
     <color name="gray">#9C9B9B</color>
+    <color name="gray_light">#DCDCDC</color>
     <color name="default_color">#D0D0D0</color>
     <color name="my_light_primary">#FFFFFFFF</color>
     <color name="my_dark_primary">#2B2BF1</color>
+    <color name="blue_week">#523B3BFD</color>
     <color name="my_custom_day_color">#D5D5D5</color>
     <color name="blue">#1A1AFF</color>
     <color name="default_background">#FAFAFA</color>
+    <color name="red">#C30505</color>
     <color name="green">#4AD319</color>
 </resources>
 

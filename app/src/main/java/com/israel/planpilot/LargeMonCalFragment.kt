@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -34,20 +35,41 @@ class LargeMonCalFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
+        initWeekdayRecyclerView(view)
+        initCalendarViewPager(view)
+    }
+
+    private fun initCalendarViewPager(view: View) {
         viewPager = view.findViewById(R.id.viewPager)
         selectedDate = Calendar.getInstance().time
 
         val adapter = CalendarPagerAdapter()
         viewPager.adapter = adapter
 
-        viewPager.registerOnPageChangeCallback(
-            object : ViewPager2.OnPageChangeCallback() {
-
-            }
-        )
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {})
     }
 
-    private inner class CalendarPagerAdapter : RecyclerView.Adapter<CalendarPagerAdapter.CalendarViewHolder>() {
+    private fun initWeekdayRecyclerView(view: View) {
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
+        val weekdays = arrayOf("D", "S", "T", "Q", "Q", "S", "S")
+
+        val adapterWeekday = WeekdayAdapter(requireContext(), weekdays)
+
+        recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
+        recyclerView.adapter = adapterWeekday
+
+        val horizontalDivider = DividerItemDecoration(
+            requireContext(),
+            DividerItemDecoration.HORIZONTAL
+        )
+
+        ContextCompat.getDrawable(requireContext(), R.drawable.divider_horizontal_week_days)
+            ?.let { horizontalDivider.setDrawable(it) }
+        recyclerView.addItemDecoration(horizontalDivider)
+    }
+
+    private inner class CalendarPagerAdapter :
+        RecyclerView.Adapter<CalendarPagerAdapter.CalendarViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CalendarViewHolder {
             val view = LayoutInflater.from(parent.context)
@@ -75,9 +97,6 @@ class LargeMonCalFragment : Fragment() {
             init {
                 recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
                 recyclerView.adapter = adapter
-
-                recyclerView.addItemDecoration(HorizontalDividerItemDecoration(context))
-                recyclerView.addItemDecoration(VerticalDividerItemDecoration(context))
             }
 
             fun setDays(newDays: List<DayItem>) {
@@ -110,7 +129,8 @@ class LargeMonCalFragment : Fragment() {
                     firstDay = 1
                 }
 
-                val isCurrentMonth = firstDay <= lastDayOfMonth && month == calendar.get(Calendar.MONTH)
+                val isCurrentMonth = (firstDay <= lastDayOfMonth) &&
+                        (month == calendar.get(Calendar.MONTH))
 
                 daysInMonth.add(
                     DayItem(
@@ -205,6 +225,32 @@ class LargeMonCalFragment : Fragment() {
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             return oldList[oldItemPosition] == newList[newItemPosition]
+        }
+    }
+
+    class WeekdayAdapter(private val context: Context, private val weekdays: Array<String>) :
+        RecyclerView.Adapter<WeekdayAdapter.ViewHolder>() {
+
+        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val textView: TextView = itemView.findViewById(R.id.weekdayTextView)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(context).inflate(
+                R.layout.item_week_days,
+                parent,
+                false
+            )
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val day = weekdays[position]
+            holder.textView.text = day
+        }
+
+        override fun getItemCount(): Int {
+            return weekdays.size
         }
     }
 }
