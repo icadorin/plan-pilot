@@ -18,7 +18,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
+import com.israel.planpilot.Constants.HORIZONTAL_CELLS
 
 class WeeklyCalFragment : BaseCalendarFragment() {
 
@@ -155,7 +155,7 @@ class WeeklyCalFragment : BaseCalendarFragment() {
             ContextCompat.getColor(it, R.color.green)
         } ?: Color.BLACK
 
-        repeat(LAST_DAY_OF_WEEK) { dayOfWeek ->
+        repeat(HORIZONTAL_CELLS) { dayOfWeek ->
             val cal = Calendar.getInstance()
             cal.timeInMillis = calendar.timeInMillis
             cal.set(Calendar.DAY_OF_WEEK, dayOfWeek + 1)

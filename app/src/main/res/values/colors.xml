@@ -8,6 +8,7 @@
     <color name="my_light_primary">#FFFFFFFF</color>
     <color name="my_dark_primary">#2B2BF1</color>
     <color name="blue_week">#523B3BFD</color>
+    <color name="blue_today">#193B3BFD</color>
     <color name="my_custom_day_color">#D5D5D5</color>
     <color name="blue">#1A1AFF</color>
     <color name="default_background">#FAFAFA</color>

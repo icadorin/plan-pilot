@@ -2,6 +2,7 @@ package com.israel.planpilot
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,16 +15,29 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
+import com.israel.planpilot.Constants.HORIZONTAL_CELLS
+import com.israel.planpilot.Constants.VERTICAL_CELLS
+import com.israel.planpilot.Constants.START_YEAR
+import com.israel.planpilot.Constants.END_YEAR
+import com.israel.planpilot.Constants.MONTHS_IN_YEAR
+import com.israel.planpilot.Constants.TOTAL_MONTHS_IN_201_YEARS
+import com.israel.planpilot.Constants.CELLS_PER_PAGE
 
 class LargeMonCalFragment : Fragment() {
 
     private lateinit var viewPager: ViewPager2
     private lateinit var selectedDate: Date
+    private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
-    private inner class DayItem(val day: String, val isCurrentMonth: Boolean)
+    private inner class DayItem(
+        val day: String,
+        val isCurrentMonth: Boolean,
+        val year: Int,
+        val month: Int
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,6 +46,35 @@ class LargeMonCalFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_large_mon_cal, container, false)
         initViews(view)
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        toolbar = requireActivity().findViewById(R.id.custom_toolbar)
+    }
+
+    private fun updateToolbar(year: Int, month: Int) {
+        val adjustedMonth = month - 1
+
+        val calendar = Calendar.getInstance()
+        calendar.set(year, adjustedMonth, 1)
+
+        val monthString = calendar.getDisplayName(
+            Calendar.MONTH,
+            Calendar.SHORT,
+            Locale.getDefault()
+        )?.substring(0, 3)?.uppercase(Locale.getDefault())
+
+        toolbar.title = "$monthString. $year"
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val calendar = Calendar.getInstance()
+        calendar.time = selectedDate
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1
+        updateToolbar(year, month)
     }
 
     private fun initViews(view: View) {
@@ -43,10 +86,30 @@ class LargeMonCalFragment : Fragment() {
         viewPager = view.findViewById(R.id.viewPager)
         selectedDate = Calendar.getInstance().time
 
+        val startDate = Calendar.getInstance()
+        val startYear = START_YEAR
+
+        val currentYear = startDate.get(Calendar.YEAR)
+        val currentMonth = startDate.get(Calendar.MONTH)
+
+        val initialPosition = (currentYear - startYear) * MONTHS_IN_YEAR + currentMonth
+
         val adapter = CalendarPagerAdapter()
         viewPager.adapter = adapter
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {})
+        viewPager.setCurrentItem(initialPosition, false)
+
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                val year = START_YEAR + position / MONTHS_IN_YEAR
+                val month = position % MONTHS_IN_YEAR + 1
+
+                Log.d("ViewPagerCallback", "onPageSelected - Posição: $position, Ano: $year, Mês: $month")
+
+                updateToolbar(year, month)
+            }
+        })
     }
 
     private fun initWeekdayRecyclerView(view: View) {
@@ -55,7 +118,7 @@ class LargeMonCalFragment : Fragment() {
 
         val adapterWeekday = WeekdayAdapter(requireContext(), weekdays)
 
-        recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
+        recyclerView.layoutManager = GridLayoutManager(context, HORIZONTAL_CELLS)
         recyclerView.adapter = adapterWeekday
 
         val horizontalDivider = DividerItemDecoration(
@@ -84,7 +147,7 @@ class LargeMonCalFragment : Fragment() {
         }
 
         override fun getItemCount(): Int {
-            return 12
+            return (END_YEAR - START_YEAR + 1) * MONTHS_IN_YEAR
         }
 
         private inner class CalendarViewHolder(
@@ -95,7 +158,7 @@ class LargeMonCalFragment : Fragment() {
             private val adapter = CalendarAdapter()
 
             init {
-                recyclerView.layoutManager = GridLayoutManager(context, LAST_DAY_OF_WEEK)
+                recyclerView.layoutManager = GridLayoutManager(context, HORIZONTAL_CELLS)
                 recyclerView.adapter = adapter
             }
 
@@ -108,12 +171,13 @@ class LargeMonCalFragment : Fragment() {
     private fun getDaysInYear(): List<List<DayItem>> {
         val daysInYear = mutableListOf<List<DayItem>>()
 
-        for (month in 0 until 12) {
+        for (month in 0 until TOTAL_MONTHS_IN_201_YEARS) {
             val daysInMonth = mutableListOf<DayItem>()
             val calendar = Calendar.getInstance()
             calendar.time = selectedDate
 
-            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.YEAR, START_YEAR + month / MONTHS_IN_YEAR)
+            calendar.set(Calendar.MONTH, month % MONTHS_IN_YEAR)
             calendar.set(Calendar.DAY_OF_MONTH, 1)
 
             val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
@@ -121,8 +185,7 @@ class LargeMonCalFragment : Fragment() {
 
             val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-            for (dayOfMonth in 1..42) {
-
+            for (dayOfMonth in 1..CELLS_PER_PAGE) {
                 var firstDay = dayOfMonth
 
                 if (firstDay != calendar.get(Calendar.DAY_OF_MONTH)) {
@@ -130,12 +193,14 @@ class LargeMonCalFragment : Fragment() {
                 }
 
                 val isCurrentMonth = (firstDay <= lastDayOfMonth) &&
-                        (month == calendar.get(Calendar.MONTH))
+                        (month % MONTHS_IN_YEAR == calendar.get(Calendar.MONTH))
 
                 daysInMonth.add(
                     DayItem(
                         (calendar.get(Calendar.DAY_OF_MONTH)).toString(),
-                        isCurrentMonth
+                        isCurrentMonth,
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH)
                     )
                 )
                 calendar.add(Calendar.DATE, 1)
@@ -163,7 +228,7 @@ class LargeMonCalFragment : Fragment() {
 
             val viewPagerHeight = viewPager.measuredHeight
 
-            val itemHeight = viewPagerHeight / 6
+            val itemHeight = viewPagerHeight / VERTICAL_CELLS
 
             val params = view.layoutParams
             params.height = itemHeight
@@ -193,7 +258,22 @@ class LargeMonCalFragment : Fragment() {
                 )
             }
 
-            holder.textView.setOnClickListener {
+            val currentDate = Calendar.getInstance()
+            val currentYear = currentDate.get(Calendar.YEAR)
+            val currentMonth = currentDate.get(Calendar.MONTH)
+            val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
+
+            val itemYear = days[position].year
+            val itemMonth = days[position].month
+            val itemDay = dayItem.day.toInt()
+
+            if (currentYear == itemYear && currentMonth == itemMonth && currentDay == itemDay) {
+                holder.itemView.setBackgroundResource(R.color.blue_today)
+            } else {
+                holder.itemView.setBackgroundResource(android.R.color.transparent)
+            }
+
+            holder.itemView.setOnClickListener {
                 Toast.makeText(
                     holder.itemView.context,
                     "Número clicado: ${dayItem.day}",
@@ -225,32 +305,6 @@ class LargeMonCalFragment : Fragment() {
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             return oldList[oldItemPosition] == newList[newItemPosition]
-        }
-    }
-
-    class WeekdayAdapter(private val context: Context, private val weekdays: Array<String>) :
-        RecyclerView.Adapter<WeekdayAdapter.ViewHolder>() {
-
-        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val textView: TextView = itemView.findViewById(R.id.weekdayTextView)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(context).inflate(
-                R.layout.item_week_days,
-                parent,
-                false
-            )
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val day = weekdays[position]
-            holder.textView.text = day
-        }
-
-        override fun getItemCount(): Int {
-            return weekdays.size
         }
     }
 }

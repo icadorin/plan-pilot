@@ -15,7 +15,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-import com.israel.planpilot.Constants.LAST_DAY_OF_WEEK
+import com.israel.planpilot.Constants.HORIZONTAL_CELLS
 
 class SmallMonCalFragment : BaseCalendarFragment() {
 
@@ -171,7 +171,7 @@ class SmallMonCalFragment : BaseCalendarFragment() {
         val firstDayOfWeek = (((dayOfWeek - 1) - cal.firstDayOfWeek + 7) % 7) + 1
 
         // Caso o dia 1 seja uma segunda-feira, reseta o índice
-        if (firstDayOfWeek == LAST_DAY_OF_WEEK) {
+        if (firstDayOfWeek == HORIZONTAL_CELLS) {
             return 0
         }
 
