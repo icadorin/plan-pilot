@@ -1,8 +1,13 @@
 package com.israel.planpilot
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -16,16 +21,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        toolbar = findViewById(R.id.custom_toolbar)
+        setSupportActionBar(toolbar)
+
         initializeViews()
         setupNavigation()
         setupActionBarTitleListener()
-
-        //ToDo arrumar ícone do menu
     }
 
     private fun initializeViews() {
@@ -36,15 +43,19 @@ class MainActivity : AppCompatActivity() {
 
         navController = navHostFragment.navController
 
-        val toolbar: Toolbar = findViewById(R.id.custom_toolbar)
+
+        toolbar.setTitleTextColor(Color.WHITE)
         setSupportActionBar(toolbar)
 
-        supportActionBar?.let {
-            it.title = "Undefined"
-        }
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private fun setupNavigation() {
+        setupActionBar()
+        setupDrawerMenu()
+    }
+
+    private fun setupActionBar() {
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_home,
@@ -57,38 +68,76 @@ class MainActivity : AppCompatActivity() {
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
+    }
 
+    private fun setupDrawerMenu() {
         val navigationView = findViewById<NavigationView>(R.id.navigationView)
-        navigationView.setNavigationItemSelectedListener { menuItem ->
 
-            when (menuItem.itemId) {
-                R.id.nav_home -> {
-                    navController.navigate(R.id.nav_home)
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_login -> {
-                    navController.navigate(R.id.nav_login)
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_cal_mon_small -> {
-                    navController.navigate(R.id.nav_cal_mon_small)
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_cal_week -> {
-                    navController.navigate(R.id.nav_cal_week)
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_cal_mon_large -> {
-                    navController.navigate(R.id.nav_cal_mon_large)
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                else -> false
+        val toggle = ActionBarDrawerToggle(
+            this,
+            drawerLayout,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+
+        toggle.isDrawerIndicatorEnabled = false
+        toggle.setHomeAsUpIndicator(R.drawable.ic_menu_white)
+
+        drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerOpened(drawerView: View) {
+                supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
             }
+
+            override fun onDrawerClosed(drawerView: View) {
+                supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
+            }
+        })
+
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        toolbar.setNavigationOnClickListener {
+            if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
+
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            handleNavigationItemSelected(menuItem)
+        }
+    }
+
+    private fun handleNavigationItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
+            R.id.nav_home -> {
+                navController.navigate(R.id.nav_home)
+                drawerLayout.closeDrawers()
+                return true
+            }
+            R.id.nav_login -> {
+                navController.navigate(R.id.nav_login)
+                drawerLayout.closeDrawers()
+                return true
+            }
+            R.id.nav_cal_mon_small -> {
+                navController.navigate(R.id.nav_cal_mon_small)
+                drawerLayout.closeDrawers()
+                return true
+            }
+            R.id.nav_cal_week -> {
+                navController.navigate(R.id.nav_cal_week)
+                drawerLayout.closeDrawers()
+                return true
+            }
+            R.id.nav_cal_mon_large -> {
+                navController.navigate(R.id.nav_cal_mon_large)
+                drawerLayout.closeDrawers()
+                return true
+            }
+            else -> return false
         }
     }
 

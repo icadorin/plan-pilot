@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -51,21 +52,7 @@ class LargeMonCalFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbar = requireActivity().findViewById(R.id.custom_toolbar)
-    }
-
-    private fun updateToolbar(year: Int, month: Int) {
-        val adjustedMonth = month - 1
-
-        val calendar = Calendar.getInstance()
-        calendar.set(year, adjustedMonth, 1)
-
-        val monthString = calendar.getDisplayName(
-            Calendar.MONTH,
-            Calendar.SHORT,
-            Locale.getDefault()
-        )?.substring(0, 3)?.uppercase(Locale.getDefault())
-
-        toolbar.title = "$monthString. $year"
+        setupReturnToTodayButton()
     }
 
     override fun onResume() {
@@ -110,6 +97,40 @@ class LargeMonCalFragment : Fragment() {
                 updateToolbar(year, month)
             }
         })
+    }
+
+    private fun setupReturnToTodayButton() {
+        val btnReturnToToday: ImageButton = toolbar.findViewById(R.id.btnReturnToToday)
+
+        btnReturnToToday.setOnClickListener {
+            selectedDate = Calendar.getInstance().time
+
+            val calendar = Calendar.getInstance()
+            calendar.time = selectedDate
+            val currentYear = calendar.get(Calendar.YEAR)
+            val currentMonth = calendar.get(Calendar.MONTH)
+            val initialPosition = (currentYear - START_YEAR) * MONTHS_IN_YEAR + currentMonth
+
+            viewPager.setCurrentItem(initialPosition, false)
+
+            val month = currentMonth + 1
+            updateToolbar(currentYear, month)
+        }
+    }
+
+    private fun updateToolbar(year: Int, month: Int) {
+        val adjustedMonth = month - 1
+
+        val calendar = Calendar.getInstance()
+        calendar.set(year, adjustedMonth, 1)
+
+        val monthString = calendar.getDisplayName(
+            Calendar.MONTH,
+            Calendar.SHORT,
+            Locale.getDefault()
+        )?.substring(0, 3)?.uppercase(Locale.getDefault())
+
+        toolbar.title = "$monthString. $year"
     }
 
     private fun initWeekdayRecyclerView(view: View) {
