@@ -2,7 +2,6 @@ package com.israel.planpilot
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,21 +15,21 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.israel.planpilot.Constants.CELLS_PER_PAGE
+import com.israel.planpilot.Constants.END_YEAR
+import com.israel.planpilot.Constants.HORIZONTAL_CELLS
+import com.israel.planpilot.Constants.MONTHS_IN_YEAR
+import com.israel.planpilot.Constants.START_YEAR
+import com.israel.planpilot.Constants.VERTICAL_CELLS
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import com.israel.planpilot.Constants.HORIZONTAL_CELLS
-import com.israel.planpilot.Constants.VERTICAL_CELLS
-import com.israel.planpilot.Constants.START_YEAR
-import com.israel.planpilot.Constants.END_YEAR
-import com.israel.planpilot.Constants.MONTHS_IN_YEAR
-import com.israel.planpilot.Constants.TOTAL_MONTHS_IN_201_YEARS
-import com.israel.planpilot.Constants.CELLS_PER_PAGE
 
 class LargeMonCalFragment : Fragment() {
 
     private lateinit var viewPager: ViewPager2
     private lateinit var selectedDate: Date
+    private lateinit var currentDate: Calendar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
     private inner class DayItem(
@@ -45,6 +44,7 @@ class LargeMonCalFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_large_mon_cal, container, false)
+        currentDate = Calendar.getInstance()
         initViews(view)
         return view
     }
@@ -92,7 +92,11 @@ class LargeMonCalFragment : Fragment() {
                 val year = START_YEAR + position / MONTHS_IN_YEAR
                 val month = position % MONTHS_IN_YEAR + 1
 
-                Log.d("ViewPagerCallback", "onPageSelected - Posição: $position, Ano: $year, Mês: $month")
+                val calendar = Calendar.getInstance()
+                calendar.time = selectedDate
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month - 1)
+                selectedDate = calendar.time
 
                 updateToolbar(year, month)
             }
@@ -163,7 +167,9 @@ class LargeMonCalFragment : Fragment() {
         }
 
         override fun onBindViewHolder(holder: CalendarViewHolder, position: Int) {
-            val currentMonthDays = getDaysInYear()[position]
+            val year = START_YEAR + position / MONTHS_IN_YEAR
+            val month = position % MONTHS_IN_YEAR + 1
+            val currentMonthDays = getDaysInYear(year, month)
             holder.setDays(currentMonthDays)
         }
 
@@ -189,48 +195,78 @@ class LargeMonCalFragment : Fragment() {
         }
     }
 
-    private fun getDaysInYear(): List<List<DayItem>> {
-        val daysInYear = mutableListOf<List<DayItem>>()
+    private fun getDaysInYear(year: Int, month: Int): List<DayItem> {
+        return getDaysInMonth(year, month)
+    }
 
-        for (month in 0 until TOTAL_MONTHS_IN_201_YEARS) {
-            val daysInMonth = mutableListOf<DayItem>()
-            val calendar = Calendar.getInstance()
-            calendar.time = selectedDate
+    private fun getDaysInMonth(inputYear: Int, inputMonth: Int): List<DayItem> {
+        val daysInMonth = mutableListOf<DayItem>()
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.YEAR, inputYear)
+        calendar.set(Calendar.MONTH, inputMonth - 1)
 
-            calendar.set(Calendar.YEAR, START_YEAR + month / MONTHS_IN_YEAR)
-            calendar.set(Calendar.MONTH, month % MONTHS_IN_YEAR)
-            calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
 
-            val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
-            calendar.add(Calendar.DATE, -dayOfWeek)
-
-            val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-
-            for (dayOfMonth in 1..CELLS_PER_PAGE) {
-                var firstDay = dayOfMonth
-
-                if (firstDay != calendar.get(Calendar.DAY_OF_MONTH)) {
-                    firstDay = 1
-                }
-
-                val isCurrentMonth = (firstDay <= lastDayOfMonth) &&
-                        (month % MONTHS_IN_YEAR == calendar.get(Calendar.MONTH))
-
-                daysInMonth.add(
-                    DayItem(
-                        (calendar.get(Calendar.DAY_OF_MONTH)).toString(),
-                        isCurrentMonth,
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH)
-                    )
-                )
-                calendar.add(Calendar.DATE, 1)
-            }
-
-            daysInYear.add(daysInMonth)
+        if (firstDayOfWeek != 0) {
+            calendar.add(Calendar.DATE, -firstDayOfWeek)
         }
 
-        return daysInYear
+        for (i in 1..firstDayOfWeek) {
+            var prevMonth = inputMonth - 1
+            var year = inputYear
+            if (prevMonth < 1) {
+                prevMonth += MONTHS_IN_YEAR
+                year--
+            }
+            daysInMonth.add(
+                DayItem(
+                    calendar.get(Calendar.DAY_OF_MONTH).toString(),
+                    false,
+                    year,
+                    prevMonth
+                )
+            )
+            calendar.add(Calendar.DATE, 1)
+        }
+
+        calendar.set(Calendar.YEAR, inputYear)
+        calendar.set(Calendar.MONTH, inputMonth - 1)
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+
+        val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        for (dayOfMonth in 1..lastDayOfMonth) {
+            daysInMonth.add(
+                DayItem(
+                    dayOfMonth.toString(),
+                    true,
+                    inputYear,
+                    inputMonth
+                )
+            )
+            calendar.add(Calendar.DATE, 1)
+        }
+
+        val daysLeft = CELLS_PER_PAGE - daysInMonth.size
+        for (i in 1..daysLeft) {
+            var nextMonth = inputMonth + 1
+            var year = inputYear
+            if (nextMonth > MONTHS_IN_YEAR) {
+                nextMonth -= MONTHS_IN_YEAR
+                year++
+            }
+            daysInMonth.add(
+                DayItem(
+                    calendar.get(Calendar.DAY_OF_MONTH).toString(),
+                    false,
+                    year,
+                    nextMonth
+                )
+            )
+            calendar.add(Calendar.DATE, 1)
+        }
+
+        return daysInMonth
     }
 
     private inner class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
@@ -280,18 +316,15 @@ class LargeMonCalFragment : Fragment() {
             }
 
             val currentDate = Calendar.getInstance()
-            val currentYear = currentDate.get(Calendar.YEAR)
-            val currentMonth = currentDate.get(Calendar.MONTH)
-            val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
 
             val itemYear = days[position].year
-            val itemMonth = days[position].month
+            val itemMonth = days[position].month - 1
             val itemDay = dayItem.day.toInt()
 
-            if (currentYear == itemYear && currentMonth == itemMonth && currentDay == itemDay) {
+            if (currentDate.get(Calendar.YEAR) == itemYear &&
+                currentDate.get(Calendar.MONTH) == itemMonth &&
+                currentDate.get(Calendar.DAY_OF_MONTH) == itemDay) {
                 holder.itemView.setBackgroundResource(R.color.blue_today)
-            } else {
-                holder.itemView.setBackgroundResource(android.R.color.transparent)
             }
 
             holder.itemView.setOnClickListener {
