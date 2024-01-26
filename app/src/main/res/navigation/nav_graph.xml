@@ -33,6 +33,21 @@
         android:id="@+id/nav_cal_mon_large"
         android:name="com.israel.planpilot.LargeMonCalFragment"
         android:label="fragment_calendar_full_screen"
-        tools:layout="@layout/fragment_large_mon_cal" />
+        tools:layout="@layout/fragment_large_mon_cal">
+
+        <action
+            android:id="@+id/action_largeMonCalFragment_to_fragmentAddActivity"
+            app:destination="@id/fragmentAddActivity">
+            <argument
+                android:name="selected_day"
+                app:argType="integer" />
+        </action>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragmentAddActivity"
+        android:name="com.israel.planpilot.FragmentAddActivity"
+        tools:layout="@layout/fragment_add_activity" />
 
 </navigation>
