@@ -17,6 +17,11 @@ class LoginFragment : Fragment() {
 
     private lateinit var auth: FirebaseAuth
 
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

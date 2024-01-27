@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageButton
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -22,6 +23,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var toolbar: Toolbar
+    private lateinit var btnReturnToToday: ImageButton
+
+    override fun onResume() {
+        super.onResume()
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +36,9 @@ class MainActivity : AppCompatActivity() {
 
         toolbar = findViewById(R.id.custom_toolbar)
         setSupportActionBar(toolbar)
+
+        btnReturnToToday = toolbar.findViewById(R.id.btnReturnToToday)
+        btnReturnToToday.visibility = View.GONE
 
         initializeViews()
         setupNavigation()
@@ -47,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         toolbar.setTitleTextColor(Color.WHITE)
         setSupportActionBar(toolbar)
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
     private fun setupNavigation() {
@@ -82,7 +92,6 @@ class MainActivity : AppCompatActivity() {
         )
 
         toggle.isDrawerIndicatorEnabled = false
-        toggle.setHomeAsUpIndicator(R.drawable.ic_menu_white)
 
         drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
             override fun onDrawerOpened(drawerView: View) {
@@ -94,7 +103,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
         toolbar.setNavigationOnClickListener {
@@ -149,6 +157,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_cal_mon_small -> "Cal. Mensal"
                 R.id.nav_cal_week -> "Cal. Semanal"
                 R.id.nav_cal_mon_large -> "Cal. Mensal Full Screen"
+                R.id.fragmentAddActivity -> "Criar Atividade"
 
                 else -> "Não encontrado"
             }
@@ -157,5 +166,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    fun setActionBarIcon(iconResource: Int) {
+        supportActionBar?.setHomeAsUpIndicator(iconResource)
+    }
+
+    fun showReturnToTodayButton() {
+        btnReturnToToday.visibility = View.VISIBLE
+    }
+
+    fun hideReturnToTodayButton() {
+        btnReturnToToday.visibility = View.GONE
     }
 }

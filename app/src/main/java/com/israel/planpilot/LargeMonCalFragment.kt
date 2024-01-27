@@ -9,7 +9,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -40,6 +39,16 @@ class LargeMonCalFragment : Fragment() {
         val month: Int
     )
 
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+        val calendar = Calendar.getInstance()
+        calendar.time = selectedDate
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1
+        updateToolbar(year, month)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -53,16 +62,13 @@ class LargeMonCalFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbar = requireActivity().findViewById(R.id.custom_toolbar)
+        (activity as MainActivity).showReturnToTodayButton()
         setupReturnToTodayButton()
     }
 
-    override fun onResume() {
-        super.onResume()
-        val calendar = Calendar.getInstance()
-        calendar.time = selectedDate
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH) + 1
-        updateToolbar(year, month)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (activity as MainActivity).hideReturnToTodayButton()
     }
 
     private fun initViews(view: View) {
@@ -330,8 +336,6 @@ class LargeMonCalFragment : Fragment() {
                 val action = LargeMonCalFragmentDirections
                     .actionLargeMonCalFragmentToFragmentAddActivity(selectedDay)
                 findNavController().navigate(action)
-
-                NavOptions.Builder().setPopUpTo(R.id.nav_cal_mon_large, false).build()
             }
         }
 

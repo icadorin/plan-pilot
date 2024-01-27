@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import java.util.Date
 
 class FragmentAddActivity : Fragment() {
@@ -21,6 +23,11 @@ class FragmentAddActivity : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -33,6 +40,8 @@ class FragmentAddActivity : Fragment() {
 
         val selectedDay = arguments?.getInt(ARG_SELECTED_DAY)
 
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            findNavController().popBackStack()
+        }
     }
 }
-

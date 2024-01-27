@@ -23,6 +23,11 @@ class SmallMonCalFragment : BaseCalendarFragment() {
     private lateinit var btnPrev: ImageButton
     private lateinit var btnNext: ImageButton
 
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

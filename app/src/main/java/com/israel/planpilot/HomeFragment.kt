@@ -8,6 +8,11 @@ import androidx.fragment.app.Fragment
 
 class HomeFragment : Fragment() {
 
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

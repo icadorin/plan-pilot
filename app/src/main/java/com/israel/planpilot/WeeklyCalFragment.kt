@@ -28,6 +28,11 @@ class WeeklyCalFragment : BaseCalendarFragment() {
     private lateinit var weekPicker: NumberPicker
     private lateinit var btnToday: Button
 
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
