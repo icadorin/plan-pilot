@@ -41,6 +41,7 @@ class LargeMonCalFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        (activity as MainActivity).showReturnToTodayButton()
         (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
         val calendar = Calendar.getInstance()
         calendar.time = selectedDate
