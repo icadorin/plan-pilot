@@ -7,8 +7,8 @@
     <color name="default_color">#D0D0D0</color>
     <color name="my_light_primary">#FFFFFFFF</color>
     <color name="my_dark_primary">#2B2BF1</color>
-    <color name="blue_week">#523B3BFD</color>
-    <color name="blue_today">#193B3BFD</color>
+    <color name="midnightBlue">#523B3BFD</color>
+    <color name="twilightBlue">#193B3BFD</color>
     <color name="my_custom_day_color">#D5D5D5</color>
     <color name="blue">#1A1AFF</color>
     <color name="default_background">#FAFAFA</color>
@@ -18,7 +18,7 @@
     <color name="solar_orange">#FFA500</color>
     <color name="deep_yellow">#FDFD3B</color>
     <color name="vibrant_green">#00FF00</color>
-    <color name="midnight_purple">#4B0082</color>
+    <color name="midnight_purple">#8221C8</color>
     <color name="midnight_purple_3">#2c1d33</color>
     <color name="cotton_candy_pink">#FFC0CB</color>
 </resources>

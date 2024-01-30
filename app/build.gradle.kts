@@ -45,6 +45,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.asynclayoutinflater:asynclayoutinflater:1.0.0")
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
+    implementation("com.wdullaer:materialdatetimepicker:4.2.3")
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

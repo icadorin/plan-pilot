@@ -327,8 +327,9 @@ class LargeMonCalFragment : Fragment() {
 
             if (currentDate.get(Calendar.YEAR) == itemYear &&
                 currentDate.get(Calendar.MONTH) == itemMonth &&
-                currentDate.get(Calendar.DAY_OF_MONTH) == itemDay) {
-                holder.itemView.setBackgroundResource(R.color.blue_today)
+                currentDate.get(Calendar.DAY_OF_MONTH) == itemDay &&
+                dayItem.isCurrentMonth) {
+                holder.itemView.setBackgroundResource(R.color.twilightBlue)
             }
 
             holder.itemView.setOnClickListener {

@@ -2,42 +2,52 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/largeTextView"
+        android:id="@+id/selectedDay"
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:gravity="center"
         android:text="Número"
-        android:textSize="24sp" />
+        android:textSize="24sp"
+        android:layout_marginTop="50dp" />
 
     <EditText
         android:id="@+id/userInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Digite algo aqui"
-        android:minHeight="48dp" />
+        android:hint="Nome da atividade"
+        android:minHeight="48dp"
+        android:layout_marginTop="50dp" />
 
-    <TimePicker
+    <Button
         android:id="@+id/timePicker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:timePickerMode="spinner" />
+        android:gravity="center"
+        android:hint="00:00"
+        android:textSize="40sp"
+        android:minHeight="55dp"
+        android:background="@null"
+        android:minWidth="150dp"
+        android:layout_marginTop="50dp" />
 
     <TextView
-        android:id="@+id/categoryTextView"
+        android:id="@+id/category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Categorias"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:layout_marginTop="50dp" />
 
     <Button
         android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Salvar" />
+        android:text="Salvar"
+        android:layout_marginTop="10dp" />
 
 </LinearLayout>
