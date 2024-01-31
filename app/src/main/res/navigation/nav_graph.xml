@@ -42,6 +42,12 @@
             <argument
                 android:name="selected_day"
                 app:argType="integer" />
+            <argument
+                android:name="selected_month"
+                app:argType="integer" />
+            <argument
+                android:name="selected_year"
+                app:argType="integer" />
         </action>
 
     </fragment>

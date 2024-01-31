@@ -334,9 +334,15 @@ class LargeMonCalFragment : Fragment() {
 
             holder.itemView.setOnClickListener {
                 val selectedDay = dayItem.day.toInt()
+                val selectedMonth = dayItem.month
+                val selectedYear = dayItem.year
 
                 val action = LargeMonCalFragmentDirections
-                    .actionLargeMonCalFragmentToFragmentAddActivity(selectedDay)
+                    .actionLargeMonCalFragmentToFragmentAddActivity(
+                        selectedDay,
+                        selectedMonth,
+                        selectedYear
+                    )
                 findNavController().navigate(action)
             }
         }

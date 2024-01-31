@@ -18,11 +18,17 @@ class FragmentAddActivity : Fragment() {
 
     companion object {
         private const val ARG_SELECTED_DAY = "selected_day"
-        fun newInstance(selectedDay: Int): FragmentAddActivity {
+        private const val ARG_SELECTED_MONTH = "selected_month"
+        private const val ARG_SELECTED_YEAR = "selected_year"
+
+        fun newInstance(selectedDay: Int, selectedMonth: Int, selectedYear: Int): FragmentAddActivity {
             val fragment = FragmentAddActivity()
             val args = Bundle()
             args.putInt(ARG_SELECTED_DAY, selectedDay)
+            args.putInt(ARG_SELECTED_MONTH, selectedMonth)
+            args.putInt(ARG_SELECTED_YEAR, selectedYear)
             fragment.arguments = args
+
             return fragment
         }
     }
@@ -40,18 +46,30 @@ class FragmentAddActivity : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        println("ARG_SELECTED_DAY: $ARG_SELECTED_DAY")
         super.onViewCreated(view, savedInstanceState)
 
         val selectedDay = arguments?.getInt(ARG_SELECTED_DAY)
+        val selectedMonth = arguments?.getInt(ARG_SELECTED_MONTH)
+        val selectedYear = arguments?.getInt(ARG_SELECTED_YEAR)
+
+        val monthNames = arrayOf(
+            "JAN", "FEV", "MAR", "ABR",
+            "MAI", "JUN", "JUL", "AGO",
+            "SET", "OUT", "NOV", "DEZ"
+        )
+
+        val monthName = "${monthNames[selectedMonth!! - 1]}."
+
+        view.findViewById<TextView>(R.id.selectedMonth).text = monthName
+        view.findViewById<TextView>(R.id.selectedYear).text = selectedYear.toString()
         view.findViewById<TextView>(R.id.selectedDay).text = selectedDay.toString()
 
         val button = view.findViewById<Button>(R.id.timePicker)
         button.setOnClickListener {
             val now = Calendar.getInstance()
             val timePickerDialog = com.wdullaer.materialdatetimepicker.time.TimePickerDialog.newInstance(
-                { _, _, _, _ ->
-
+                { _, hourOfDay, minute, _ ->
+                    button.text = String.format("%02d:%02d", hourOfDay, minute)
                 },
                 now.get(Calendar.HOUR_OF_DAY),
                 now.get(Calendar.MINUTE),

@@ -21,7 +21,7 @@
         android:id="@+id/editTextPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/senha"
+        android:hint="@string/password"
         android:inputType="textPassword"
         android:minHeight="48dp"
         android:autofillHints="" />
@@ -42,7 +42,7 @@
         android:id="@+id/editTextConfirmPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/confirmar_senha"
+        android:hint="@string/confirm_password"
         android:inputType="textPassword"
         android:minHeight="48dp"
         android:autofillHints="" />
@@ -50,7 +50,7 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/criar_conta"
+        android:text="@string/create_account"
         android:id="@+id/btnCreateAccount"/>
 
 </LinearLayout>

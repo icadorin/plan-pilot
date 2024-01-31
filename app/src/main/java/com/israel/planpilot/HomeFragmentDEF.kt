@@ -39,7 +39,7 @@ import java.util.UUID
 
 class HomeFragmentDEF : Fragment() {
 
-    private lateinit var activityRepository: ActivityRepository
+    private lateinit var activityRepositoryDEF: ActivityRepositoryDEF
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onDestroyView() {
@@ -70,7 +70,7 @@ class HomeFragmentDEF : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        activityRepository = ActivityRepository(requireContext())
+        activityRepositoryDEF = ActivityRepositoryDEF(requireContext())
         jsonFile = File(requireContext().filesDir, "activities.json")
 
         calendarView = view.findViewById(R.id.calendarView)
@@ -136,7 +136,7 @@ class HomeFragmentDEF : Fragment() {
 
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val activities = activityRepository.getAllActivities()
+                val activities = activityRepositoryDEF.getAllActivities()
                 val filteredActivities = activities.filter { it.date == formattedDate }
                     .sortedBy { it.time }
 
@@ -225,7 +225,7 @@ class HomeFragmentDEF : Fragment() {
                 )
 
                 coroutineScope.launch {
-                    activityRepository.saveActivity(activity)
+                    activityRepositoryDEF.saveActivity(activity)
                     alertDialog.dismiss()
                     updateListView(selectedDateMillis)
                 }
@@ -275,7 +275,7 @@ class HomeFragmentDEF : Fragment() {
                     activityItem.iconResource = selectedIconResourceGlobal
 
                     ioScope.launch {
-                        activityRepository.saveActivity(activityItem, isEditOperation = true)
+                        activityRepositoryDEF.saveActivity(activityItem, isEditOperation = true)
                         withContext(Dispatchers.Main) {
                             alertDialog.dismiss()
                             updateListView(selectedDateMillis)
@@ -324,7 +324,7 @@ class HomeFragmentDEF : Fragment() {
             val activityId = activityItem.id
             if (activityId.isNotEmpty()) {
                 coroutineScope.launch {
-                    activityRepository.deleteActivityById(activityId)
+                    activityRepositoryDEF.deleteActivityById(activityId)
                     withContext(Dispatchers.Main) {
                         updateListView(selectedDateMillis)
                     }
@@ -364,13 +364,13 @@ class HomeFragmentDEF : Fragment() {
             coroutineScope.launch(Dispatchers.IO) {
                 try {
                     val activities = coroutineScope.async {
-                        activityRepository.loadActivitiesFromFile() }.await()
+                        activityRepositoryDEF.loadActivitiesFromFile() }.await()
 
                     jsonFile.writeText("")
 
                     activities.filter { it.date != formattedDate }.forEach { activityItem ->
                         coroutineScope.launch {
-                            activityRepository.saveActivity(activityItem)
+                            activityRepositoryDEF.saveActivity(activityItem)
                         }
                     }
 
@@ -396,7 +396,7 @@ class HomeFragmentDEF : Fragment() {
         return withContext(Dispatchers.IO) {
             try {
                 val activities = coroutineScope.async {
-                    activityRepository.loadActivitiesFromFile() }.await()
+                    activityRepositoryDEF.loadActivitiesFromFile() }.await()
 
                 val matchingActivity = activities.find { it.name == activityName }
 
@@ -412,7 +412,7 @@ class HomeFragmentDEF : Fragment() {
         return withContext(Dispatchers.IO) {
             try {
                 val activities = coroutineScope.async {
-                    activityRepository.loadActivitiesFromFile() }.await()
+                    activityRepositoryDEF.loadActivitiesFromFile() }.await()
 
                 val matchingActivity = activities.find { it.id == activityId }
 
@@ -447,7 +447,7 @@ class HomeFragmentDEF : Fragment() {
         return withContext(Dispatchers.IO) {
             try {
                 val activities = coroutineScope.async {
-                    activityRepository.loadActivitiesFromFile() }.await()
+                    activityRepositoryDEF.loadActivitiesFromFile() }.await()
 
                 return@withContext activities.find { it.id == activityId }
             } catch (exception: Exception) {
