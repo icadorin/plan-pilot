@@ -5,6 +5,7 @@ import android.icu.util.Calendar
 import android.os.Bundle
 import android.text.InputType
 import android.text.TextUtils
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -53,6 +54,12 @@ class FragmentAddActivity : Fragment() {
         return inflater.inflate(R.layout.fragment_add_activity, container, false)
     }
 
+    private fun hideKeyboard(view: View?) {
+        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(view?.windowToken, 0)
+        view?.clearFocus()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -71,16 +78,43 @@ class FragmentAddActivity : Fragment() {
         view.findViewById<TextView>(R.id.selectedMonth).text = monthName
         view.findViewById<TextView>(R.id.selectedYear).text = selectedYear.toString()
         view.findViewById<TextView>(R.id.selectedDay).text = selectedDay.toString()
+
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
+        val backspaceButton = view.findViewById<Button>(R.id.backspaceButton)
+        val cancelButton = view.findViewById<Button>(R.id.cancelButton)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
         val timerButton = view.findViewById<Button>(R.id.timePicker)
 
+        nameActivity.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                nameActivity.gravity = Gravity.START
+                nameActivity.hint = ""
+                backspaceButton.visibility = View.VISIBLE
+                cancelButton.visibility = View.VISIBLE
+                nameActivity.setSelection(nameActivity.text.length)
+            } else {
+                nameActivity.gravity = Gravity.CENTER
+                nameActivity.hint = getString(R.string.activity_name)
+                backspaceButton.visibility = View.GONE
+                cancelButton.visibility = View.GONE
+            }
+        }
+
+        backspaceButton.setOnClickListener {
+            nameActivity.text.clear()
+        }
+
+        cancelButton.setOnClickListener {
+            nameActivity.text.clear()
+            hideKeyboard(nameActivity)
+        }
+
         nameActivity.imeOptions = EditorInfo.IME_ACTION_DONE
         nameActivity.setRawInputType(InputType.TYPE_CLASS_TEXT)
+
         nameActivity.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(nameActivity.windowToken, 0)
+                hideKeyboard(nameActivity)
                 true
             } else {
                 false
@@ -89,14 +123,16 @@ class FragmentAddActivity : Fragment() {
 
         timerButton.setOnClickListener {
             val now = Calendar.getInstance()
-            val timePickerDialog = com.wdullaer.materialdatetimepicker.time.TimePickerDialog.newInstance(
-                { _, hourOfDay, minute, _ ->
-                    val time = String.format("%02d:%02d", hourOfDay, minute)
-                    timerButton.text = time
-                },
-                now.get(Calendar.HOUR_OF_DAY),
-                now.get(Calendar.MINUTE),
-                true
+            val timePickerDialog = com.wdullaer.materialdatetimepicker.time
+                .TimePickerDialog
+                .newInstance(
+                    { _, hourOfDay, minute, _ ->
+                        val time = String.format("%02d:%02d", hourOfDay, minute)
+                        timerButton.text = time
+                    },
+                    now.get(Calendar.HOUR_OF_DAY),
+                    now.get(Calendar.MINUTE),
+                    true
             )
 
             timePickerDialog.accentColor = ContextCompat.getColor(
@@ -132,4 +168,3 @@ class FragmentAddActivity : Fragment() {
         }
     }
 }
-

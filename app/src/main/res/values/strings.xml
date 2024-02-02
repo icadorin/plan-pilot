@@ -42,4 +42,5 @@
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>
+    <string name="backspace">backspace</string>
 </resources>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
@@ -40,18 +41,52 @@
         android:layout_marginTop="10dp"
         android:textColor="@color/midnight_purple_3" />
 
-    <EditText
-        android:id="@+id/nameActivity"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:hint="@string/activity_name"
-        android:minHeight="48dp"
         android:layout_marginTop="50dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:autofillHints=""
-        android:imeOptions="actionDone" />
+        android:layout_marginRight="20dp">
+
+        <EditText
+            android:id="@+id/nameActivity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:hint="@string/activity_name"
+            android:minHeight="48dp"
+            android:backgroundTint="@color/midnight_purple_2"
+            android:autofillHints=""
+            android:imeOptions="actionDone"
+            android:paddingEnd="30dp"
+            android:inputType="text"
+            android:maxLength="30"
+            android:layout_toStartOf="@+id/cancelButton"
+            tools:ignore="RtlSymmetry" />
+
+        <Button
+            android:id="@+id/backspaceButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/midnight_purple_2"
+            android:drawableEnd="@drawable/ic_backspace"
+            android:minWidth="20dp"
+            android:background="@null"
+            android:visibility="gone"
+            android:layout_toStartOf="@+id/cancelButton" />
+
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textColor="@color/midnight_purple_2"
+            android:background="@null"
+            android:visibility="gone"
+            android:paddingBottom="2dp"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
 
     <Button
         android:id="@+id/timePicker"
