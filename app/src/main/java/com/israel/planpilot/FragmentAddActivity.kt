@@ -1,13 +1,17 @@
 package com.israel.planpilot
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
+import android.content.Context
 import android.icu.util.Calendar
 import android.os.Bundle
+import android.text.InputType
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.core.content.ContextCompat
@@ -21,7 +25,11 @@ class FragmentAddActivity : Fragment() {
         private const val ARG_SELECTED_MONTH = "selected_month"
         private const val ARG_SELECTED_YEAR = "selected_year"
 
-        fun newInstance(selectedDay: Int, selectedMonth: Int, selectedYear: Int): FragmentAddActivity {
+        fun newInstance(
+            selectedDay: Int,
+            selectedMonth: Int,
+            selectedYear: Int
+        ): FragmentAddActivity {
             val fragment = FragmentAddActivity()
             val args = Bundle()
             args.putInt(ARG_SELECTED_DAY, selectedDay)
@@ -63,13 +71,28 @@ class FragmentAddActivity : Fragment() {
         view.findViewById<TextView>(R.id.selectedMonth).text = monthName
         view.findViewById<TextView>(R.id.selectedYear).text = selectedYear.toString()
         view.findViewById<TextView>(R.id.selectedDay).text = selectedDay.toString()
+        val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
+        val saveButton = view.findViewById<Button>(R.id.saveButton)
+        val timerButton = view.findViewById<Button>(R.id.timePicker)
 
-        val button = view.findViewById<Button>(R.id.timePicker)
-        button.setOnClickListener {
+        nameActivity.imeOptions = EditorInfo.IME_ACTION_DONE
+        nameActivity.setRawInputType(InputType.TYPE_CLASS_TEXT)
+        nameActivity.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(nameActivity.windowToken, 0)
+                true
+            } else {
+                false
+            }
+        }
+
+        timerButton.setOnClickListener {
             val now = Calendar.getInstance()
             val timePickerDialog = com.wdullaer.materialdatetimepicker.time.TimePickerDialog.newInstance(
                 { _, hourOfDay, minute, _ ->
-                    button.text = String.format("%02d:%02d", hourOfDay, minute)
+                    val time = String.format("%02d:%02d", hourOfDay, minute)
+                    timerButton.text = time
                 },
                 now.get(Calendar.HOUR_OF_DAY),
                 now.get(Calendar.MINUTE),
@@ -81,8 +104,27 @@ class FragmentAddActivity : Fragment() {
                 R.color.midnight_purple
             )
 
-            timePickerDialog.dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.YELLOW))
-            timePickerDialog.show(parentFragmentManager, "TimePickerDialog")
+            timePickerDialog.show(childFragmentManager, "TimePickerDialog")
+        }
+
+        saveButton.setOnClickListener {
+            val name = nameActivity.text.toString().trim()
+            if (TextUtils.isEmpty(name)) {
+                nameActivity.error = "Nome da atividade é obrigatório"
+            } else {
+                val time = timerButton.text.toString()
+                val activity = Activity(
+                    name = name,
+                    day = selectedDay,
+                    month = selectedMonth,
+                    year = selectedYear,
+                    time = time,
+                    contactForMessage = null,
+                    alarmTriggerTime = null,
+                    category = null
+                )
+                ActivityRepository().createActivity(activity)
+            }
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
@@ -90,3 +132,4 @@ class FragmentAddActivity : Fragment() {
         }
     }
 }
+

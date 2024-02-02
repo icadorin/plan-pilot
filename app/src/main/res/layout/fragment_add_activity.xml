@@ -41,14 +41,17 @@
         android:textColor="@color/midnight_purple_3" />
 
     <EditText
-        android:id="@+id/userInput"
+        android:id="@+id/nameActivity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:hint="@string/activity_name"
         android:minHeight="48dp"
         android:layout_marginTop="50dp"
-        android:autofillHints="" />
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:autofillHints=""
+        android:imeOptions="actionDone" />
 
     <Button
         android:id="@+id/timePicker"
@@ -75,7 +78,7 @@
         android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Salvar"
+        android:text="@string/save"
         android:layout_marginTop="10dp" />
 
 </LinearLayout>
