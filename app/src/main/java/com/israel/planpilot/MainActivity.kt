@@ -1,9 +1,11 @@
 package com.israel.planpilot
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -95,6 +97,7 @@ class MainActivity : AppCompatActivity() {
 
         drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
             override fun onDrawerOpened(drawerView: View) {
+                hideKeyboard()
                 supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
             }
 
@@ -178,5 +181,11 @@ class MainActivity : AppCompatActivity() {
 
     fun hideReturnToTodayButton() {
         btnReturnToToday.visibility = View.GONE
+    }
+
+    private fun hideKeyboard() {
+        val inputMethodManager =
+            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
     }
 }

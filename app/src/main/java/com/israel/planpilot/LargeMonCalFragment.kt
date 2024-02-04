@@ -39,17 +39,6 @@ class LargeMonCalFragment : Fragment() {
         val month: Int
     )
 
-    override fun onResume() {
-        super.onResume()
-        (activity as MainActivity).showReturnToTodayButton()
-        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
-        val calendar = Calendar.getInstance()
-        calendar.time = selectedDate
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH) + 1
-        updateToolbar(year, month)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -67,6 +56,12 @@ class LargeMonCalFragment : Fragment() {
         setupReturnToTodayButton()
     }
 
+    override fun onResume() {
+        super.onResume()
+        setupMainActivity()
+        calculateDate()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         (activity as MainActivity).hideReturnToTodayButton()
@@ -75,6 +70,23 @@ class LargeMonCalFragment : Fragment() {
     private fun initViews(view: View) {
         initWeekdayRecyclerView(view)
         initCalendarViewPager(view)
+    }
+
+    private fun setupMainActivity() {
+        (activity as MainActivity).apply {
+            showReturnToTodayButton()
+            setActionBarIcon(R.drawable.ic_menu_white)
+        }
+    }
+
+    private fun calculateDate() {
+        val sharedPreferences = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val currentPagePosition = sharedPreferences?.getInt("lastPagePosition", 0)
+
+        val year = START_YEAR + currentPagePosition!! / MONTHS_IN_YEAR
+        val month = (currentPagePosition % MONTHS_IN_YEAR) + 1
+
+        updateToolbar(year, month)
     }
 
     private fun initCalendarViewPager(view: View) {
@@ -92,7 +104,10 @@ class LargeMonCalFragment : Fragment() {
         val adapter = CalendarPagerAdapter()
         viewPager.adapter = adapter
 
-        viewPager.setCurrentItem(initialPosition, false)
+        val sharedPreferences = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val lastPagePosition = sharedPreferences?.getInt("lastPagePosition", initialPosition)
+
+        lastPagePosition?.let { viewPager.setCurrentItem(it, false) }
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -107,6 +122,10 @@ class LargeMonCalFragment : Fragment() {
                 selectedDate = calendar.time
 
                 updateToolbar(year, month)
+
+                val editor = sharedPreferences?.edit()
+                editor?.putInt("lastPagePosition", position)
+                editor?.apply()
             }
         })
     }
