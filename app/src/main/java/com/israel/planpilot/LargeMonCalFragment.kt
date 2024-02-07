@@ -93,6 +93,8 @@ class LargeMonCalFragment : Fragment() {
         viewPager = view.findViewById(R.id.viewPager)
         selectedDate = Calendar.getInstance().time
 
+        viewPager.setPageTransformer(CustomPageTransformer())
+
         val startDate = Calendar.getInstance()
         val startYear = START_YEAR
 
@@ -389,6 +391,18 @@ class LargeMonCalFragment : Fragment() {
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             return oldList[oldItemPosition] == newList[newItemPosition]
+        }
+    }
+
+    class CustomPageTransformer : ViewPager2.PageTransformer {
+        private val dragThreshold = 0.2f
+
+        override fun transformPage(view: View, position: Float) {
+            if (position <= -dragThreshold || position >= dragThreshold) {
+                view.alpha = 0.5f
+            } else {
+                view.alpha = 1f
+            }
         }
     }
 }

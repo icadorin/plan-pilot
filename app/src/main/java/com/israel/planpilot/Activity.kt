@@ -14,6 +14,7 @@ data class Activity(
     val creationDateTime: LocalDateTime = LocalDateTime.now(),
     val contactForMessage: Int? = null,
     val alarmTriggerTime: LocalTime? = null,
+    val alarmActivated: Boolean = false,
     val category: String? = null
 ) {
     init {
@@ -32,6 +33,7 @@ data class Activity(
                 "creationDateTime": "$creationDateTime",
                 "contactForMessage": "$contactForMessage"
                 "activityTime": "${alarmTriggerTime ?: "Not specified"}",
+                "alarmActivated": "$alarmActivated",
                 "category": "${category ?: "Not specified"}"
             }
         """.trimIndent()

@@ -1,11 +1,16 @@
 package com.israel.planpilot
 
-import java.io.File
+import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 import java.util.UUID
 
-class ActivityRepository {
+class ActivityRepository(private val context: Context) {
     private val gson = Gson()
     private var activities: MutableList<Activity> = loadActivities()
 
@@ -32,18 +37,23 @@ class ActivityRepository {
     }
 
     private fun saveActivities() {
-        val jsonString = gson.toJson(activities)
-        File("activities.json").writeText(jsonString)
-
-        // Cópia dos dados p den. // ToDo remover
-        val savePath = System.getenv("savePath")
-        if (savePath != null) {
-            File(savePath).writeText(jsonString)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val internalFilesDir = context.filesDir
+                val file = File(internalFilesDir, "activities.json")
+                val gson = Gson()
+                val jsonString = gson.toJson(activities)
+                file.writeText(jsonString)
+                println("Dados salvos com sucesso!")
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
     }
 
     private fun loadActivities(): MutableList<Activity> {
-        val file = File("activities.json")
+        val internalFilesDir = context.filesDir
+        val file = File(internalFilesDir, "activities.json")
 
         return if (file.exists()) {
             val jsonString = file.readText()
@@ -53,5 +63,3 @@ class ActivityRepository {
         }
     }
 }
-
-

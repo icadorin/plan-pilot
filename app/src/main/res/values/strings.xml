@@ -39,6 +39,8 @@
     <string name="activity_name">Nome da atividade</string>
     <string name="_00_00">00:00</string>
     <string name="categories">Categorias</string>
+    <string name="alarm">Alarme</string>
+    <string name="add_time">Adicionar horário</string>
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>

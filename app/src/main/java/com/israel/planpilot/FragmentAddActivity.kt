@@ -15,9 +15,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FragmentAddActivity : Fragment() {
 
@@ -82,8 +86,11 @@ class FragmentAddActivity : Fragment() {
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
         val backspaceButton = view.findViewById<Button>(R.id.backspaceButton)
         val cancelButton = view.findViewById<Button>(R.id.cancelButton)
+        val triggerTime = view.findViewById<Button>(R.id.triggerTime)
+        val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
-        val timerButton = view.findViewById<Button>(R.id.timePicker)
+        val timePicker = view.findViewById<Button>(R.id.timePicker)
+        var alarmActivated = false
 
         nameActivity.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -121,14 +128,23 @@ class FragmentAddActivity : Fragment() {
             }
         }
 
-        timerButton.setOnClickListener {
+        triggerTime.setOnClickListener {
+            timePicker.visibility = View.VISIBLE
+            alarmSwitch.visibility = View.VISIBLE
+        }
+
+        alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
+            alarmActivated = isChecked
+        }
+
+        timePicker.setOnClickListener {
             val now = Calendar.getInstance()
             val timePickerDialog = com.wdullaer.materialdatetimepicker.time
                 .TimePickerDialog
                 .newInstance(
                     { _, hourOfDay, minute, _ ->
                         val time = String.format("%02d:%02d", hourOfDay, minute)
-                        timerButton.text = time
+                        timePicker.text = time
                     },
                     now.get(Calendar.HOUR_OF_DAY),
                     now.get(Calendar.MINUTE),
@@ -144,22 +160,36 @@ class FragmentAddActivity : Fragment() {
         }
 
         saveButton.setOnClickListener {
-            val name = nameActivity.text.toString().trim()
-            if (TextUtils.isEmpty(name)) {
-                nameActivity.error = "Nome da atividade é obrigatório"
-            } else {
-                val time = timerButton.text.toString()
-                val activity = Activity(
-                    name = name,
-                    day = selectedDay,
-                    month = selectedMonth,
-                    year = selectedYear,
-                    time = time,
-                    contactForMessage = null,
-                    alarmTriggerTime = null,
-                    category = null
-                )
-                ActivityRepository().createActivity(activity)
+
+            val repository = ActivityRepository(requireContext())
+            try {
+                val name = nameActivity.text.toString().trim()
+                if (TextUtils.isEmpty(name)) {
+                    nameActivity.error = "Nome da atividade é obrigatório"
+                } else {
+                    val time = timePicker.text.toString()
+                    val activity = Activity(
+                        name = name,
+                        day = selectedDay,
+                        month = selectedMonth,
+                        year = selectedYear,
+                        time = time,
+                        contactForMessage = null,
+                        alarmTriggerTime = null,
+                        alarmActivated = alarmActivated,
+                        category = null
+                    )
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            repository.createActivity(activity)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
