@@ -52,17 +52,17 @@
             android:id="@+id/nameActivity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/backspaceButton"
+            android:autofillHints=""
+            android:backgroundTint="@color/midnight_purple_2"
             android:gravity="center"
             android:hint="@string/activity_name"
-            android:minHeight="48dp"
-            android:backgroundTint="@color/midnight_purple_2"
-            android:textColorHint="@color/midnight_purple_4"
-            android:autofillHints=""
             android:imeOptions="actionDone"
             android:inputType="text"
             android:maxLength="30"
-            android:layout_toStartOf="@+id/backspaceButton"
-            tools:ignore="RtlSymmetry" />
+            android:minHeight="48dp"
+            android:textColorHint="@color/midnight_purple_4"
+            tools:ignore="RtlSymmetry,VisualLintTextFieldSize,TextContrastCheck" />
 
         <Button
             android:id="@+id/backspaceButton"
@@ -93,8 +93,32 @@
         android:id="@+id/triggerTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/button_background"
+        android:minWidth="110dp"
+        android:minHeight="45dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/add_time"
-        android:layout_marginTop="30dp" />
+        android:textColor="@color/white"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableTop="@drawable/ic_close"
+            android:width="50dp"
+            android:height="10dp"
+            android:visibility="gone"
+            android:background="@null"
+            android:layout_marginTop="10dp" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/timePicker"
@@ -131,7 +155,12 @@
         android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_background"
+        android:minWidth="110dp"
+        android:minHeight="45dp"
         android:text="@string/save"
-        android:layout_marginTop="10dp" />
+        android:textColor="@color/white"
+        tools:ignore="TouchTargetSizeCheck" />
 
 </LinearLayout>

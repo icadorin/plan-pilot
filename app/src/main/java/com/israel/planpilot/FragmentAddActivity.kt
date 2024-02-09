@@ -15,6 +15,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -45,6 +46,12 @@ class FragmentAddActivity : Fragment() {
             return fragment
         }
     }
+
+    // ToDo
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+
+        }
 
     override fun onResume() {
         super.onResume()
@@ -87,6 +94,7 @@ class FragmentAddActivity : Fragment() {
         val backspaceButton = view.findViewById<Button>(R.id.backspaceButton)
         val cancelButton = view.findViewById<Button>(R.id.cancelButton)
         val triggerTime = view.findViewById<Button>(R.id.triggerTime)
+        val closeButton = view.findViewById<Button>(R.id.closeButton)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
         val timePicker = view.findViewById<Button>(R.id.timePicker)
@@ -131,6 +139,15 @@ class FragmentAddActivity : Fragment() {
         triggerTime.setOnClickListener {
             timePicker.visibility = View.VISIBLE
             alarmSwitch.visibility = View.VISIBLE
+            triggerTime.visibility = View.GONE
+            closeButton.visibility = View.VISIBLE
+        }
+
+        closeButton.setOnClickListener {
+            timePicker.visibility = View.GONE
+            alarmSwitch.visibility = View.GONE
+            closeButton.visibility = View.GONE
+            triggerTime.visibility = View.VISIBLE
         }
 
         alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
