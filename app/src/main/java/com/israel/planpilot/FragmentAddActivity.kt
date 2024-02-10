@@ -1,7 +1,11 @@
 package com.israel.planpilot
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.icu.util.Calendar
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.text.TextUtils
@@ -25,6 +29,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class FragmentAddActivity : Fragment() {
+
+    private var alarmTimestamp: Long? = null
 
     companion object {
         private const val ARG_SELECTED_DAY = "selected_day"
@@ -50,8 +56,34 @@ class FragmentAddActivity : Fragment() {
     // ToDo
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
 
+            } else {
+                //
+            }
         }
+
+    fun setAlarm() {
+        val alarmManager = context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent,
+            PendingIntent.FLAG_IMMUTABLE)
+
+        val calendar: Calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            add(Calendar.SECOND, 10)
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+               //
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+            }
+        } catch (e: SecurityException) {
+            //
+        }
+    }
 
     override fun onResume() {
         super.onResume()
@@ -160,13 +192,22 @@ class FragmentAddActivity : Fragment() {
                 .TimePickerDialog
                 .newInstance(
                     { _, hourOfDay, minute, _ ->
+
                         val time = String.format("%02d:%02d", hourOfDay, minute)
                         timePicker.text = time
+
+                        val calendar = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            set(Calendar.MINUTE, minute)
+                            set(Calendar.SECOND,  0)
+                            set(Calendar.MILLISECOND,  0)
+                        }
+                        val alarmTimestamp = calendar.timeInMillis
                     },
                     now.get(Calendar.HOUR_OF_DAY),
                     now.get(Calendar.MINUTE),
                     true
-            )
+                )
 
             timePickerDialog.accentColor = ContextCompat.getColor(
                 requireContext(),
