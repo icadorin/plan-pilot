@@ -18,9 +18,11 @@ class AlarmReceiver : BroadcastReceiver() {
         val name = "Canal"
         val descriptionText = "Canal de notificação"
         val importance = NotificationManager.IMPORTANCE_DEFAULT
+
         val channel = NotificationChannel("canal", name, importance).apply {
             description = descriptionText
         }
+
         val notificationManager: NotificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
