@@ -78,6 +78,11 @@ class FragmentAddActivity : Fragment() {
         }
     }
 
+    // ToDo Arrumar ícone para de som de alarme
+    // ToDo Adicionar funcionalidade para o usuário poder escutar o som do alarme
+    // ToDo Adicionar textView para mostrar qual alarme está selecionado, logo abaixo do ícone
+    // ToDo Verificar porque os dados do alarme não aparecem no JSON
+
     private fun showExplanationAndAskAgain() {
         requestPermissionLauncher.launch(Manifest.permission.SET_ALARM)
     }
