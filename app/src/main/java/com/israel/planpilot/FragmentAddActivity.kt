@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.icu.util.Calendar
+import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -19,8 +20,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -40,6 +43,7 @@ class FragmentAddActivity : Fragment() {
 
     private var alarmTimestamp: Long? = null
     private var alarmToneSelected: Uri? = null
+    private var currentRingtone: Ringtone? = null
     private var activityId: UUID? = null
 
     companion object {
@@ -124,6 +128,11 @@ class FragmentAddActivity : Fragment() {
     override fun onResume() {
         super.onResume()
         (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        currentRingtone?.stop()
     }
 
     override fun onCreateView(
@@ -271,10 +280,43 @@ class FragmentAddActivity : Fragment() {
 
             val builder = AlertDialog.Builder(context)
             builder.setTitle("Escolha um som de alarme")
-            builder.setItems(list.toTypedArray()) { _, which ->
-                alarmToneSelected = uriList[which]
+
+            val adapter = object : ArrayAdapter<String>(
+                requireContext(),
+                R.layout.list_item_ringtone,
+                list
+            ) {
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                    val itemView = convertView ?: LayoutInflater.from(context)
+                        .inflate(
+                            R.layout.list_item_ringtone,
+                            parent,
+                            false
+                        )
+                    val ringtoneName = itemView.findViewById<TextView>(R.id.ringtone_name)
+                    val playButton = itemView.findViewById<ImageView>(R.id.play_button)
+
+                    ringtoneName.text = list[position]
+
+                    playButton.setOnClickListener {
+                        currentRingtone?.stop()
+
+                        currentRingtone = RingtoneManager.getRingtone(
+                            context,
+                            uriList[position]
+                        ).apply {
+                            play()
+                        }
+                    }
+
+                    return itemView
+                }
             }
-            builder.show()
+
+            builder.setAdapter(adapter, null)
+
+            val dialog = builder.create()
+            dialog.show()
         }
 
         saveButton.setOnClickListener {
