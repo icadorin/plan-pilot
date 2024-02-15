@@ -41,6 +41,8 @@
     <string name="categories">Categorias</string>
     <string name="alarm">Alarme</string>
     <string name="add_time">Horário</string>
+    <string name="chose_alarm_sound">Escolha um som de alarme</string>
+    <string name="close_button">Botão de fechar</string>
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>
