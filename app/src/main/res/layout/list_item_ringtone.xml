@@ -15,6 +15,7 @@
             android:id="@+id/ringtone_name"
             android:layout_width="0dp"
             android:layout_weight="1"
+            android:padding="8dp"
             android:layout_height="wrap_content" />
 
         <ImageView

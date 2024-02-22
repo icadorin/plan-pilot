@@ -10,11 +10,16 @@ import android.media.RingtoneManager
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import java.util.UUID
 
 class AlarmReceiver : BroadcastReceiver() {
 
     @SuppressLint("MissingPermission")
     override fun onReceive(context: Context, intent: Intent) {
+        val activityId = UUID.fromString(intent.getStringExtra("activity_id"))
+        val activityRepository = ActivityRepository(context)
+        val activity = activityRepository.readActivity(activityId)
+
         val name = "Canal"
         val descriptionText = "Canal de notificação"
         val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -32,7 +37,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, "canal")
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Alarme")
-            .setContentText("O alarme disparou!")
+            .setContentText("O alarme para a atividade '${activity?.name}' disparou!")
             .setSound(alarmUri)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
@@ -41,4 +46,3 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 }
-

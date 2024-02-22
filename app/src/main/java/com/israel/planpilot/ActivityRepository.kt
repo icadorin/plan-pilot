@@ -14,9 +14,11 @@ class ActivityRepository(private val context: Context) {
     private val gson = Gson()
     private var activities: MutableList<Activity> = loadActivities()
 
-    fun createActivity(activity: Activity) {
+    fun createActivity(activity: Activity): UUID {
         activities.add(activity)
         saveActivities()
+
+        return activity.id
     }
 
     fun readActivity(id: UUID): Activity? {
@@ -41,7 +43,6 @@ class ActivityRepository(private val context: Context) {
             try {
                 val internalFilesDir = context.filesDir
                 val file = File(internalFilesDir, "activities.json")
-                val gson = Gson()
                 val jsonString = gson.toJson(activities)
                 file.writeText(jsonString)
                 println("Dados salvos com sucesso!")

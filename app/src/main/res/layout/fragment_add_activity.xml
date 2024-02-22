@@ -171,7 +171,7 @@
             android:layout_height="wrap_content"
             android:text="@string/categories"
             android:textSize="18sp"
-            android:layout_marginTop="50dp" />
+            android:layout_marginTop="30dp" />
 
         <Button
             android:id="@+id/saveButton"
