@@ -4,7 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.SET_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission
+        android:name="android.permission.SET_ALARM"
+        tools:ignore="SystemPermissionTypo" />
 
     <application
         android:allowBackup="true"
@@ -33,7 +36,9 @@
         <receiver android:name=".AlarmReceiver"
             android:exported="true">
             <intent-filter>
+                <action android:name="stop_alarm" />
                 <action android:name="EXPECTED_ACTION" />
+                <action android:name="NOTIFY_BEFORE_ALARM" />
             </intent-filter>
         </receiver>
 

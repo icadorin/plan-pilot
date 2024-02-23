@@ -14,7 +14,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.text.TextUtils
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -32,7 +31,6 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SwitchCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
@@ -87,11 +85,20 @@ class FragmentAddActivity : Fragment() {
         requestPermissionLauncher.launch(Manifest.permission.SET_ALARM)
     }
 
-    private fun setAlarm(alarmTimestamp: Long) {
-        Log.d("app", "setAlarm chamado")
+    private fun setAlarm(alarmTimestamp: Long, activityName: String, alarmTone: String?) {
 
         val alarmManager = context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AlarmReceiver::class.java)
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val formattedTime = formatter.format(Date(alarmTimestamp))
+        val alarmId = UUID.randomUUID().toString()
+
+        intent.putExtra("alarm_id", alarmId)
+        intent.putExtra("activity_name", activityName)
+        intent.putExtra("alarm_time", formattedTime)
+        intent.putExtra("alarm_tone", alarmTone)
+
+        println("setAlarm: $alarmTone")
 
         val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
@@ -103,7 +110,6 @@ class FragmentAddActivity : Fragment() {
         )
 
         try {
-            Log.d("app", "NÃO TEM PERMISSAO")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 !alarmManager.canScheduleExactAlarms()) {
                 Toast.makeText(
@@ -113,21 +119,9 @@ class FragmentAddActivity : Fragment() {
                 ).show()
 
             } else {
-                Log.d("app", "Alarme definido com sucesso! 2")
-
-                val selectedDay = arguments?.getInt(ARG_SELECTED_DAY) ?: 0
-                val selectedMonth = arguments?.getInt(ARG_SELECTED_MONTH) ?: 0
-                val selectedYear = arguments?.getInt(ARG_SELECTED_YEAR) ?: 0
-
-                Log.d("app", "Valor de selectedDay: $selectedDay")
-                Log.d("app", "Tipo de selectedDay: ${selectedDay::class.java.simpleName}")
 
                 val calendar = Calendar.getInstance().apply {
-                    set(Calendar.DAY_OF_MONTH, selectedDay)
-                    set(Calendar.MONTH, (selectedMonth - 1))
-                    set(Calendar.YEAR, selectedYear)
-                    set(Calendar.HOUR_OF_DAY, alarmTimestamp.toInt() / 3600000)
-                    set(Calendar.MINUTE, (alarmTimestamp.toInt() % 3600000) / 60000)
+                    timeInMillis = alarmTimestamp
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
                 }
@@ -135,7 +129,6 @@ class FragmentAddActivity : Fragment() {
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
             }
         } catch (e: SecurityException) {
-            Log.e("app", "Erro ao definir o alarme: ${e.message}")
             Toast.makeText(
                 context,
                 "Erro ao definir o alarme: ${e.message}",
@@ -271,11 +264,6 @@ class FragmentAddActivity : Fragment() {
                     true
                 )
 
-            timePickerDialog.accentColor = ContextCompat.getColor(
-                requireContext(),
-                R.color.midnight_purple
-            )
-
             timePickerDialog.show(childFragmentManager, "TimePickerDialog")
         }
 
@@ -311,6 +299,7 @@ class FragmentAddActivity : Fragment() {
         }
 
         saveButton.setOnClickListener {
+            val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
             val repository = ActivityRepository(requireContext())
             try {
                 val name = nameActivity.text.toString().trim()
@@ -319,7 +308,10 @@ class FragmentAddActivity : Fragment() {
                 } else {
                     val alarmTriggerTime = timePicker.text.toString()
                     val alarmToneString = alarmToneSelected?.toString()
-                    val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                    val currentTime = SimpleDateFormat(
+                        "HH:mm",
+                        Locale.getDefault()
+                    ).format(Date())
 
                     val activity = Activity(
                         name = name,
@@ -339,14 +331,14 @@ class FragmentAddActivity : Fragment() {
                             repository.createActivity(activity)
                             withContext(Dispatchers.Main) {
 
-                                if (alarmActivated && !alarmToneString.isNullOrEmpty()) {
-                                    Log.d("app", "ID SET setAlarm!")
-                                    setAlarm(alarmTimestamp!!)
+                                if (alarmActivated && alarmTimestamp != null) {
+                                    setAlarm(alarmTimestamp!!, name, alarmToneString)
                                 }
 
                                 nameActivity.text.clear()
                                 alarmSwitch.isChecked = false
                                 alarmToneSelected = null
+                                alarmToneNameTextView?.text = ""
                                 Snackbar.make(
                                     view,
                                     "Atividade criada com sucesso!",
@@ -376,13 +368,12 @@ class FragmentAddActivity : Fragment() {
     }
 
     private fun handleRingtoneSelection(position: Int, list: List<String>, uriList: List<Uri>) {
+        val alarmToneNameTextView = view?.findViewById<TextView>(R.id.alarmToneName)
         if (position == 0) {
             alarmToneSelected = null
-            val alarmToneNameTextView = view?.findViewById<TextView>(R.id.alarmToneName)
             alarmToneNameTextView?.text = ""
         } else {
             alarmToneSelected = uriList[position]
-            val alarmToneNameTextView = view?.findViewById<TextView>(R.id.alarmToneName)
             alarmToneNameTextView?.text = list[position]
         }
         dialog?.dismiss()
