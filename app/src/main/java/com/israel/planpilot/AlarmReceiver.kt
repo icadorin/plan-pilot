@@ -7,7 +7,8 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.media.Ringtone
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import androidx.core.app.NotificationCompat
@@ -15,7 +16,7 @@ import androidx.core.app.NotificationManagerCompat
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
-        var ringtone: Ringtone? = null
+        var mediaPlayer: MediaPlayer? = null
     }
 
     @SuppressLint("MissingPermission")
@@ -38,7 +39,9 @@ class AlarmReceiver : BroadcastReceiver() {
         notificationManager.createNotificationChannel(channel)
 
         if (intent.action == "stop_alarm") {
-            ringtone?.stop()
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
             notificationManager.cancel(alarmId.hashCode())
         } else {
 
@@ -48,13 +51,25 @@ class AlarmReceiver : BroadcastReceiver() {
                 Uri.parse(alarmTone)
             }
 
-            ringtone = RingtoneManager.getRingtone(context, alarmUri)
-            ringtone?.play()
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(context, alarmUri)
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                prepareAsync()
+                setOnPreparedListener {
+                    start()
+                }
+            }
 
             val builder = NotificationCompat.Builder(context, "alarm_channel")
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle("Alarme")
                 .setContentText("$activityName, $alarmTime")
+                .setSound(alarmUri)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
             val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
