@@ -1,0 +1,366 @@
+package com.israel.planpilot
+
+import android.app.AlarmManager
+import android.app.AlertDialog
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.icu.util.Calendar
+import android.media.AudioAttributes
+import android.media.MediaPlayer
+import android.media.Ringtone
+import android.media.RingtoneManager
+import android.net.Uri
+import android.os.Build
+import android.text.Editable
+import android.text.TextUtils
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.widget.SwitchCompat
+import androidx.fragment.app.FragmentManager
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
+
+object ActivityUtils {
+
+    private var dialog: AlertDialog? = null
+    private var alarmToneSelected: Uri? = null
+    private var currentRingtone: Ringtone? = null
+    private var alarmTimestamp: Long? = null
+    private var alarmActivated: Boolean = false
+    private var currentMediaPlayer: MediaPlayer? = null
+
+    fun setTimePicker(
+        timePicker: TextView,
+        childFragmentManager: FragmentManager
+    ) {
+        val now = Calendar.getInstance()
+        val timePickerDialog = com.wdullaer.materialdatetimepicker.time
+            .TimePickerDialog
+            .newInstance(
+                { _, hourOfDay, minute, _ ->
+                    val time = String.format("%02d:%02d", hourOfDay, minute)
+                    timePicker.text = time
+
+                    val calendar = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        set(Calendar.MINUTE, minute)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    alarmTimestamp = calendar.timeInMillis
+                },
+                now.get(Calendar.HOUR_OF_DAY),
+                now.get(Calendar.MINUTE),
+                true
+            )
+        timePickerDialog.show(childFragmentManager, "TimePickerDialog")
+    }
+
+    fun setupAlarmToneButton(
+        view: View,
+        context: Context?
+    ) {
+        context?.let { nonNullContext ->
+            val (list, uriList) = getRingtoneList(nonNullContext)
+
+            val builder = AlertDialog.Builder(nonNullContext)
+            val adapter = createRingtoneAdapter(nonNullContext, list, uriList, view)
+
+            builder.setAdapter(adapter) { _, position ->
+                handleRingtoneSelection(position, list, uriList, view)
+            }
+
+            val frameLayout = FrameLayout(nonNullContext)
+            val dialogView = LayoutInflater.from(nonNullContext).inflate(
+                R.layout.list_title_ringtone,
+                frameLayout,
+                false
+            )
+            builder.setCustomTitle(dialogView)
+
+            val dialog = builder.create()
+
+            dialog.setOnDismissListener {
+                currentMediaPlayer?.stop()
+                currentMediaPlayer?.release()
+                currentMediaPlayer = null
+            }
+
+            dialog.show()
+        }
+    }
+
+    private fun setAlarm(activityName: String, alarmTone: String?, context: Context?) {
+
+        val alarmManager = context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, AlarmReceiver::class.java)
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val formattedTime = alarmTimestamp?.let { formatter.format(Date(it)) }
+        val alarmId = UUID.randomUUID().toString()
+
+        intent.putExtra("alarm_id", alarmId)
+        intent.putExtra("activity_name", activityName)
+        intent.putExtra("alarm_time", formattedTime)
+        intent.putExtra("alarm_tone", alarmTone)
+
+        val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            uniqueRequestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                !alarmManager.canScheduleExactAlarms()) {
+                Toast.makeText(
+                    context,
+                    "Este aplicativo não tem as permissão para definir alarmes exatos.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } else {
+
+                val calendar = Calendar.getInstance().apply {
+                    timeInMillis = alarmTimestamp!!
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+            }
+        } catch (e: SecurityException) {
+            Toast.makeText(
+                context,
+                "Erro ao definir o alarme: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    fun saveActivity(
+        view: View,
+        nameActivity: EditText,
+        timePicker: TextView,
+        alarmSwitch: SwitchCompat,
+        selectedDay: Int?,
+        selectedMonth: Int?,
+        selectedYear: Int?,
+        scope: CoroutineScope,
+        context: Context?
+    ) {
+        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+        val repository = ActivityRepository(context!!)
+        try {
+            val name = nameActivity.text.toString().trim()
+            if (TextUtils.isEmpty(name)) {
+                nameActivity.error = "Nome da atividade é obrigatório"
+            } else {
+                val alarmTriggerTime = timePicker.text.toString()
+                val alarmToneString = alarmToneSelected?.toString()
+                val currentTime = SimpleDateFormat(
+                    "HH:mm",
+                    Locale.getDefault()
+                ).format(Date())
+
+                val alarmActivated = ActivityUtils.alarmActivated
+
+                val activity = Activity(
+                    name = name,
+                    day = selectedDay,
+                    month = selectedMonth,
+                    year = selectedYear,
+                    time = currentTime,
+                    contactForMessage = null,
+                    alarmTriggerTime = alarmTriggerTime,
+                    alarmActivated = alarmActivated,
+                    alarmTone = alarmToneString,
+                    category = null
+                )
+
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        repository.createActivity(activity)
+                        withContext(Dispatchers.Main) {
+
+                            if (alarmActivated && alarmTimestamp != null) {
+                                setAlarm(name, alarmToneString, context)
+                            }
+
+                            nameActivity.text.clear()
+                            alarmSwitch.isChecked = false
+                            alarmToneSelected = null
+                            alarmToneNameTextView?.text = ""
+
+                            Snackbar.make(
+                                view,
+                                "Atividade criada com sucesso!",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            Snackbar.make(
+                                view,
+                                "Erro ao criar a atividade: ${e.message}",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun setAlarmSwitchListener(isChecked: Boolean) {
+        alarmActivated = isChecked
+    }
+
+    private fun handleRingtoneSelection(
+        position: Int,
+        list: List<String>,
+        uriList: List<Uri>,
+        view: View
+    ) {
+        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+        if (position == 0) {
+            alarmToneSelected = null
+            alarmToneNameTextView?.text = ""
+        } else {
+            alarmToneSelected = uriList[position]
+            alarmToneNameTextView?.text = list[position]
+        }
+        dialog?.dismiss()
+    }
+
+    private fun getRingtoneList(context: Context): Pair<ArrayList<String>, ArrayList<Uri>> {
+        val ringtoneManager = RingtoneManager(context)
+        ringtoneManager.setType(RingtoneManager.TYPE_ALARM)
+        val cursor = ringtoneManager.cursor
+        val list = ArrayList<String>()
+        val uriList = ArrayList<Uri>()
+
+        list.add("Nenhum")
+        uriList.add(Uri.EMPTY)
+
+        while (cursor.moveToNext()) {
+            val name = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX)
+            val uri = ringtoneManager.getRingtoneUri(cursor.position)
+            list.add(name)
+            uriList.add(uri)
+        }
+
+        return Pair(list, uriList)
+    }
+
+    private fun createRingtoneAdapter(
+        context: Context,
+        list: List<String>,
+        uriList: List<Uri>,
+        view: View
+    ): ArrayAdapter<String> {
+        return object : ArrayAdapter<String>(
+            context,
+            R.layout.list_item_ringtone,
+            list
+        ) {
+            var currentPlayButton: ImageView? = null
+
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val itemView = convertView ?: LayoutInflater.from(context)
+                    .inflate(
+                        R.layout.list_item_ringtone,
+                        parent,
+                        false
+                    )
+                val ringtoneName = itemView.findViewById<TextView>(R.id.ringtone_name)
+                val playButton = itemView.findViewById<ImageView>(R.id.play_button)
+
+                ringtoneName.text = list[position]
+
+                if (position ==  0) {
+                    playButton.visibility = View.GONE
+                } else {
+                    playButton.visibility = View.VISIBLE
+                    playButton.setImageResource(R.drawable.ic_play)
+
+                    playButton.setOnClickListener {
+                        if (currentMediaPlayer != null) {
+                            currentMediaPlayer?.stop()
+                            currentMediaPlayer?.release()
+                            currentMediaPlayer = null
+                            currentPlayButton?.setImageResource(R.drawable.ic_play)
+                        }
+
+                        if (currentPlayButton != playButton) {
+                            currentMediaPlayer = MediaPlayer().apply {
+                                setDataSource(context, uriList[position])
+                                setAudioAttributes(
+                                    AudioAttributes.Builder()
+                                        .setUsage(AudioAttributes.USAGE_ALARM)
+                                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                        .build()
+                                )
+                                prepareAsync()
+                                setOnPreparedListener {
+                                    start()
+                                }
+                            }
+                            playButton.setImageResource(R.drawable.ic_stop)
+                            currentPlayButton = playButton
+                        } else {
+                            currentPlayButton = null
+                        }
+                    }
+                }
+
+                itemView.setOnClickListener {
+                    if (position ==  0) {
+                        alarmToneSelected = null
+                        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+                        alarmToneNameTextView?.text = ""
+                    } else {
+                        alarmToneSelected = uriList[position]
+                        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+                        alarmToneNameTextView?.text = list[position]
+                    }
+                    dialog?.dismiss()
+                }
+
+                return itemView
+            }
+        }
+    }
+
+    fun capitalizeText(nameActivity: EditText, s: Editable) {
+        val capitalizedText = s.toString()
+            .replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault())
+                else it.toString()
+            }
+        if (capitalizedText != s.toString()) {
+            nameActivity.setText(capitalizedText)
+            nameActivity.setSelection(capitalizedText.length)
+        }
+    }
+}

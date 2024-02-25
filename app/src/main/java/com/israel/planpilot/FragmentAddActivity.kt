@@ -1,54 +1,29 @@
 package com.israel.planpilot
 
 import android.Manifest
-import android.app.AlarmManager
-import android.app.AlertDialog
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.icu.util.Calendar
-import android.media.Ringtone
-import android.media.RingtoneManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
+import android.text.Editable
 import android.text.InputType
-import android.text.TextUtils
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
 
 class FragmentAddActivity : Fragment() {
-
-    private var alarmTimestamp: Long? = null
-    private var alarmToneSelected: Uri? = null
-    private var currentRingtone: Ringtone? = null
-    private var dialog: AlertDialog? = null
 
     companion object {
         private const val ARG_SELECTED_DAY = "selected_day"
@@ -83,58 +58,6 @@ class FragmentAddActivity : Fragment() {
 
     private fun showExplanationAndAskAgain() {
         requestPermissionLauncher.launch(Manifest.permission.SET_ALARM)
-    }
-
-    private fun setAlarm(alarmTimestamp: Long, activityName: String, alarmTone: String?) {
-
-        val alarmManager = context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AlarmReceiver::class.java)
-        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val formattedTime = formatter.format(Date(alarmTimestamp))
-        val alarmId = UUID.randomUUID().toString()
-
-        intent.putExtra("alarm_id", alarmId)
-        intent.putExtra("activity_name", activityName)
-        intent.putExtra("alarm_time", formattedTime)
-        intent.putExtra("alarm_tone", alarmTone)
-
-        println("setAlarm: $alarmTone")
-
-        val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            uniqueRequestCode,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                !alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(
-                    context,
-                    "Este aplicativo não tem as permissão para definir alarmes exatos.",
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } else {
-
-                val calendar = Calendar.getInstance().apply {
-                    timeInMillis = alarmTimestamp
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-            }
-        } catch (e: SecurityException) {
-            Toast.makeText(
-                context,
-                "Erro ao definir o alarme: ${e.message}",
-                Toast.LENGTH_LONG
-            ).show()
-        }
     }
 
     override fun onResume() {
@@ -178,13 +101,32 @@ class FragmentAddActivity : Fragment() {
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
         val backspaceButton = view.findViewById<Button>(R.id.backspaceButton)
         val cancelButton = view.findViewById<Button>(R.id.cancelButton)
-        val triggerTime = view.findViewById<Button>(R.id.triggerTime)
-        val closeButton = view.findViewById<ImageButton>(R.id.closeButton)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
         val timePicker = view.findViewById<Button>(R.id.timePicker)
         val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
-        var alarmActivated = false
+
+        nameActivity.apply {
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {}
+
+                override fun onTextChanged(
+                    s: CharSequence,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {}
+
+                override fun afterTextChanged(s: Editable) {
+                    ActivityUtils.capitalizeText(nameActivity, s)
+                }
+            })
+        }
 
         nameActivity.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -222,250 +164,34 @@ class FragmentAddActivity : Fragment() {
             }
         }
 
-        triggerTime.setOnClickListener {
-            timePicker.visibility = View.VISIBLE
-            alarmSwitch.visibility = View.VISIBLE
-            closeButton.visibility = View.VISIBLE
-            alarmTone.visibility = View.VISIBLE
-            triggerTime.visibility = View.GONE
-        }
-
-        closeButton.setOnClickListener {
-            timePicker.visibility = View.GONE
-            alarmSwitch.visibility = View.GONE
-            closeButton.visibility = View.GONE
-            alarmTone.visibility = View.GONE
-            triggerTime.visibility = View.VISIBLE
-        }
-
         alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
-            alarmActivated = isChecked
+            ActivityUtils.setAlarmSwitchListener(isChecked)
         }
 
         timePicker.setOnClickListener {
-            val now = Calendar.getInstance()
-            val timePickerDialog = com.wdullaer.materialdatetimepicker.time
-                .TimePickerDialog
-                .newInstance(
-                    { _, hourOfDay, minute, _ ->
-                        val time = String.format("%02d:%02d", hourOfDay, minute)
-                        timePicker.text = time
-
-                        val calendar = Calendar.getInstance().apply {
-                            set(Calendar.HOUR_OF_DAY, hourOfDay)
-                            set(Calendar.MINUTE, minute)
-                            set(Calendar.SECOND,  0)
-                            set(Calendar.MILLISECOND,  0)
-                        }
-                        alarmTimestamp = calendar.timeInMillis
-                    },
-                    now.get(Calendar.HOUR_OF_DAY),
-                    now.get(Calendar.MINUTE),
-                    true
-                )
-
-            timePickerDialog.show(childFragmentManager, "TimePickerDialog")
+            ActivityUtils.setTimePicker(timePicker, childFragmentManager)
         }
 
         alarmTone.setOnClickListener {
-            context?.let { nonNullContext ->
-                val (list, uriList) = getRingtoneList(nonNullContext)
-
-                val builder = AlertDialog.Builder(nonNullContext)
-                val adapter = createRingtoneAdapter(nonNullContext, list, uriList)
-
-                builder.setAdapter(adapter) { _, position ->
-                    handleRingtoneSelection(position, list, uriList)
-                }
-
-                context?.let {
-                    val frameLayout = FrameLayout(it)
-                    val dialogView = LayoutInflater.from(it).inflate(
-                        R.layout.list_title_ringtone,
-                        frameLayout,
-                        false
-                    )
-                    builder.setCustomTitle(dialogView)
-                }
-
-                dialog = builder.create()
-
-                dialog?.setOnDismissListener {
-                    currentRingtone?.stop()
-                }
-
-                dialog?.show()
-            }
+            ActivityUtils.setupAlarmToneButton(view, context)
         }
 
         saveButton.setOnClickListener {
-            val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-            val repository = ActivityRepository(requireContext())
-            try {
-                val name = nameActivity.text.toString().trim()
-                if (TextUtils.isEmpty(name)) {
-                    nameActivity.error = "Nome da atividade é obrigatório"
-                } else {
-                    val alarmTriggerTime = timePicker.text.toString()
-                    val alarmToneString = alarmToneSelected?.toString()
-                    val currentTime = SimpleDateFormat(
-                        "HH:mm",
-                        Locale.getDefault()
-                    ).format(Date())
-
-                    val activity = Activity(
-                        name = name,
-                        day = selectedDay,
-                        month = selectedMonth,
-                        year = selectedYear,
-                        time = currentTime,
-                        contactForMessage = null,
-                        alarmTriggerTime = alarmTriggerTime,
-                        alarmActivated = alarmActivated,
-                        alarmTone = alarmToneString,
-                        category = null
-                    )
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            repository.createActivity(activity)
-                            withContext(Dispatchers.Main) {
-
-                                if (alarmActivated && alarmTimestamp != null) {
-                                    setAlarm(alarmTimestamp!!, name, alarmToneString)
-                                }
-
-                                nameActivity.text.clear()
-                                alarmSwitch.isChecked = false
-                                alarmToneSelected = null
-                                alarmToneNameTextView?.text = ""
-                                Snackbar.make(
-                                    view,
-                                    "Atividade criada com sucesso!",
-                                    Snackbar.LENGTH_LONG
-                                ).show()
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            withContext(Dispatchers.Main) {
-                                Snackbar.make(
-                                    view,
-                                    "Erro ao criar a atividade: ${e.message}",
-                                    Snackbar.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            ActivityUtils.saveActivity(
+                view,
+                nameActivity,
+                timePicker,
+                alarmSwitch,
+                selectedDay,
+                selectedMonth,
+                selectedYear,
+                lifecycleScope,
+                context
+            )
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             findNavController().popBackStack()
-        }
-    }
-
-    private fun handleRingtoneSelection(position: Int, list: List<String>, uriList: List<Uri>) {
-        val alarmToneNameTextView = view?.findViewById<TextView>(R.id.alarmToneName)
-        if (position == 0) {
-            alarmToneSelected = null
-            alarmToneNameTextView?.text = ""
-        } else {
-            alarmToneSelected = uriList[position]
-            alarmToneNameTextView?.text = list[position]
-        }
-        dialog?.dismiss()
-    }
-
-    private fun getRingtoneList(context: Context): Pair<ArrayList<String>, ArrayList<Uri>> {
-        val ringtoneManager = RingtoneManager(context)
-        ringtoneManager.setType(RingtoneManager.TYPE_ALARM)
-        val cursor = ringtoneManager.cursor
-        val list = ArrayList<String>()
-        val uriList = ArrayList<Uri>()
-
-        list.add("Nenhum")
-        uriList.add(Uri.EMPTY)
-
-        while (cursor.moveToNext()) {
-            val name = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX)
-            val uri = ringtoneManager.getRingtoneUri(cursor.position)
-            list.add(name)
-            uriList.add(uri)
-        }
-
-        return Pair(list, uriList)
-    }
-
-    private fun createRingtoneAdapter(
-        context: Context,
-        list: List<String>,
-        uriList: List<Uri>
-    ): ArrayAdapter<String> {
-        return object : ArrayAdapter<String>(
-            context,
-            R.layout.list_item_ringtone,
-            list
-        ) {
-            var currentPlayButton: ImageView? = null
-
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val itemView = convertView ?: LayoutInflater.from(context)
-                    .inflate(
-                        R.layout.list_item_ringtone,
-                        parent,
-                        false
-                    )
-                val ringtoneName = itemView.findViewById<TextView>(R.id.ringtone_name)
-                val playButton = itemView.findViewById<ImageView>(R.id.play_button)
-
-                ringtoneName.text = list[position]
-
-                if (position == 0) {
-                    playButton.visibility = View.GONE
-                } else {
-                    playButton.visibility = View.VISIBLE
-                    var isPlaying = false
-
-                    playButton.setOnClickListener {
-                        if (isPlaying) {
-                            currentRingtone?.stop()
-                            playButton.setImageResource(R.drawable.ic_play)
-                            isPlaying = false
-                        } else {
-                            currentRingtone?.stop()
-                            currentPlayButton?.setImageResource(R.drawable.ic_play)
-
-                            currentRingtone = RingtoneManager.getRingtone(
-                                context,
-                                uriList[position]
-                            ).apply {
-                                play()
-                            }
-                            playButton.setImageResource(R.drawable.ic_stop)
-                            isPlaying = true
-                            currentPlayButton = playButton
-                        }
-                    }
-                }
-
-                itemView.setOnClickListener {
-                    if (position ==  0) {
-                        alarmToneSelected = null
-                        val alarmToneNameTextView = view?.findViewById<TextView>(R.id.alarmToneName)
-                        alarmToneNameTextView?.text = ""
-                    } else {
-                        alarmToneSelected = uriList[position]
-                        val alarmToneNameTextView = view?.findViewById<TextView>(R.id.alarmToneName)
-                        alarmToneNameTextView?.text = list[position]
-                    }
-                    dialog?.dismiss()
-                }
-
-                return itemView
-            }
         }
     }
 }

@@ -96,33 +96,6 @@
         </RelativeLayout>
 
         <Button
-            android:id="@+id/triggerTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:background="@drawable/button_background"
-            android:minWidth="110dp"
-            android:minHeight="45dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:text="@string/add_time"
-            android:textColor="@color/white"
-            tools:ignore="TouchTargetSizeCheck" />
-
-        <ImageButton
-            android:id="@+id/closeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:minWidth="40dp"
-            android:minHeight="40dp"
-            android:visibility="gone"
-            android:src="@drawable/ic_close"
-            android:layout_marginTop="10dp"
-            android:scaleType="center"
-            android:contentDescription="@string/close_button" />
-
-        <Button
             android:id="@+id/timePicker"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -133,8 +106,7 @@
             android:background="@null"
             android:minWidth="150dp"
             android:layout_marginTop="10dp"
-            android:textColor="@color/midnight_purple_3"
-            android:visibility="gone" />
+            android:textColor="@color/midnight_purple_3" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/alarmSwitch"
@@ -142,8 +114,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:minHeight="48dp"
-            android:text="@string/alarm"
-            android:visibility="gone" />
+            android:text="@string/alarm" />
 
         <ImageButton
             android:id="@+id/alarmTone"
@@ -153,7 +124,6 @@
             android:minWidth="40dp"
             android:minHeight="40dp"
             android:layout_marginTop="10dp"
-            android:visibility="gone"
             android:src="@drawable/ic_alarm_tone"
             android:scaleType="center"
             android:contentDescription="@string/chose_alarm_sound" />
@@ -164,14 +134,6 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:layout_marginTop="10dp" />
-
-        <TextView
-            android:id="@+id/category"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/categories"
-            android:textSize="18sp"
-            android:layout_marginTop="30dp" />
 
         <Button
             android:id="@+id/saveButton"
