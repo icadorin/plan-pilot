@@ -11,7 +11,6 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import android.text.Editable
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -327,18 +326,6 @@ object ActivityUtils {
             alarmToneSelected = uriList[position]
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
             alarmToneNameTextView?.text = list[position]
-        }
-    }
-
-    fun capitalizeText(nameActivity: EditText, s: Editable) {
-        val capitalizedText = s.toString()
-            .replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault())
-                else it.toString()
-            }
-        if (capitalizedText != s.toString()) {
-            nameActivity.setText(capitalizedText)
-            nameActivity.setSelection(capitalizedText.length)
         }
     }
 }

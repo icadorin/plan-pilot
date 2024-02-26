@@ -3,9 +3,7 @@ package com.israel.planpilot
 import android.Manifest
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
 import android.text.InputType
-import android.text.TextWatcher
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -106,28 +104,6 @@ class FragmentAddActivity : Fragment() {
         val timePicker = view.findViewById<Button>(R.id.timePicker)
         val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
 
-        nameActivity.apply {
-            addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {}
-
-                override fun onTextChanged(
-                    s: CharSequence,
-                    start: Int,
-                    before: Int,
-                    count: Int
-                ) {}
-
-                override fun afterTextChanged(s: Editable) {
-                    ActivityUtils.capitalizeText(nameActivity, s)
-                }
-            })
-        }
-
         nameActivity.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 nameActivity.gravity = Gravity.START
@@ -153,7 +129,7 @@ class FragmentAddActivity : Fragment() {
         }
 
         nameActivity.imeOptions = EditorInfo.IME_ACTION_DONE
-        nameActivity.setRawInputType(InputType.TYPE_CLASS_TEXT)
+        nameActivity.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
 
         nameActivity.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
