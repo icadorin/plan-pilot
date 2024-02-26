@@ -8,7 +8,6 @@ import android.content.Intent
 import android.icu.util.Calendar
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -37,9 +36,7 @@ import java.util.UUID
 
 object ActivityUtils {
 
-    private var dialog: AlertDialog? = null
     private var alarmToneSelected: Uri? = null
-    private var currentRingtone: Ringtone? = null
     private var alarmTimestamp: Long? = null
     private var alarmActivated: Boolean = false
     private var currentMediaPlayer: MediaPlayer? = null
@@ -71,37 +68,28 @@ object ActivityUtils {
         timePickerDialog.show(childFragmentManager, "TimePickerDialog")
     }
 
-    fun setupAlarmToneButton(
-        view: View,
-        context: Context?
-    ) {
-        context?.let { nonNullContext ->
-            val (list, uriList) = getRingtoneList(nonNullContext)
+    fun setupAlarmToneButton(view: View, context: Context) {
+        val (list, uriList) = getRingtoneList(context)
+        val adapter = createRingtoneAdapter(context, list, uriList)
+        val dialogView = createDialogView(context)
 
-            val builder = AlertDialog.Builder(nonNullContext)
-            val adapter = createRingtoneAdapter(nonNullContext, list, uriList, view)
+        var dialog: AlertDialog? = null
 
-            builder.setAdapter(adapter) { _, position ->
-                handleRingtoneSelection(position, list, uriList, view)
+        val builder = AlertDialog.Builder(context).apply {
+            setCustomTitle(dialogView)
+            setSingleChoiceItems(adapter, -1) { _, position ->
+                selectAlarmTone(position, list, uriList, view)
+                dialog?.dismiss()
             }
+        }
 
-            val frameLayout = FrameLayout(nonNullContext)
-            val dialogView = LayoutInflater.from(nonNullContext).inflate(
-                R.layout.list_title_ringtone,
-                frameLayout,
-                false
-            )
-            builder.setCustomTitle(dialogView)
-
-            val dialog = builder.create()
-
-            dialog.setOnDismissListener {
+        dialog = builder.create().apply {
+            setOnDismissListener {
                 currentMediaPlayer?.stop()
                 currentMediaPlayer?.release()
                 currentMediaPlayer = null
             }
-
-            dialog.show()
+            show()
         }
     }
 
@@ -167,7 +155,7 @@ object ActivityUtils {
         context: Context?
     ) {
         val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-        val repository = ActivityRepository(context!!)
+        val repository = context?.let { ActivityRepository(it) }
         try {
             val name = nameActivity.text.toString().trim()
             if (TextUtils.isEmpty(name)) {
@@ -197,7 +185,7 @@ object ActivityUtils {
 
                 scope.launch(Dispatchers.IO) {
                     try {
-                        repository.createActivity(activity)
+                        repository?.createActivity(activity)
                         withContext(Dispatchers.Main) {
 
                             if (alarmActivated && alarmTimestamp != null) {
@@ -236,23 +224,6 @@ object ActivityUtils {
         alarmActivated = isChecked
     }
 
-    private fun handleRingtoneSelection(
-        position: Int,
-        list: List<String>,
-        uriList: List<Uri>,
-        view: View
-    ) {
-        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-        if (position == 0) {
-            alarmToneSelected = null
-            alarmToneNameTextView?.text = ""
-        } else {
-            alarmToneSelected = uriList[position]
-            alarmToneNameTextView?.text = list[position]
-        }
-        dialog?.dismiss()
-    }
-
     private fun getRingtoneList(context: Context): Pair<ArrayList<String>, ArrayList<Uri>> {
         val ringtoneManager = RingtoneManager(context)
         ringtoneManager.setType(RingtoneManager.TYPE_ALARM)
@@ -276,8 +247,7 @@ object ActivityUtils {
     private fun createRingtoneAdapter(
         context: Context,
         list: List<String>,
-        uriList: List<Uri>,
-        view: View
+        uriList: List<Uri>
     ): ArrayAdapter<String> {
         return object : ArrayAdapter<String>(
             context,
@@ -334,21 +304,29 @@ object ActivityUtils {
                     }
                 }
 
-                itemView.setOnClickListener {
-                    if (position ==  0) {
-                        alarmToneSelected = null
-                        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-                        alarmToneNameTextView?.text = ""
-                    } else {
-                        alarmToneSelected = uriList[position]
-                        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-                        alarmToneNameTextView?.text = list[position]
-                    }
-                    dialog?.dismiss()
-                }
-
                 return itemView
             }
+        }
+    }
+
+    private fun createDialogView(context: Context): View {
+        val frameLayout = FrameLayout(context)
+        return LayoutInflater.from(context).inflate(
+            R.layout.list_title_ringtone,
+            frameLayout,
+            false
+        )
+    }
+
+    private fun selectAlarmTone(position: Int, list: List<String>, uriList: List<Uri>, view: View) {
+        if (position == 0) {
+            alarmToneSelected = null
+            val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+            alarmToneNameTextView?.text = ""
+        } else {
+            alarmToneSelected = uriList[position]
+            val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+            alarmToneNameTextView?.text = list[position]
         }
     }
 

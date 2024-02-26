@@ -173,7 +173,7 @@ class FragmentAddActivity : Fragment() {
         }
 
         alarmTone.setOnClickListener {
-            ActivityUtils.setupAlarmToneButton(view, context)
+            ActivityUtils.setupAlarmToneButton(view, requireContext())
         }
 
         saveButton.setOnClickListener {
