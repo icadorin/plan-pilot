@@ -1,5 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/midnight_purple_5" />
-    <corners android:radius="3dp" />
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <shape>
+            <solid android:color="@color/midnight_purple_5" />
+            <corners android:radius="5dp" />
+            <stroke android:width="3dp" android:color="@color/white" />
+        </shape>
+    </item>
+
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="@color/midnight_purple_5_press" />
+            <corners android:radius="5dp" />
+            <stroke android:width="3dp" android:color="@color/white" />
+        </shape>
+    </item>
+</selector>

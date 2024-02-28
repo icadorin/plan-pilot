@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var toolbar: Toolbar
     private lateinit var btnReturnToToday: ImageButton
+    private lateinit var btnAddActivity: ImageButton
 
     override fun onResume() {
         super.onResume()
@@ -39,8 +40,13 @@ class MainActivity : AppCompatActivity() {
         toolbar = findViewById(R.id.custom_toolbar)
         setSupportActionBar(toolbar)
 
+        btnAddActivity = toolbar.findViewById(R.id.btnAddActivity)
         btnReturnToToday = toolbar.findViewById(R.id.btnReturnToToday)
         btnReturnToToday.visibility = View.GONE
+
+        btnAddActivity.setOnClickListener {
+            showAddActivityDialog()
+        }
 
         initializeViews()
         setupNavigation()
@@ -187,5 +193,10 @@ class MainActivity : AppCompatActivity() {
         val inputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+    }
+
+    private fun showAddActivityDialog() {
+        val dialog = AddActivityDialog()
+        dialog.show(supportFragmentManager, "AddActivityDialog")
     }
 }

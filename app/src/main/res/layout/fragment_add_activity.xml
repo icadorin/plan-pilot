@@ -114,19 +114,21 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:minHeight="48dp"
-            android:text="@string/alarm" />
+            android:text="@string/alarm"
+            android:stateListAnimator="@null" />
 
         <ImageButton
             android:id="@+id/alarmTone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:background="@drawable/button_background"
+            android:contentDescription="@string/chose_alarm_sound"
             android:minWidth="40dp"
             android:minHeight="40dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/ic_alarm_tone"
             android:scaleType="center"
-            android:contentDescription="@string/chose_alarm_sound" />
+            android:src="@drawable/ic_alarm_tone"
+            tools:ignore="TouchTargetSizeCheck" />
 
         <TextView
             android:id="@+id/alarmToneName"
@@ -145,6 +147,7 @@
             android:minHeight="45dp"
             android:text="@string/save"
             android:textColor="@color/white"
+            android:stateListAnimator="@null"
             tools:ignore="TouchTargetSizeCheck" />
 
     </LinearLayout>

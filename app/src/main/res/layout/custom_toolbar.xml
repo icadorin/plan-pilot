@@ -9,6 +9,17 @@
     android:minHeight="?attr/actionBarSize">
 
     <ImageButton
+        android:id="@+id/btnAddActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/add_activity"
+        android:src="@drawable/ic_add_activity"
+        android:background="@null"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <ImageButton
         android:id="@+id/btnReturnToToday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

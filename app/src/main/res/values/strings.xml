@@ -43,8 +43,10 @@
     <string name="add_time">Horário</string>
     <string name="chose_alarm_sound">Escolha um som de alarme</string>
     <string name="close_button">Botão de fechar</string>
+    <string name="backspace">backspace</string>
+    <string name="padrao">padrão</string>
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>
-    <string name="backspace">backspace</string>
+    <string name="add_activity">add_activity</string>
 </resources>
