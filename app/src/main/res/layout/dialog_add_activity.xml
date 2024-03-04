@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:theme="@style/Base.Theme.PlanPilot">
 
     <EditText
         android:id="@+id/nameActivity"
@@ -19,21 +20,43 @@
         android:textColorHint="@color/midnight_purple_4"
         tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
 
-    <Button
-        android:id="@+id/timePicker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/_00_00"
-        android:background="@null"
-        android:textSize="48sp"
-        android:textColor="@color/midnight_purple_3" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/dateButton"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text=""
+            android:background="@null"
+            />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            />
+
+        <Button
+            android:id="@+id/timePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/_00_00"
+            android:background="@null"
+            android:textSize="30sp"
+            android:textColor="@color/midnight_purple_3" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="5dp">
 
         <ImageButton
             android:id="@+id/alarmTone"
@@ -43,8 +66,7 @@
             android:contentDescription="@string/chose_alarm_sound"
             android:scaleType="center"
             android:src="@drawable/ic_alarm_tone"
-            android:stateListAnimator="@null"
-            tools:ignore="TouchTargetSizeCheck" />
+            android:stateListAnimator="@null" />
 
         <TextView
             android:id="@+id/alarmToneName"
@@ -75,7 +97,9 @@
             android:id="@+id/saveButton"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:textColor="@color/white"
+            android:layout_marginEnd="2dp"
             android:background="@drawable/button_background"
             android:text="@string/save"
             android:stateListAnimator="@null"/>
