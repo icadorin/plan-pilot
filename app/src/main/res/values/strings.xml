@@ -45,6 +45,7 @@
     <string name="close_button">Botão de fechar</string>
     <string name="backspace">backspace</string>
     <string name="padrao">padrão</string>
+    <string name="until">Até</string>
     <string name="date_format">%d/%d/%d</string>
 
     <string name="clearallactivitiesdesc"></string>

@@ -1,66 +1,42 @@
 package com.israel.planpilot
 
 import android.content.Context
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.CoroutineScope
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.IOException
-import java.util.UUID
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class ActivityRepository(private val context: Context) {
-    private val gson = Gson()
-    private var activities: MutableList<Activity> = loadActivities()
+    private val firestore = FirebaseFirestore.getInstance()
+    private val activitiesCollection = firestore.collection("activities")
 
-    fun createActivity(activity: Activity): UUID {
-        activities.add(activity)
-        saveActivities()
-
+    suspend fun createActivity(activity: Activity): String {
+        val id = activity.id.toString()
+        activitiesCollection.document(id).set(activity).await()
         return activity.id
     }
 
-    fun readActivity(id: UUID): Activity? {
-        return activities.find { it.id == id }
-    }
-
-    fun updateActivity(activity: Activity) {
-        val index = activities.indexOfFirst { it.id == activity.id }
-        if (index != -1) {
-            activities[index] = activity
-            saveActivities()
-        }
-    }
-
-    fun deleteActivity(id: UUID) {
-        activities.removeIf { it.id == id }
-        saveActivities()
-    }
-
-    private fun saveActivities() {
-        CoroutineScope(Dispatchers.IO).launch {
+    suspend fun readActivity(id: String): Activity? {
+        return withContext(Dispatchers.IO) {
+            var activity: Activity? = null
             try {
-                val internalFilesDir = context.filesDir
-                val file = File(internalFilesDir, "activities.json")
-                val jsonString = gson.toJson(activities)
-                file.writeText(jsonString)
-                println("Dados salvos com sucesso!")
-            } catch (e: IOException) {
-                e.printStackTrace()
+                activity = activitiesCollection
+                    .document(id)
+                    .get()
+                    .await()
+                    .toObject(Activity::class.java)
+            } catch (e: Exception) {
+                println("Erro ao ler a atividade: ${e.message}")
             }
+            activity
         }
     }
 
-    private fun loadActivities(): MutableList<Activity> {
-        val internalFilesDir = context.filesDir
-        val file = File(internalFilesDir, "activities.json")
+    suspend fun updateActivity(activity: Activity) {
+        activitiesCollection.document(activity.id.toString()).set(activity).await()
+    }
 
-        return if (file.exists()) {
-            val jsonString = file.readText()
-            gson.fromJson(jsonString, object : TypeToken<List<Activity>>() {}.type)
-        } else {
-            mutableListOf()
-        }
+    suspend fun deleteActivity(id: String) {
+        activitiesCollection.document(id).delete().await()
     }
 }

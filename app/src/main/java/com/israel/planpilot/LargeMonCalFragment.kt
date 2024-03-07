@@ -81,9 +81,9 @@ class LargeMonCalFragment : Fragment() {
 
     private fun calculateDate() {
         val sharedPreferences = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        val currentPagePosition = sharedPreferences?.getInt("lastPagePosition", 0)
+        val currentPagePosition = sharedPreferences?.getInt("lastPagePosition", 0) ?: 0
 
-        val year = START_YEAR + currentPagePosition!! / MONTHS_IN_YEAR
+        val year = START_YEAR + currentPagePosition / MONTHS_IN_YEAR
         val month = (currentPagePosition % MONTHS_IN_YEAR) + 1
 
         updateToolbar(year, month)

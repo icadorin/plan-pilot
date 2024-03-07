@@ -152,19 +152,19 @@ class FragmentAddActivity : Fragment() {
             ActivityUtils.setupAlarmToneButton(view, requireContext())
         }
 
-        saveButton.setOnClickListener {
-            ActivityUtils.saveActivity(
-                view,
-                nameActivity,
-                timePicker,
-                alarmSwitch,
-                selectedDay,
-                selectedMonth,
-                selectedYear,
-                lifecycleScope,
-                context
-            )
-        }
+//        saveButton.setOnClickListener {
+//            ActivityUtils.saveActivity(
+//                view,
+//                nameActivity,
+//                timePicker,
+//                alarmSwitch,
+//                selectedDay,
+//                selectedMonth,
+//                selectedYear,
+//                lifecycleScope,
+//                context
+//            )
+//        }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             findNavController().popBackStack()

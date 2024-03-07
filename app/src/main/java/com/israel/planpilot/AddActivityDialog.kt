@@ -11,12 +11,16 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class AddActivityDialog : DialogFragment() {
 
     private var selectedYear: Int = 0
     private var selectedMonth: Int = 0
     private var selectedDay: Int = 0
+    private var startDate: LocalDate? = null
+    private var endDate: LocalDate? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let { it ->
@@ -29,30 +33,44 @@ class AddActivityDialog : DialogFragment() {
             val saveButton = view.findViewById<Button>(R.id.saveButton)
             val timePicker = view.findViewById<Button>(R.id.timePicker)
             val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
-            val dateButton: Button = view.findViewById(R.id.dateButton)
+            val startDateButton: Button = view.findViewById(R.id.startDateButton)
+            val endDateButton: Button = view.findViewById(R.id.endDateButton)
 
             val currentDate = Calendar.getInstance()
+            val currentLocalDate = LocalDate.of(
+                currentDate.get(Calendar.YEAR),
+                currentDate.get(Calendar.MONTH) + 1,
+                currentDate.get(Calendar.DAY_OF_MONTH)
+            )
+            startDate = currentLocalDate
+            endDate = currentLocalDate
+
             val currentYear = currentDate.get(Calendar.YEAR)
             val currentMonth = currentDate.get(Calendar.MONTH)
             val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
             val currentDateString = String.format(
                 resources.getString(R.string.date_format),
                 currentDay,
-                currentMonth + 1,
+                currentMonth,
                 currentYear
             )
-            dateButton.text = currentDateString
 
-            dateButton.setOnClickListener {
+            selectedYear = currentYear
+            selectedMonth = currentMonth + 1
+            selectedDay = currentDay
+
+            startDateButton.text = currentDateString
+            endDateButton.text = currentDateString
+
+            startDateButton.setOnClickListener {
                 val calendar = Calendar.getInstance()
-                val yearCal = calendar.get(Calendar.YEAR)
-                val monthCal = calendar.get(Calendar.MONTH)
-                val dayCal = calendar.get(Calendar.DAY_OF_MONTH)
+                val yearCal = if (startDate != null) startDate!!.year else calendar.get(Calendar.YEAR)
+                val monthCal = if (startDate != null) startDate!!.monthValue - 1 else calendar.get(Calendar.MONTH)
+                val dayCal = if (startDate != null) startDate!!.dayOfMonth else calendar.get(Calendar.DAY_OF_MONTH)
 
                 val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
-                    selectedYear = year
-                    selectedMonth = monthOfYear + 1
-                    selectedDay = dayOfMonth
+                    val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
+                    startDate = selectedLocalDate
 
                     val dateString = String.format(
                         resources.getString(R.string.date_format),
@@ -60,7 +78,42 @@ class AddActivityDialog : DialogFragment() {
                         monthOfYear + 1,
                         year
                     )
-                    dateButton.text = dateString
+                    startDateButton.text = dateString
+
+                    if (startDate?.isAfter(endDate) == true) {
+                        endDate = startDate
+                        endDateButton.text = dateString
+                    }
+
+                }, yearCal, monthCal, dayCal)
+
+                dpd.show()
+            }
+
+            endDateButton.setOnClickListener {
+                val calendar = Calendar.getInstance()
+                val yearCal = if (endDate != null) endDate!!.year else calendar.get(Calendar.YEAR)
+                val monthCal = if (endDate != null) endDate!!.monthValue - 1 else calendar.get(Calendar.MONTH)
+                val dayCal = if (endDate != null) endDate!!.dayOfMonth else calendar.get(Calendar.DAY_OF_MONTH)
+
+                val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
+                    val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
+                    endDate = selectedLocalDate
+
+                    val dateString = String.format(
+                        resources.getString(R.string.date_format),
+                        dayOfMonth,
+                        monthOfYear + 1,
+                        year
+                    )
+
+                    endDateButton.text = dateString
+
+                    if (endDate?.isBefore(startDate) == true) {
+                        startDate = endDate
+                        startDateButton.text = dateString
+                    }
+
                 }, yearCal, monthCal, dayCal)
 
                 dpd.show()
@@ -79,6 +132,11 @@ class AddActivityDialog : DialogFragment() {
             }
 
             saveButton.setOnClickListener {
+
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val startDateString = startDate?.format(formatter)
+                val endDateString = endDate?.format(formatter)
+
                 ActivityUtils.saveActivity(
                     view,
                     nameActivity,
@@ -87,6 +145,8 @@ class AddActivityDialog : DialogFragment() {
                     selectedDay,
                     selectedMonth,
                     selectedYear,
+                    startDateString,
+                    endDateString,
                     lifecycleScope,
                     context
                 )

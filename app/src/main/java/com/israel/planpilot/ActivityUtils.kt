@@ -150,6 +150,8 @@ object ActivityUtils {
         selectedDay: Int?,
         selectedMonth: Int?,
         selectedYear: Int?,
+        startDate: String?,
+        endDate: String?,
         scope: CoroutineScope,
         context: Context?
     ) {
@@ -175,6 +177,8 @@ object ActivityUtils {
                     month = selectedMonth,
                     year = selectedYear,
                     time = currentTime,
+                    startDate = startDate,
+                    endDate = endDate,
                     contactForMessage = null,
                     alarmTriggerTime = alarmTriggerTime,
                     alarmActivated = alarmActivated,

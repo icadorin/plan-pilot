@@ -23,32 +23,46 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
         <Button
-            android:id="@+id/dateButton"
+            android:id="@+id/startDateButton"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:text=""
             android:background="@null"
-            />
+            android:text=""
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/until"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/endDateButton"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:text=""
+            android:textSize="20sp" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="1"
-            />
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/timePicker"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/_00_00"
             android:background="@null"
-            android:textSize="30sp"
-            android:textColor="@color/midnight_purple_3" />
+            android:text="@string/_00_00"
+            android:textColor="@color/midnight_purple_3"
+            android:textSize="30sp" />
     </LinearLayout>
 
     <LinearLayout
