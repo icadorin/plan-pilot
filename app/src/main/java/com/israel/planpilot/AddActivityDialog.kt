@@ -3,6 +3,7 @@ package com.israel.planpilot
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.Dialog
+import android.graphics.Color
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.widget.Button
@@ -21,6 +22,7 @@ class AddActivityDialog : DialogFragment() {
     private var selectedDay: Int = 0
     private var startDate: LocalDate? = null
     private var endDate: LocalDate? = null
+    private val selectedWeekDays = mutableListOf<String>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let { it ->
@@ -119,6 +121,41 @@ class AddActivityDialog : DialogFragment() {
                 dpd.show()
             }
 
+            val btnSunday = view.findViewById<Button>(R.id.btnSunday)
+            btnSunday.setOnClickListener {
+                toggleWeekDaySelection(btnSunday, "Sunday", selectedWeekDays)
+            }
+
+            val btnMonday = view.findViewById<Button>(R.id.btnMonday)
+            btnMonday.setOnClickListener {
+                toggleWeekDaySelection(btnMonday, "Monday", selectedWeekDays)
+            }
+
+            val btnTuesday = view.findViewById<Button>(R.id.btnTuesday)
+            btnTuesday.setOnClickListener {
+                toggleWeekDaySelection(btnTuesday, "Tuesday", selectedWeekDays)
+            }
+
+            val btnWednesday = view.findViewById<Button>(R.id.btnWednesday)
+            btnWednesday.setOnClickListener {
+                toggleWeekDaySelection(btnWednesday, "Wednesday", selectedWeekDays)
+            }
+
+            val btnThursday = view.findViewById<Button>(R.id.btnThursday)
+            btnThursday.setOnClickListener {
+                toggleWeekDaySelection(btnThursday, "Thursday", selectedWeekDays)
+            }
+
+            val btnSaturday = view.findViewById<Button>(R.id.btnSaturday)
+            btnSaturday.setOnClickListener {
+                toggleWeekDaySelection(btnSaturday, "Saturday", selectedWeekDays)
+            }
+
+            val btnFriday = view.findViewById<Button>(R.id.btnFriday)
+            btnFriday.setOnClickListener {
+                toggleWeekDaySelection(btnFriday, "Friday", selectedWeekDays)
+            }
+
             alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
                 ActivityUtils.setAlarmSwitchListener(isChecked)
             }
@@ -147,6 +184,7 @@ class AddActivityDialog : DialogFragment() {
                     selectedYear,
                     startDateString,
                     endDateString,
+                    selectedWeekDays,
                     lifecycleScope,
                     context
                 )
@@ -155,5 +193,21 @@ class AddActivityDialog : DialogFragment() {
             builder.setView(view)
             builder.create()
         } ?: throw IllegalStateException("Atividade nula")
+    }
+
+    private fun toggleWeekDaySelection(
+        button: Button,
+        dayName: String,
+        selectedDays: MutableList<String>
+    ) {
+        if (selectedDays.contains(dayName)) {
+            selectedWeekDays.remove(dayName)
+            button.isSelected = false
+            button.setTextColor(Color.BLACK)
+        } else {
+            selectedWeekDays.add(dayName)
+            button.isSelected = true
+            button.setTextColor(Color.WHITE)
+        }
     }
 }

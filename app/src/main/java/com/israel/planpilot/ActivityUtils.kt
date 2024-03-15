@@ -152,6 +152,7 @@ object ActivityUtils {
         selectedYear: Int?,
         startDate: String?,
         endDate: String?,
+        selectedWeekDays: MutableList<String>?,
         scope: CoroutineScope,
         context: Context?
     ) {
@@ -183,7 +184,8 @@ object ActivityUtils {
                     alarmTriggerTime = alarmTriggerTime,
                     alarmActivated = alarmActivated,
                     alarmTone = alarmToneString,
-                    category = null
+                    category = null,
+                    weekDays = selectedWeekDays
                 )
 
                 scope.launch(Dispatchers.IO) {

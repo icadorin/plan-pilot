@@ -2,7 +2,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -20,73 +19,64 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="D"
+            android:text="@string/sunday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck,TextContrastCheck" />
-
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="S"
+            android:text="@string/monday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck,TextContrastCheck" />
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="T"
+            android:text="@string/tuesday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck" />
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Q"
+            android:text="@string/wednesday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck" />
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Q"
+            android:text="@string/thursday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck" />
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="S"
+            android:text="@string/saturday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck" />
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="S"
+            android:text="@string/friday"
             android:textAlignment="center"
-            android:textColor="@color/gray"
-            android:textSize="16sp"
-            tools:ignore="HardcodedText,TextContrastCheck" />
-
+            android:textColor="#546E7A"
+            android:textSize="16sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,7 +15,8 @@ data class Activity(
     val alarmTriggerTime: String? = null,
     val alarmActivated: Boolean = false,
     val alarmTone: String? = null,
-    val category: String? = null
+    val category: String? = null,
+    val weekDays: List<String>? = null
 ) {
     init {
         require(name.isNotEmpty()) { "Name is required" }

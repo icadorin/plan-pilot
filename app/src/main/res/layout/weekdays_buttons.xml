@@ -1,0 +1,82 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btnSunday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/sunday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/btnMonday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/monday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
+
+        <Button
+            android:id="@+id/btnTuesday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/tuesday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/btnWednesday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/wednesday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
+
+        <Button
+            android:id="@+id/btnThursday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/thursday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/btnSaturday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/saturday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/btnFriday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="2dp"
+            android:background="@drawable/btn_weekdays_background"
+            android:text="@string/friday"
+            tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

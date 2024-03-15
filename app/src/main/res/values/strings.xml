@@ -47,6 +47,13 @@
     <string name="padrao">padrão</string>
     <string name="until">Até</string>
     <string name="date_format">%d/%d/%d</string>
+    <string name="sunday">D</string>
+    <string name="monday">S</string>
+    <string name="tuesday">T</string>
+    <string name="wednesday">Q</string>
+    <string name="thursday">Q</string>
+    <string name="saturday">S</string>
+    <string name="friday">S</string>
 
     <string name="clearallactivitiesdesc"></string>
     <string name="addactivitydesc"></string>

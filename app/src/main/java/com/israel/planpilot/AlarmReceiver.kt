@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 class AlarmReceiver : BroadcastReceiver() {
+
     companion object {
         var mediaPlayer: MediaPlayer? = null
     }
@@ -65,13 +66,6 @@ class AlarmReceiver : BroadcastReceiver() {
                 }
             }
 
-            val builder = NotificationCompat.Builder(context, "alarm_channel")
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Alarme")
-                .setContentText("$activityName, $alarmTime")
-                .setSound(alarmUri)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
             val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
                 action = "stop_alarm"
                 putExtra("alarm_id", alarmId)
@@ -83,6 +77,14 @@ class AlarmReceiver : BroadcastReceiver() {
                 stopIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
+
+            val builder = NotificationCompat.Builder(context, "alarm_channel")
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("Alarme")
+                .setContentText("$activityName, $alarmTime")
+                .setSound(alarmUri)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setDeleteIntent(stopPendingIntent)
 
             builder.addAction(R.drawable.ic_notification, "Cancelar", stopPendingIntent)
 
