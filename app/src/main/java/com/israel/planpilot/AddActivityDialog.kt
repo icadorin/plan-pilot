@@ -14,6 +14,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 class AddActivityDialog : DialogFragment() {
 
@@ -38,12 +40,63 @@ class AddActivityDialog : DialogFragment() {
             val startDateButton: Button = view.findViewById(R.id.startDateButton)
             val endDateButton: Button = view.findViewById(R.id.endDateButton)
 
+            val btnSunday = view.findViewById<Button>(R.id.btnSunday)
+            val btnMonday = view.findViewById<Button>(R.id.btnMonday)
+            val btnTuesday = view.findViewById<Button>(R.id.btnTuesday)
+            val btnWednesday = view.findViewById<Button>(R.id.btnWednesday)
+            val btnThursday = view.findViewById<Button>(R.id.btnThursday)
+            val btnFriday = view.findViewById<Button>(R.id.btnFriday)
+            val btnSaturday = view.findViewById<Button>(R.id.btnSaturday)
+
+            val buttonDayMap = mapOf(
+                btnSunday to "sunday",
+                btnMonday to "monday",
+                btnTuesday to "tuesday",
+                btnWednesday to "wednesday",
+                btnThursday to "thursday",
+                btnFriday to "friday",
+                btnSaturday to "saturday"
+            )
+
+            fun updateWeekButtons(date1: LocalDate?, date2: LocalDate?) {
+                buttonDayMap.keys.forEach { button ->
+                    if (selectedWeekDays.contains(buttonDayMap[button])) {
+                        toggleWeekDaySelection(button, buttonDayMap[button]!!, selectedWeekDays)
+                    }
+                }
+
+                val daysBetween = ChronoUnit.DAYS.between(date1, date2)
+
+                if (daysBetween >= 7) {
+                    buttonDayMap.forEach { (button, day) ->
+                        toggleWeekDaySelection(button, day, selectedWeekDays)
+                    }
+                } else {
+                    var currentDate = date1
+                    while (currentDate!!.isBefore(date2) || currentDate.isEqual(date2)) {
+                        val dayOfWeek = currentDate.dayOfWeek.name.lowercase(Locale.ROOT)
+                        toggleWeekDaySelection(when (dayOfWeek) {
+                            "sunday" -> btnSunday
+                            "monday" -> btnMonday
+                            "tuesday" -> btnTuesday
+                            "wednesday" -> btnWednesday
+                            "thursday" -> btnThursday
+                            "friday" -> btnFriday
+                            "saturday" -> btnSaturday
+                            else -> throw IllegalArgumentException("Invalid day of week")
+                        }, dayOfWeek, selectedWeekDays)
+                        currentDate = currentDate.plusDays(1)
+                    }
+                }
+            }
+
             val currentDate = Calendar.getInstance()
             val currentLocalDate = LocalDate.of(
                 currentDate.get(Calendar.YEAR),
                 currentDate.get(Calendar.MONTH) + 1,
                 currentDate.get(Calendar.DAY_OF_MONTH)
             )
+
             startDate = currentLocalDate
             endDate = currentLocalDate
 
@@ -66,9 +119,23 @@ class AddActivityDialog : DialogFragment() {
 
             startDateButton.setOnClickListener {
                 val calendar = Calendar.getInstance()
-                val yearCal = if (startDate != null) startDate!!.year else calendar.get(Calendar.YEAR)
-                val monthCal = if (startDate != null) startDate!!.monthValue - 1 else calendar.get(Calendar.MONTH)
-                val dayCal = if (startDate != null) startDate!!.dayOfMonth else calendar.get(Calendar.DAY_OF_MONTH)
+                val yearCal = if (startDate != null) {
+                    startDate!!.year
+                } else {
+                    calendar.get(Calendar.YEAR)
+                }
+
+                val monthCal = if (startDate != null) {
+                    startDate!!.monthValue - 1
+                } else {
+                    calendar.get(Calendar.MONTH)
+                }
+
+                val dayCal = if (startDate != null) {
+                    startDate!!.dayOfMonth
+                } else {
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                }
 
                 val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
                     val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
@@ -87,16 +154,31 @@ class AddActivityDialog : DialogFragment() {
                         endDateButton.text = dateString
                     }
 
-                }, yearCal, monthCal, dayCal)
+                    updateWeekButtons(startDate, endDate)
 
+                }, yearCal, monthCal, dayCal)
                 dpd.show()
             }
 
             endDateButton.setOnClickListener {
                 val calendar = Calendar.getInstance()
-                val yearCal = if (endDate != null) endDate!!.year else calendar.get(Calendar.YEAR)
-                val monthCal = if (endDate != null) endDate!!.monthValue - 1 else calendar.get(Calendar.MONTH)
-                val dayCal = if (endDate != null) endDate!!.dayOfMonth else calendar.get(Calendar.DAY_OF_MONTH)
+                val yearCal = if (endDate != null) {
+                    endDate!!.year
+                } else {
+                    calendar.get(Calendar.YEAR)
+                }
+
+                val monthCal = if (endDate != null) {
+                    endDate!!.monthValue - 1
+                } else {
+                    calendar.get(Calendar.MONTH)
+                }
+
+                val dayCal = if (endDate != null) {
+                    endDate!!.dayOfMonth
+                } else {
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                }
 
                 val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
                     val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
@@ -116,44 +198,38 @@ class AddActivityDialog : DialogFragment() {
                         startDateButton.text = dateString
                     }
 
-                }, yearCal, monthCal, dayCal)
+                    updateWeekButtons(startDate, endDate)
 
+                }, yearCal, monthCal, dayCal)
                 dpd.show()
             }
 
-            val btnSunday = view.findViewById<Button>(R.id.btnSunday)
             btnSunday.setOnClickListener {
-                toggleWeekDaySelection(btnSunday, "Sunday", selectedWeekDays)
+                toggleWeekDaySelection(btnSunday, "sunday", selectedWeekDays)
             }
 
-            val btnMonday = view.findViewById<Button>(R.id.btnMonday)
             btnMonday.setOnClickListener {
-                toggleWeekDaySelection(btnMonday, "Monday", selectedWeekDays)
+                toggleWeekDaySelection(btnMonday, "monday", selectedWeekDays)
             }
 
-            val btnTuesday = view.findViewById<Button>(R.id.btnTuesday)
             btnTuesday.setOnClickListener {
-                toggleWeekDaySelection(btnTuesday, "Tuesday", selectedWeekDays)
+                toggleWeekDaySelection(btnTuesday, "tuesday", selectedWeekDays)
             }
 
-            val btnWednesday = view.findViewById<Button>(R.id.btnWednesday)
             btnWednesday.setOnClickListener {
-                toggleWeekDaySelection(btnWednesday, "Wednesday", selectedWeekDays)
+                toggleWeekDaySelection(btnWednesday, "wednesday", selectedWeekDays)
             }
 
-            val btnThursday = view.findViewById<Button>(R.id.btnThursday)
             btnThursday.setOnClickListener {
-                toggleWeekDaySelection(btnThursday, "Thursday", selectedWeekDays)
+                toggleWeekDaySelection(btnThursday, "thursday", selectedWeekDays)
             }
 
-            val btnSaturday = view.findViewById<Button>(R.id.btnSaturday)
             btnSaturday.setOnClickListener {
-                toggleWeekDaySelection(btnSaturday, "Saturday", selectedWeekDays)
+                toggleWeekDaySelection(btnSaturday, "saturday", selectedWeekDays)
             }
 
-            val btnFriday = view.findViewById<Button>(R.id.btnFriday)
             btnFriday.setOnClickListener {
-                toggleWeekDaySelection(btnFriday, "Friday", selectedWeekDays)
+                toggleWeekDaySelection(btnFriday, "friday", selectedWeekDays)
             }
 
             alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -201,11 +277,15 @@ class AddActivityDialog : DialogFragment() {
         selectedDays: MutableList<String>
     ) {
         if (selectedDays.contains(dayName)) {
-            selectedWeekDays.remove(dayName)
+            selectedDays.remove(dayName)
+            println("false")
+            println("$selectedDays")
             button.isSelected = false
             button.setTextColor(Color.BLACK)
         } else {
-            selectedWeekDays.add(dayName)
+            selectedDays.add(dayName)
+            println("true")
+            println("$selectedDays")
             button.isSelected = true
             button.setTextColor(Color.WHITE)
         }

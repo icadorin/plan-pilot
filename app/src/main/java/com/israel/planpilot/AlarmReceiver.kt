@@ -13,6 +13,8 @@ import android.media.RingtoneManager
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -26,6 +28,21 @@ class AlarmReceiver : BroadcastReceiver() {
         val activityName = intent.getStringExtra("activity_name")
         val alarmTime = intent.getStringExtra("alarm_time")
         val alarmTone = intent.getStringExtra("alarm_tone")
+        val startDateString = intent.getStringExtra("startDate")
+        val endDateString = intent.getStringExtra("endDate")
+        val weekDays = intent.getStringArrayListExtra("weekDays")
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val startDate = LocalDate.parse(startDateString, formatter)
+        val endDate = LocalDate.parse(endDateString, formatter)
+        val currentDate = LocalDate.now()
+
+        if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
+
+            if (weekDays.isNullOrEmpty() || weekDays.contains(currentDate.dayOfWeek.name)) {
+
+            }
+        }
 
         val channel = NotificationChannel(
             "alarm_channel",

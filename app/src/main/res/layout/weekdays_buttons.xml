@@ -61,7 +61,7 @@
             tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
 
         <Button
-            android:id="@+id/btnSaturday"
+            android:id="@+id/btnFriday"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_margin="2dp"
@@ -70,7 +70,7 @@
             tools:ignore="ButtonStyle,TouchTargetSizeCheck" />
 
         <Button
-            android:id="@+id/btnFriday"
+            android:id="@+id/btnSaturday"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_margin="2dp"
