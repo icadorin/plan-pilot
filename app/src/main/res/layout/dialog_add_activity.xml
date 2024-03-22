@@ -31,9 +31,11 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@null"
+            android:background="@drawable/button_background"
             android:text=""
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:textColor="@color/white"
+            android:stateListAnimator="@null" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -49,16 +51,17 @@
             android:layout_width="100dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:background="@null"
+            android:background="@drawable/button_background"
             android:text=""
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:textColor="@color/white"
+            android:stateListAnimator="@null" />
     </LinearLayout>
 
     <include
         layout="@layout/weekdays_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-
 
     <LinearLayout
         android:layout_width="match_parent"

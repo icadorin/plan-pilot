@@ -115,6 +115,20 @@ class AddActivityDialog : DialogFragment() {
             selectedDay = currentDay
 
             startDateButton.text = currentDateString
+            val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
+            val currentButton = when (currentDayOfWeek) {
+                "sunday" -> btnSunday
+                "monday" -> btnMonday
+                "tuesday" -> btnTuesday
+                "wednesday" -> btnWednesday
+                "thursday" -> btnThursday
+                "friday" -> btnFriday
+                "saturday" -> btnSaturday
+                else -> throw IllegalArgumentException("Invalid day of week")
+            }
+
+            toggleWeekDaySelection(currentButton, currentDayOfWeek, selectedWeekDays)
+
             endDateButton.text = currentDateString
 
             startDateButton.setOnClickListener {

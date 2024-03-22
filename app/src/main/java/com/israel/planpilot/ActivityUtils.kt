@@ -162,6 +162,12 @@ object ActivityUtils {
             val name = nameActivity.text.toString().trim()
             if (TextUtils.isEmpty(name)) {
                 nameActivity.error = "Nome da atividade é obrigatório"
+            } else if (selectedWeekDays.isNullOrEmpty()) {
+                Toast.makeText(
+                    context,
+                    "Selecione pelo menos um dia da semana",
+                    Toast.LENGTH_SHORT
+                ).show()
             } else {
                 val alarmTriggerTime = timePicker.text.toString()
                 val alarmToneString = alarmToneSelected?.toString()
