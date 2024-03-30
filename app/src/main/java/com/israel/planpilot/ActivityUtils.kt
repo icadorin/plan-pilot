@@ -92,53 +92,85 @@ object ActivityUtils {
         }
     }
 
-    private fun setAlarm(activityName: String, alarmTone: String?, context: Context?) {
-
+    private fun setAlarm(
+        activityName: String,
+        alarmTone: String?,
+        context: Context?,
+        startDate: String?,
+        endDate: String?,
+        weekDays: List<String>,
+        alarmTriggerTimes: String
+    ) {
         val alarmManager = context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AlarmReceiver::class.java)
         val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val formattedTime = alarmTimestamp?.let { formatter.format(Date(it)) }
-        val alarmId = UUID.randomUUID().toString()
 
-        intent.putExtra("alarm_id", alarmId)
-        intent.putExtra("activity_name", activityName)
-        intent.putExtra("alarm_time", formattedTime)
-        intent.putExtra("alarm_tone", alarmTone)
+        val startCalendar = Calendar.getInstance().apply {
+            time = startDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it) }!!
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
 
-        val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+        val endCalendar = Calendar.getInstance().apply {
+            time = endDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it) }!!
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            uniqueRequestCode,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val alarmTimesList = alarmTriggerTimes.split(",")
 
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                !alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(
-                    context,
-                    "Este aplicativo não tem as permissão para definir alarmes exatos.",
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } else {
-
-                val calendar = Calendar.getInstance().apply {
-                    timeInMillis = alarmTimestamp!!
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+        while (startCalendar.before(endCalendar) || startCalendar.equals(endCalendar)) {
+            val dayName = when (startCalendar.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> "monday"
+                Calendar.TUESDAY -> "tuesday"
+                Calendar.WEDNESDAY -> "wednesday"
+                Calendar.THURSDAY -> "thursday"
+                Calendar.FRIDAY -> "friday"
+                Calendar.SATURDAY -> "saturday"
+                Calendar.SUNDAY -> "sunday"
+                else -> ""
             }
-        } catch (e: SecurityException) {
-            Toast.makeText(
-                context,
-                "Erro ao definir o alarme: ${e.message}",
-                Toast.LENGTH_LONG
-            ).show()
+
+            if (weekDays.contains(dayName)) {
+                for (time in alarmTimesList) {
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = startCalendar.timeInMillis
+                        set(Calendar.HOUR_OF_DAY, time.split(":")[0].toInt())
+                        set(Calendar.MINUTE, time.split(":")[1].toInt())
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+
+                    val intent = Intent(context, AlarmReceiver::class.java).apply {
+                        putExtra("alarm_id", UUID.randomUUID().toString())
+                        putExtra("activity_name", activityName)
+                        putExtra("alarm_time", formatter.format(calendar.time))
+                        putExtra("alarm_tone", alarmTone)
+                    }
+
+                    val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        uniqueRequestCode,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                    )
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                        Toast.makeText(
+                            context,
+                            "Este aplicativo não tem as permissão para definir alarmes exatos.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        alarmManager.setExact(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.timeInMillis,
+                            pendingIntent
+                        )
+                    }
+                }
+            }
+            startCalendar.add(Calendar.DATE, 1)
         }
     }
 
@@ -200,7 +232,15 @@ object ActivityUtils {
                         withContext(Dispatchers.Main) {
 
                             if (alarmActivated && alarmTimestamp != null) {
-                                setAlarm(name, alarmToneString, context)
+                                setAlarm(
+                                    name,
+                                    alarmToneString,
+                                    context,
+                                    startDate,
+                                    endDate,
+                                    selectedWeekDays,
+                                    alarmTriggerTime
+                                )
                             }
 
                             nameActivity.text.clear()
