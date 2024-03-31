@@ -21,8 +21,35 @@
         tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
 
     <LinearLayout
+        android:id="@+id/descriptionContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ADD. DESCRIÇÃO"
+            android:textColor="@color/black"
+            android:gravity="center_horizontal" />
+
+        <ImageButton
+            android:id="@+id/addDescriptionButton"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:src="@drawable/ic_add"
+            android:background="@drawable/simple_button_background"
+            android:textColor="@color/black"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -30,11 +57,11 @@
             android:id="@+id/startDateButton"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
+            android:background="@drawable/simple_button_background"
             android:layout_weight="1"
-            android:background="@drawable/button_background"
             android:text=""
             android:textSize="20sp"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:stateListAnimator="@null" />
 
         <TextView
@@ -51,21 +78,23 @@
             android:layout_width="100dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_background"
+            android:background="@drawable/simple_button_background"
             android:text=""
             android:textSize="20sp"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:stateListAnimator="@null" />
     </LinearLayout>
 
     <include
         layout="@layout/weekdays_buttons"
+        android:layout_marginTop="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:gravity="center"
         android:orientation="horizontal">
 

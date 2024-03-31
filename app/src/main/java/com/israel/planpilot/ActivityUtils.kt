@@ -105,13 +105,21 @@ object ActivityUtils {
         val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
 
         val startCalendar = Calendar.getInstance().apply {
-            time = startDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it) }!!
+            time = startDate?.let { date ->
+                val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val parsedDate = format.parse(date)
+                parsedDate
+            }!!
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
 
         val endCalendar = Calendar.getInstance().apply {
-            time = endDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it) }!!
+            time = endDate?.let { date ->
+                val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val parsedDate = format.parse(date)
+                parsedDate
+            }!!
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
