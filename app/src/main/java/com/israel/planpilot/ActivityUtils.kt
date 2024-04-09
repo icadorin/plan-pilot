@@ -254,7 +254,7 @@ object ActivityUtils {
                             nameActivity.text.clear()
                             alarmSwitch.isChecked = false
                             alarmToneSelected = null
-                            alarmToneNameTextView?.text = ""
+                            alarmToneNameTextView?.text = "Padrão"
 
                             Snackbar.make(
                                 view,
@@ -290,7 +290,7 @@ object ActivityUtils {
         val list = ArrayList<String>()
         val uriList = ArrayList<Uri>()
 
-        list.add("Nenhum")
+        list.add("Padrão")
         uriList.add(Uri.EMPTY)
 
         while (cursor.moveToNext()) {
@@ -381,7 +381,7 @@ object ActivityUtils {
         if (position == 0) {
             alarmToneSelected = null
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-            alarmToneNameTextView?.text = ""
+            alarmToneNameTextView?.text = "Padrão"
         } else {
             alarmToneSelected = uriList[position]
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)

@@ -10,6 +10,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -18,11 +20,13 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
+
 class FragmentAddActivity : Fragment() {
 
     private var selectedYear: Int = 0
     private var selectedMonth: Int = 0
     private var selectedDay: Int = 0
+    private var descriptionCount = 0
     private var startDate: LocalDate? = null
     private var endDate: LocalDate? = null
     private val selectedWeekDays = mutableListOf<String>()
@@ -41,6 +45,9 @@ class FragmentAddActivity : Fragment() {
         val startDateButton: Button = view.findViewById(R.id.startDateButton)
         val endDateButton: Button = view.findViewById(R.id.endDateButton)
 
+        val descriptionContainer = view.findViewById<LinearLayout>(R.id.descriptionContainer)
+        val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
+
         val btnSunday = view.findViewById<Button>(R.id.btnSunday)
         val btnMonday = view.findViewById<Button>(R.id.btnMonday)
         val btnTuesday = view.findViewById<Button>(R.id.btnTuesday)
@@ -58,6 +65,19 @@ class FragmentAddActivity : Fragment() {
             btnFriday to "friday",
             btnSaturday to "saturday"
         )
+
+        addDescriptionButton.setOnClickListener {
+            if (descriptionCount < 3) {
+                addDescriptionField(descriptionContainer)
+                descriptionCount++
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "Você só pode adicionar até 3 descrições",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
         fun updateWeekButtons(date1: LocalDate?, date2: LocalDate?) {
             buttonDayMap.keys.forEach { button ->
@@ -281,6 +301,16 @@ class FragmentAddActivity : Fragment() {
             )
         }
         return view
+    }
+
+    private fun addDescriptionField(container: LinearLayout) {
+        val descriptionField = EditText(requireContext())
+        descriptionField.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        descriptionField.hint = "Descrição ${descriptionCount + 1}"
+        container.addView(descriptionField)
     }
 
     private fun toggleWeekDaySelection(

@@ -9,7 +9,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
@@ -353,19 +352,19 @@ class LargeMonCalFragment : Fragment() {
                 holder.itemView.setBackgroundResource(R.color.twilightBlue)
             }
 
-            holder.itemView.setOnClickListener {
-                val selectedDay = dayItem.day.toInt()
-                val selectedMonth = dayItem.month
-                val selectedYear = dayItem.year
-
-                val action = LargeMonCalFragmentDirections
-                    .actionLargeMonCalFragmentToFragmentAddActivity(
-                        selectedDay,
-                        selectedMonth,
-                        selectedYear
-                    )
-                findNavController().navigate(action)
-            }
+//            holder.itemView.setOnClickListener {
+//                val selectedDay = dayItem.day.toInt()
+//                val selectedMonth = dayItem.month
+//                val selectedYear = dayItem.year
+//
+//                val action = LargeMonCalFragmentDirections
+//                    .actionLargeMonCalFragmentToFragmentAddActivity(
+//                        selectedDay,
+//                        selectedMonth,
+//                        selectedYear
+//                    )
+//                findNavController().navigate(action)
+//            }
         }
 
         override fun getItemCount(): Int {

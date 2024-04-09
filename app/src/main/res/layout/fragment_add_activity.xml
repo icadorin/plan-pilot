@@ -1,166 +1,188 @@
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:theme="@style/Base.Theme.PlanPilot">
+    android:padding="16dp">
 
-    <EditText
-        android:id="@+id/nameActivity"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autofillHints=""
-        android:gravity="center"
-        android:hint="@string/activity_name"
-        android:inputType="textCapWords"
-        android:minHeight="48dp"
-        android:backgroundTint="@color/midnight_purple_2"
-        android:textColorHint="@color/midnight_purple_4"
-        tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
+        android:theme="@style/Base.Theme.PlanPilot">
 
-    <LinearLayout
-        android:id="@+id/descriptionContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
+        <EditText
+            android:id="@+id/nameActivity"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Descrição"
-            android:textColor="@color/black"
-            android:gravity="center_horizontal" />
-
-        <ImageButton
-            android:id="@+id/addDescriptionButton"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:padding="6dp"
-            android:src="@drawable/ic_add_activity"
-            android:background="@drawable/button_background"
-            android:textColor="@color/black"
-            android:stateListAnimator="@null" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/startDateButton"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/simple_button_background"
-            android:layout_weight="1"
-            android:text=""
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:stateListAnimator="@null" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginTop="50dp"
+            android:autofillHints=""
             android:gravity="center"
-            android:textColor="@color/black"
-            android:text="@string/until"
-            android:textSize="20sp" />
+            android:hint="@string/activity_name"
+            android:inputType="textCapWords"
+            android:minHeight="48dp"
+            android:backgroundTint="@color/midnight_purple_2"
+            android:textColorHint="@color/midnight_purple_4"
+            tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
 
-        <Button
-            android:id="@+id/endDateButton"
-            android:layout_width="100dp"
-            android:layout_weight="1"
+        <LinearLayout
+            android:id="@+id/descriptionContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/simple_button_background"
-            android:text=""
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:stateListAnimator="@null" />
-    </LinearLayout>
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_below="@+id/nameActivity">
 
-    <include
-        layout="@layout/weekdays_buttons"
-        android:layout_marginTop="5dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="@string/description"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/addDescriptionButton"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:background="@drawable/button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_add_activity"
+                android:stateListAnimator="@null"
+                android:textColor="@color/black"
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/timePicker"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/timeContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@null"
-            android:text="@string/_00_00"
-            android:textColor="@color/midnight_purple_3"
-            android:textSize="30sp" />
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_below="@+id/descriptionContainer">
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/timePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:text="@string/_00_00"
+                android:textColor="@color/midnight_purple_3"
+                android:textSize="30sp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="5dp">
+        </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/alarmTone"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/button_background"
-            android:contentDescription="@string/chose_alarm_sound"
-            android:scaleType="center"
-            android:src="@drawable/ic_alarm_tone"
-            android:stateListAnimator="@null"
-            tools:ignore="TouchTargetSizeCheck" />
-
-        <TextView
-            android:id="@+id/alarmToneName"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/dateContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="5dp"
-            android:text="@string/padrao" />
+            android:layout_marginTop="40dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_below="@+id/timeContainer">
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/alarmSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="@string/alarm" />
-    </LinearLayout>
+            <Button
+                android:id="@+id/startDateButton"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/simple_button_background"
+                android:stateListAnimator="@null"
+                android:text=""
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                tools:ignore="SpeakableTextPresentCheck,VisualLintButtonSize" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:text="@string/until"
+                android:textSize="20sp" />
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"/>
+            <Button
+                android:id="@+id/endDateButton"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/simple_button_background"
+                android:stateListAnimator="@null"
+                android:text=""
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                tools:ignore="SpeakableTextPresentCheck,VisualLintButtonSize" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="100dp"
+        <include
+            android:id="@+id/weekdays_buttons"
+            layout="@layout/weekdays_buttons"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:textColor="@color/white"
-            android:layout_marginEnd="2dp"
-            android:background="@drawable/button_background"
-            android:text="@string/save"
-            android:stateListAnimator="@null"/>
-    </LinearLayout>
-</LinearLayout>
+            android:layout_below="@+id/dateContainer" />
+
+        <LinearLayout
+            android:id="@+id/alarmContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_below="@+id/weekdays_buttons">
+
+            <ImageButton
+                android:id="@+id/alarmTone"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/button_background"
+                android:contentDescription="@string/chose_alarm_sound"
+                android:scaleType="center"
+                android:src="@drawable/ic_alarm_tone"
+                android:stateListAnimator="@null"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <TextView
+                android:id="@+id/alarmToneName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_weight="1"
+                android:text="@string/padrao" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/alarmSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="@string/alarm" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/saveButtonContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@+id/alarmContainer">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"/>
+
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/white"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/button_background"
+                android:text="@string/save"
+                android:stateListAnimator="@null"/>
+        </LinearLayout>
+    </RelativeLayout>
+</ScrollView>
