@@ -1,143 +1,250 @@
 package com.israel.planpilot
 
-import android.Manifest
-import android.content.Context
+import android.app.DatePickerDialog
+import android.graphics.Color
+import android.icu.util.Calendar
 import android.os.Bundle
-import android.text.InputType
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.TextView
-import androidx.activity.addCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 class FragmentAddActivity : Fragment() {
 
-    companion object {
-        private const val ARG_SELECTED_DAY = "selected_day"
-        private const val ARG_SELECTED_MONTH = "selected_month"
-        private const val ARG_SELECTED_YEAR = "selected_year"
-
-        fun newInstance(
-            selectedDay: Int,
-            selectedMonth: Int,
-            selectedYear: Int
-        ): FragmentAddActivity {
-            val fragment = FragmentAddActivity()
-            val args = Bundle()
-            args.putInt(ARG_SELECTED_DAY, selectedDay)
-            args.putInt(ARG_SELECTED_MONTH, selectedMonth)
-            args.putInt(ARG_SELECTED_YEAR, selectedYear)
-            fragment.arguments = args
-
-            return fragment
-        }
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (!isGranted) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.SET_ALARM)) {
-                showExplanationAndAskAgain()
-            }
-        }
-    }
-
-    private fun showExplanationAndAskAgain() {
-        requestPermissionLauncher.launch(Manifest.permission.SET_ALARM)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
-    }
+    private var selectedYear: Int = 0
+    private var selectedMonth: Int = 0
+    private var selectedDay: Int = 0
+    private var startDate: LocalDate? = null
+    private var endDate: LocalDate? = null
+    private val selectedWeekDays = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-
     ): View? {
-        return inflater.inflate(R.layout.fragment_add_activity, container, false)
-    }
-
-    private fun hideKeyboard(view: View?) {
-        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        imm?.hideSoftInputFromWindow(view?.windowToken, 0)
-        view?.clearFocus()
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val selectedDay = arguments?.getInt(ARG_SELECTED_DAY)
-        val selectedMonth = arguments?.getInt(ARG_SELECTED_MONTH)
-        val selectedYear = arguments?.getInt(ARG_SELECTED_YEAR)
-
-        val monthNames = arrayOf(
-            "JAN", "FEV", "MAR", "ABR",
-            "MAI", "JUN", "JUL", "AGO",
-            "SET", "OUT", "NOV", "DEZ"
-        )
-
-        val monthName = "${monthNames[selectedMonth!! - 1]}."
-
-        view.findViewById<TextView>(R.id.selectedMonth).text = monthName
-        view.findViewById<TextView>(R.id.selectedYear).text = selectedYear.toString()
-        view.findViewById<TextView>(R.id.selectedDay).text = selectedDay.toString()
+        val view = inflater.inflate(R.layout.fragment_add_activity, container, false)
 
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
-        val backspaceButton = view.findViewById<Button>(R.id.backspaceButton)
-        val cancelButton = view.findViewById<Button>(R.id.cancelButton)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
         val timePicker = view.findViewById<Button>(R.id.timePicker)
         val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
+        val startDateButton: Button = view.findViewById(R.id.startDateButton)
+        val endDateButton: Button = view.findViewById(R.id.endDateButton)
 
-        nameActivity.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                nameActivity.gravity = Gravity.START
-                nameActivity.hint = ""
-                backspaceButton.visibility = View.VISIBLE
-                cancelButton.visibility = View.VISIBLE
-                nameActivity.setSelection(nameActivity.text.length)
+        val btnSunday = view.findViewById<Button>(R.id.btnSunday)
+        val btnMonday = view.findViewById<Button>(R.id.btnMonday)
+        val btnTuesday = view.findViewById<Button>(R.id.btnTuesday)
+        val btnWednesday = view.findViewById<Button>(R.id.btnWednesday)
+        val btnThursday = view.findViewById<Button>(R.id.btnThursday)
+        val btnFriday = view.findViewById<Button>(R.id.btnFriday)
+        val btnSaturday = view.findViewById<Button>(R.id.btnSaturday)
+
+        val buttonDayMap = mapOf(
+            btnSunday to "sunday",
+            btnMonday to "monday",
+            btnTuesday to "tuesday",
+            btnWednesday to "wednesday",
+            btnThursday to "thursday",
+            btnFriday to "friday",
+            btnSaturday to "saturday"
+        )
+
+        fun updateWeekButtons(date1: LocalDate?, date2: LocalDate?) {
+            buttonDayMap.keys.forEach { button ->
+                if (selectedWeekDays.contains(buttonDayMap[button])) {
+                    toggleWeekDaySelection(button, buttonDayMap[button]!!, selectedWeekDays)
+                }
+            }
+
+            val daysBetween = ChronoUnit.DAYS.between(date1, date2)
+
+            if (daysBetween >= 7) {
+                buttonDayMap.forEach { (button, day) ->
+                    toggleWeekDaySelection(button, day, selectedWeekDays)
+                }
             } else {
-                nameActivity.gravity = Gravity.CENTER
-                nameActivity.hint = getString(R.string.activity_name)
-                backspaceButton.visibility = View.GONE
-                cancelButton.visibility = View.GONE
+                var currentDate = date1
+                while (currentDate!!.isBefore(date2) || currentDate.isEqual(date2)) {
+                    val dayOfWeek = currentDate.dayOfWeek.name.lowercase(Locale.ROOT)
+                    toggleWeekDaySelection(when (dayOfWeek) {
+                        "sunday" -> btnSunday
+                        "monday" -> btnMonday
+                        "tuesday" -> btnTuesday
+                        "wednesday" -> btnWednesday
+                        "thursday" -> btnThursday
+                        "friday" -> btnFriday
+                        "saturday" -> btnSaturday
+                        else -> throw IllegalArgumentException("Invalid day of week")
+                    }, dayOfWeek, selectedWeekDays)
+                    currentDate = currentDate.plusDays(1)
+                }
             }
         }
 
-        backspaceButton.setOnClickListener {
-            nameActivity.text.clear()
+        val currentDate = Calendar.getInstance()
+        val currentLocalDate = LocalDate.of(
+            currentDate.get(Calendar.YEAR),
+            currentDate.get(Calendar.MONTH) + 1,
+            currentDate.get(Calendar.DAY_OF_MONTH)
+        )
+
+        startDate = currentLocalDate
+        endDate = currentLocalDate
+
+        val currentYear = currentDate.get(Calendar.YEAR)
+        val currentMonth = currentDate.get(Calendar.MONTH)
+        val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
+        val currentDateString = String.format(
+            resources.getString(R.string.date_format),
+            currentDay,
+            currentMonth,
+            currentYear
+        )
+
+        selectedYear = currentYear
+        selectedMonth = currentMonth + 1
+        selectedDay = currentDay
+
+        startDateButton.text = currentDateString
+        val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
+        val currentButton = when (currentDayOfWeek) {
+            "sunday" -> btnSunday
+            "monday" -> btnMonday
+            "tuesday" -> btnTuesday
+            "wednesday" -> btnWednesday
+            "thursday" -> btnThursday
+            "friday" -> btnFriday
+            "saturday" -> btnSaturday
+            else -> throw IllegalArgumentException("Invalid day of week")
         }
 
-        cancelButton.setOnClickListener {
-            nameActivity.text.clear()
-            hideKeyboard(nameActivity)
-        }
+        toggleWeekDaySelection(currentButton, currentDayOfWeek, selectedWeekDays)
 
-        nameActivity.imeOptions = EditorInfo.IME_ACTION_DONE
-        nameActivity.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        endDateButton.text = currentDateString
 
-        nameActivity.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                hideKeyboard(nameActivity)
-                true
+        startDateButton.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val yearCal = if (startDate != null) {
+                startDate!!.year
             } else {
-                false
+                calendar.get(Calendar.YEAR)
             }
+
+            val monthCal = if (startDate != null) {
+                startDate!!.monthValue - 1
+            } else {
+                calendar.get(Calendar.MONTH)
+            }
+
+            val dayCal = if (startDate != null) {
+                startDate!!.dayOfMonth
+            } else {
+                calendar.get(Calendar.DAY_OF_MONTH)
+            }
+
+            val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
+                val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
+                startDate = selectedLocalDate
+
+                val dateString = String.format(
+                    resources.getString(R.string.date_format),
+                    dayOfMonth,
+                    monthOfYear + 1,
+                    year
+                )
+                startDateButton.text = dateString
+
+                if (startDate?.isAfter(endDate) == true) {
+                    endDate = startDate
+                    endDateButton.text = dateString
+                }
+
+                updateWeekButtons(startDate, endDate)
+
+            }, yearCal, monthCal, dayCal)
+            dpd.show()
+        }
+
+        endDateButton.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val yearCal = if (endDate != null) {
+                endDate!!.year
+            } else {
+                calendar.get(Calendar.YEAR)
+            }
+
+            val monthCal = if (endDate != null) {
+                endDate!!.monthValue - 1
+            } else {
+                calendar.get(Calendar.MONTH)
+            }
+
+            val dayCal = if (endDate != null) {
+                endDate!!.dayOfMonth
+            } else {
+                calendar.get(Calendar.DAY_OF_MONTH)
+            }
+
+            val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
+                val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
+                endDate = selectedLocalDate
+
+                val dateString = String.format(
+                    resources.getString(R.string.date_format),
+                    dayOfMonth,
+                    monthOfYear + 1,
+                    year
+                )
+
+                endDateButton.text = dateString
+
+                if (endDate?.isBefore(startDate) == true) {
+                    startDate = endDate
+                    startDateButton.text = dateString
+                }
+
+                updateWeekButtons(startDate, endDate)
+
+            }, yearCal, monthCal, dayCal)
+            dpd.show()
+        }
+
+        btnSunday.setOnClickListener {
+            toggleWeekDaySelection(btnSunday, "sunday", selectedWeekDays)
+        }
+
+        btnMonday.setOnClickListener {
+            toggleWeekDaySelection(btnMonday, "monday", selectedWeekDays)
+        }
+
+        btnTuesday.setOnClickListener {
+            toggleWeekDaySelection(btnTuesday, "tuesday", selectedWeekDays)
+        }
+
+        btnWednesday.setOnClickListener {
+            toggleWeekDaySelection(btnWednesday, "wednesday", selectedWeekDays)
+        }
+
+        btnThursday.setOnClickListener {
+            toggleWeekDaySelection(btnThursday, "thursday", selectedWeekDays)
+        }
+
+        btnSaturday.setOnClickListener {
+            toggleWeekDaySelection(btnSaturday, "saturday", selectedWeekDays)
+        }
+
+        btnFriday.setOnClickListener {
+            toggleWeekDaySelection(btnFriday, "friday", selectedWeekDays)
         }
 
         alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -152,22 +259,47 @@ class FragmentAddActivity : Fragment() {
             ActivityUtils.setupAlarmToneButton(view, requireContext())
         }
 
-//        saveButton.setOnClickListener {
-//            ActivityUtils.saveActivity(
-//                view,
-//                nameActivity,
-//                timePicker,
-//                alarmSwitch,
-//                selectedDay,
-//                selectedMonth,
-//                selectedYear,
-//                lifecycleScope,
-//                context
-//            )
-//        }
+        saveButton.setOnClickListener {
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-            findNavController().popBackStack()
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val startDateString = startDate?.format(formatter)
+            val endDateString = endDate?.format(formatter)
+
+            ActivityUtils.saveActivity(
+                view,
+                nameActivity,
+                timePicker,
+                alarmSwitch,
+                selectedDay,
+                selectedMonth,
+                selectedYear,
+                startDateString,
+                endDateString,
+                selectedWeekDays,
+                lifecycleScope,
+                context
+            )
+        }
+        return view
+    }
+
+    private fun toggleWeekDaySelection(
+        button: Button,
+        dayName: String,
+        selectedDays: MutableList<String>
+    ) {
+        if (selectedDays.contains(dayName)) {
+            selectedDays.remove(dayName)
+            println("false")
+            println("$selectedDays")
+            button.isSelected = false
+            button.setTextColor(Color.BLACK)
+        } else {
+            selectedDays.add(dayName)
+            println("true")
+            println("$selectedDays")
+            button.isSelected = true
+            button.setTextColor(Color.WHITE)
         }
     }
 }

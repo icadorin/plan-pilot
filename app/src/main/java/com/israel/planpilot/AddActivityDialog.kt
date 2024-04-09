@@ -30,7 +30,7 @@ class AddActivityDialog : DialogFragment() {
         return activity?.let { it ->
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
-            val view = inflater.inflate(R.layout.dialog_add_activity, null, false)
+            val view = inflater.inflate(R.layout.fragment_add_activity, null, false)
 
             val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
             val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)

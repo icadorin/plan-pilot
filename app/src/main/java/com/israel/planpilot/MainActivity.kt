@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         btnReturnToToday.visibility = View.GONE
 
         btnAddActivity.setOnClickListener {
-            showAddActivityDialog()
+            showAddActivityFragment()
         }
 
         initializeViews()
@@ -195,8 +195,12 @@ class MainActivity : AppCompatActivity() {
         inputMethodManager.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
     }
 
-    private fun showAddActivityDialog() {
-        val dialog = AddActivityDialog()
-        dialog.show(supportFragmentManager, "AddActivityDialog")
+    private fun showAddActivityFragment() {
+        val fragment = FragmentAddActivity()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
     }
+
 }
