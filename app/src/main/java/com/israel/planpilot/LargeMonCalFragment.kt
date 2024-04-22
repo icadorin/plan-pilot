@@ -2,13 +2,17 @@ package com.israel.planpilot
 
 import android.content.Context
 import android.os.Bundle
+import android.text.TextUtils
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
@@ -20,6 +24,7 @@ import com.israel.planpilot.Constants.HORIZONTAL_CELLS
 import com.israel.planpilot.Constants.MONTHS_IN_YEAR
 import com.israel.planpilot.Constants.START_YEAR
 import com.israel.planpilot.Constants.VERTICAL_CELLS
+import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -30,6 +35,8 @@ class LargeMonCalFragment : Fragment() {
     private lateinit var selectedDate: Date
     private lateinit var currentDate: Calendar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
+    private lateinit var activityRepository: ActivityRepository
+    private var allActivities = listOf<Activity>()
 
     private inner class DayItem(
         val day: String,
@@ -50,9 +57,14 @@ class LargeMonCalFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activityRepository = ActivityRepository()
         toolbar = requireActivity().findViewById(R.id.custom_toolbar)
         (activity as MainActivity).showReturnToTodayButton()
         setupReturnToTodayButton()
+
+        activityRepository.readAllActivities { activities ->
+            allActivities = activities
+        }
     }
 
     override fun onResume() {
@@ -297,10 +309,18 @@ class LargeMonCalFragment : Fragment() {
 
         private var days: List<DayItem> = emptyList()
 
+        init {
+            setHasStableIds(true)
+        }
+
         fun setDays(newDays: List<DayItem>) {
             val diffResult = DiffUtil.calculateDiff(DiffCallback(days, newDays))
             days = newDays
             diffResult.dispatchUpdatesTo(this)
+        }
+
+        override fun getItemId(position: Int): Long {
+            return days[position].hashCode().toLong()
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -352,19 +372,58 @@ class LargeMonCalFragment : Fragment() {
                 holder.itemView.setBackgroundResource(R.color.twilightBlue)
             }
 
-//            holder.itemView.setOnClickListener {
-//                val selectedDay = dayItem.day.toInt()
-//                val selectedMonth = dayItem.month
-//                val selectedYear = dayItem.year
-//
-//                val action = LargeMonCalFragmentDirections
-//                    .actionLargeMonCalFragmentToFragmentAddActivity(
-//                        selectedDay,
-//                        selectedMonth,
-//                        selectedYear
-//                    )
-//                findNavController().navigate(action)
-//            }
+            holder.activitiesContainer.removeAllViews()
+
+            activityRepository.readAllActivities {
+                val selectedDate = LocalDate.of(itemYear, itemMonth + 1, itemDay)
+
+                holder.activitiesContainer.removeAllViews()
+
+                val activitiesForSelectedDate = allActivities.filter { activity ->
+                    val startDate = LocalDate.parse(activity.startDate)
+                    val endDate = LocalDate.parse(activity.endDate)
+                    val activityWeekDays = activity.weekDays
+
+                    val isStartDate = selectedDate.isEqual(startDate)
+                    val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
+                    val isEndDate = selectedDate.isEqual(endDate)
+
+                    val isDateInRange = isStartDate || isBetween || isEndDate
+
+                    val isDayOfWeekInActivityWeekDays =
+                        activityWeekDays?.contains(
+                            selectedDate.dayOfWeek.toString().lowercase(
+                                Locale.ROOT
+                            )
+                        ) == true
+
+                    isDateInRange && isDayOfWeekInActivityWeekDays
+                }
+
+                activitiesForSelectedDate.forEach { activity ->
+                    val activityTextView = TextView(holder.itemView.context).apply {
+                        text = activity.name
+                        gravity = Gravity.CENTER
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    }
+                    holder.activitiesContainer.addView(activityTextView)
+                }
+            }
+
+            holder.itemView.setOnClickListener {
+                val selectedDay = dayItem.day.toInt()
+                val selectedMonth = dayItem.month
+                val selectedYear = dayItem.year
+
+                val action = LargeMonCalFragmentDirections
+                    .actionLargeMonCalFragmentToFragmentActivityList(
+                        selectedDay,
+                        selectedMonth,
+                        selectedYear
+                    )
+                findNavController().navigate(action)
+            }
         }
 
         override fun getItemCount(): Int {
@@ -373,6 +432,7 @@ class LargeMonCalFragment : Fragment() {
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val textView: TextView = itemView.findViewById(R.id.textDay)
+            val activitiesContainer: LinearLayout = itemView.findViewById(R.id.activitiesContainer)
         }
     }
 

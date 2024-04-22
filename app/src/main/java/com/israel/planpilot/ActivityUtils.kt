@@ -182,7 +182,7 @@ object ActivityUtils {
         }
     }
 
-    fun saveActivity(
+    suspend fun saveActivity(
         view: View,
         nameActivity: EditText,
         timePicker: TextView,
@@ -197,7 +197,7 @@ object ActivityUtils {
         context: Context?
     ) {
         val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-        val repository = context?.let { ActivityRepository(it) }
+        val repository = context?.let { ActivityRepository() }
         try {
             val name = nameActivity.text.toString().trim()
             if (TextUtils.isEmpty(name)) {
@@ -237,30 +237,16 @@ object ActivityUtils {
                 scope.launch(Dispatchers.IO) {
                     try {
                         repository?.createActivity(activity)
-                        withContext(Dispatchers.Main) {
-
-                            if (alarmActivated && alarmTimestamp != null) {
-                                setAlarm(
-                                    name,
-                                    alarmToneString,
-                                    context,
-                                    startDate,
-                                    endDate,
-                                    selectedWeekDays,
-                                    alarmTriggerTime
-                                )
-                            }
-
-                            nameActivity.text.clear()
-                            alarmSwitch.isChecked = false
-                            alarmToneSelected = null
-                            alarmToneNameTextView?.text = "Padrão"
-
-                            Snackbar.make(
-                                view,
-                                "Atividade criada com sucesso!",
-                                Snackbar.LENGTH_LONG
-                            ).show()
+                        if (alarmActivated && alarmTimestamp != null) {
+                            setAlarm(
+                                name,
+                                alarmToneString,
+                                context,
+                                startDate,
+                                endDate,
+                                selectedWeekDays,
+                                alarmTriggerTime
+                            )
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -272,6 +258,18 @@ object ActivityUtils {
                             ).show()
                         }
                     }
+                }
+                withContext(Dispatchers.Main) {
+                    nameActivity.text.clear()
+                    alarmSwitch.isChecked = false
+                    alarmToneSelected = null
+                    "Padrão".also { alarmToneNameTextView?.text = it }
+
+                    Snackbar.make(
+                        view,
+                        "Atividade criada com sucesso!",
+                        Snackbar.LENGTH_LONG
+                    ).show()
                 }
             }
         } catch (e: Exception) {
@@ -381,7 +379,7 @@ object ActivityUtils {
         if (position == 0) {
             alarmToneSelected = null
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-            alarmToneNameTextView?.text = "Padrão"
+            "Padrão".also { alarmToneNameTextView?.text = it }
         } else {
             alarmToneSelected = uriList[position]
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)

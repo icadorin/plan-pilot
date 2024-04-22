@@ -4,10 +4,10 @@ import java.util.UUID
 
 data class Activity(
     val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val day: Int?,
-    val month: Int?,
-    val year: Int?,
+    val name: String = "",
+    val day: Int? = null,
+    val month: Int? = null,
+    val year: Int? = null,
     val time: String? = null,
     val startDate: String? = null,
     val endDate: String? = null,
@@ -17,8 +17,4 @@ data class Activity(
     val alarmTone: String? = null,
     val category: String? = null,
     val weekDays: List<String>? = null
-) {
-    init {
-        require(name.isNotEmpty()) { "Name is required" }
-    }
-}
+)

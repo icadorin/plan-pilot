@@ -44,7 +44,7 @@
     <string name="chose_alarm_sound">Escolha um som de alarme</string>
     <string name="close_button">Botão de fechar</string>
     <string name="backspace">backspace</string>
-    <string name="padrao">padrão</string>
+    <string name="padrao">Padrão</string>
     <string name="until">Até</string>
     <string name="date_format">%d/%d/%d</string>
     <string name="sunday">D</string>
@@ -54,9 +54,12 @@
     <string name="thursday">Q</string>
     <string name="saturday">S</string>
     <string name="friday">S</string>
-
-    <string name="clearallactivitiesdesc"></string>
-    <string name="addactivitydesc"></string>
+    <string name="clearallactivitiesdesc" />
+    <string name="addactivitydesc" />
     <string name="add_activity">add_activity</string>
     <string name="description">Descrição</string>
+    <string name="start">Início</string>
+    <string name="end">Fim</string>
+    <string name="separator">•</string>
+    <string name="dote">.</string>
 </resources>

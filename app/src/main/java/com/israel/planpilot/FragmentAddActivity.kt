@@ -10,11 +10,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -37,6 +37,9 @@ class FragmentAddActivity : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_add_activity, container, false)
 
+        val mainActivity = activity as MainActivity
+        mainActivity.btnAddActivity.visibility = View.GONE
+
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
@@ -45,8 +48,11 @@ class FragmentAddActivity : Fragment() {
         val startDateButton: Button = view.findViewById(R.id.startDateButton)
         val endDateButton: Button = view.findViewById(R.id.endDateButton)
 
-        val descriptionContainer = view.findViewById<LinearLayout>(R.id.descriptionContainer)
         val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
+
+        val firstDescriptionField = view.findViewById<EditText>(R.id.firstDescriptionField)
+        val secondDescriptionField = view.findViewById<EditText>(R.id.secondDescriptionField)
+        val thirdDescriptionField = view.findViewById<EditText>(R.id.thirdDescriptionField)
 
         val btnSunday = view.findViewById<Button>(R.id.btnSunday)
         val btnMonday = view.findViewById<Button>(R.id.btnMonday)
@@ -67,15 +73,23 @@ class FragmentAddActivity : Fragment() {
         )
 
         addDescriptionButton.setOnClickListener {
-            if (descriptionCount < 3) {
-                addDescriptionField(descriptionContainer)
-                descriptionCount++
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Você só pode adicionar até 3 descrições",
-                    Toast.LENGTH_SHORT
-                ).show()
+            when {
+                firstDescriptionField.visibility == View.GONE -> {
+                    firstDescriptionField.visibility = View.VISIBLE
+                }
+                secondDescriptionField.visibility == View.GONE -> {
+                    secondDescriptionField.visibility = View.VISIBLE
+                }
+                thirdDescriptionField.visibility == View.GONE -> {
+                    thirdDescriptionField.visibility = View.VISIBLE
+                }
+                else -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Você só pode adicionar até 3 descrições",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
 
@@ -285,32 +299,24 @@ class FragmentAddActivity : Fragment() {
             val startDateString = startDate?.format(formatter)
             val endDateString = endDate?.format(formatter)
 
-            ActivityUtils.saveActivity(
-                view,
-                nameActivity,
-                timePicker,
-                alarmSwitch,
-                selectedDay,
-                selectedMonth,
-                selectedYear,
-                startDateString,
-                endDateString,
-                selectedWeekDays,
-                lifecycleScope,
-                context
-            )
+            lifecycleScope.launch {
+                ActivityUtils.saveActivity(
+                    view,
+                    nameActivity,
+                    timePicker,
+                    alarmSwitch,
+                    selectedDay,
+                    selectedMonth,
+                    selectedYear,
+                    startDateString,
+                    endDateString,
+                    selectedWeekDays,
+                    lifecycleScope,
+                    context
+                )
+            }
         }
         return view
-    }
-
-    private fun addDescriptionField(container: LinearLayout) {
-        val descriptionField = EditText(requireContext())
-        descriptionField.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        descriptionField.hint = "Descrição ${descriptionCount + 1}"
-        container.addView(descriptionField)
     }
 
     private fun toggleWeekDaySelection(
@@ -331,5 +337,12 @@ class FragmentAddActivity : Fragment() {
             button.isSelected = true
             button.setTextColor(Color.WHITE)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        val mainActivity = activity as MainActivity
+        mainActivity.btnAddActivity.visibility = View.VISIBLE
     }
 }

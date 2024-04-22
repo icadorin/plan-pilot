@@ -36,21 +36,31 @@
         android:label="fragment_calendar_full_screen"
         tools:layout="@layout/fragment_large_mon_cal">
 
-<!--        <action-->
-<!--            android:id="@+id/action_largeMonCalFragment_to_fragmentAddActivity"-->
-<!--            app:destination="@id/fragmentAddActivity">-->
-<!--            <argument-->
-<!--                android:name="selected_day"-->
-<!--                app:argType="integer" />-->
-<!--            <argument-->
-<!--                android:name="selected_month"-->
-<!--                app:argType="integer" />-->
-<!--            <argument-->
-<!--                android:name="selected_year"-->
-<!--                app:argType="integer" />-->
-<!--        </action>-->
+        <action
+            android:id="@+id/action_largeMonCalFragment_to_fragmentActivityList"
+            app:destination="@id/fragmentActivityList">
+            <argument
+                android:name="selected_day"
+                app:argType="integer" />
+            <argument
+                android:name="selected_month"
+                app:argType="integer" />
+            <argument
+                android:name="selected_year"
+                app:argType="integer" />
+        </action>
 
     </fragment>
+
+    <fragment
+        android:id="@+id/fragmentActivityList"
+        android:name="com.israel.planpilot.FragmentActivityList"
+        tools:layout="@layout/fragment_activity_list" />
+
+    <fragment
+        android:id="@+id/fragmentActivitiesList"
+        android:name="com.israel.planpilot.FragmentActivitiesList"
+        tools:layout="@layout/fragment_activities_list" />
 
     <fragment
         android:id="@+id/fragmentAddActivity"

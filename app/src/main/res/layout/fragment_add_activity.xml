@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:paddingRight="16dp"
+    android:paddingLeft="16dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -29,6 +30,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:paddingLeft="70dp"
+            android:paddingRight="70dp"
             android:gravity="center"
             android:orientation="vertical"
             android:layout_below="@+id/nameActivity">
@@ -53,6 +56,55 @@
                 android:textColor="@color/black"
                 tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck"
                 android:importantForAccessibility="no" />
+
+            <EditText
+                android:id="@+id/firstDescriptionField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/description"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:gravity="center"
+                android:inputType="textCapWords"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/midnight_purple_2"
+                android:textColorHint="@color/midnight_purple_4"
+                android:visibility="gone"
+                tools:ignore="VisualLintTextFieldSize,TextContrastCheck"
+                android:autofillHints="" />
+
+            <EditText
+                android:id="@+id/secondDescriptionField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/description"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:gravity="center"
+                android:inputType="textCapWords"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/midnight_purple_2"
+                android:textColorHint="@color/midnight_purple_4"
+                android:visibility="gone"
+                tools:ignore="VisualLintTextFieldSize,TextContrastCheck"
+                android:autofillHints="" />
+
+            <EditText
+                android:id="@+id/thirdDescriptionField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/description"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:gravity="center"
+                android:inputType="textCapWords"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/midnight_purple_2"
+                android:textColorHint="@color/midnight_purple_4"
+                android:visibility="gone"
+                tools:ignore="VisualLintTextFieldSize,TextContrastCheck"
+                android:autofillHints="" />
+
         </LinearLayout>
 
         <LinearLayout

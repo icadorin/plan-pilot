@@ -12,6 +12,7 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -264,20 +265,22 @@ class AddActivityDialog : DialogFragment() {
                 val startDateString = startDate?.format(formatter)
                 val endDateString = endDate?.format(formatter)
 
-                ActivityUtils.saveActivity(
-                    view,
-                    nameActivity,
-                    timePicker,
-                    alarmSwitch,
-                    selectedDay,
-                    selectedMonth,
-                    selectedYear,
-                    startDateString,
-                    endDateString,
-                    selectedWeekDays,
-                    lifecycleScope,
-                    context
-                )
+                lifecycleScope.launch {
+                    ActivityUtils.saveActivity(
+                        view,
+                        nameActivity,
+                        timePicker,
+                        alarmSwitch,
+                        selectedDay,
+                        selectedMonth,
+                        selectedYear,
+                        startDateString,
+                        endDateString,
+                        selectedWeekDays,
+                        lifecycleScope,
+                        context
+                    )
+                }
             }
 
             builder.setView(view)

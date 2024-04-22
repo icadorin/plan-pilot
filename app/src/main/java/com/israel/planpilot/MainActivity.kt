@@ -26,7 +26,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var toolbar: Toolbar
     private lateinit var btnReturnToToday: ImageButton
-    private lateinit var btnAddActivity: ImageButton
+    lateinit var btnActivitiesList: ImageButton
+    lateinit var btnAddActivity: ImageButton
 
     override fun onResume() {
         super.onResume()
@@ -40,9 +41,14 @@ class MainActivity : AppCompatActivity() {
         toolbar = findViewById(R.id.custom_toolbar)
         setSupportActionBar(toolbar)
 
+        btnActivitiesList = toolbar.findViewById(R.id.btnActivitiesList)
         btnAddActivity = toolbar.findViewById(R.id.btnAddActivity)
         btnReturnToToday = toolbar.findViewById(R.id.btnReturnToToday)
         btnReturnToToday.visibility = View.GONE
+
+        btnActivitiesList.setOnClickListener {
+            showFragmentActivitiesList()
+        }
 
         btnAddActivity.setOnClickListener {
             showAddActivityFragment()
@@ -168,7 +174,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_cal_mon_large -> "Cal. Mensal Full Screen"
                 R.id.fragmentAddActivity -> "Criar Atividade"
 
-                else -> "Não encontrado"
+                else -> "Plan Pilot"
             }
         }
     }
@@ -201,6 +207,17 @@ class MainActivity : AppCompatActivity() {
         transaction.replace(R.id.nav_host_fragment, fragment)
         transaction.addToBackStack(null)
         transaction.commit()
+
+        supportActionBar?.title = "Criar atividade"
     }
 
+    private fun showFragmentActivitiesList() {
+        val fragment = FragmentActivitiesList()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+        supportActionBar?.title = "Todas atividades"
+    }
 }
