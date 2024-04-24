@@ -24,6 +24,9 @@ import com.israel.planpilot.Constants.HORIZONTAL_CELLS
 import com.israel.planpilot.Constants.MONTHS_IN_YEAR
 import com.israel.planpilot.Constants.START_YEAR
 import com.israel.planpilot.Constants.VERTICAL_CELLS
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
@@ -374,10 +377,9 @@ class LargeMonCalFragment : Fragment() {
 
             holder.activitiesContainer.removeAllViews()
 
-            activityRepository.readAllActivities {
+            CoroutineScope(Dispatchers.Main).launch {
                 val selectedDate = LocalDate.of(itemYear, itemMonth + 1, itemDay)
 
-                holder.activitiesContainer.removeAllViews()
 
                 val activitiesForSelectedDate = allActivities.filter { activity ->
                     val startDate = LocalDate.parse(activity.startDate)
@@ -400,14 +402,16 @@ class LargeMonCalFragment : Fragment() {
                     isDateInRange && isDayOfWeekInActivityWeekDays
                 }
 
-                activitiesForSelectedDate.forEach { activity ->
-                    val activityTextView = TextView(holder.itemView.context).apply {
-                        text = activity.name
-                        gravity = Gravity.CENTER
-                        maxLines = 1
-                        ellipsize = TextUtils.TruncateAt.END
+                holder.itemView.post {
+                    activitiesForSelectedDate.forEach { activity ->
+                        val activityTextView = TextView(holder.itemView.context).apply {
+                            text = activity.name
+                            gravity = Gravity.CENTER
+                            maxLines = 1
+                            ellipsize = TextUtils.TruncateAt.END
+                        }
+                        holder.activitiesContainer.addView(activityTextView)
                     }
-                    holder.activitiesContainer.addView(activityTextView)
                 }
             }
 

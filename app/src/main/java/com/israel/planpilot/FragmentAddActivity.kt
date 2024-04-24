@@ -135,13 +135,15 @@ class FragmentAddActivity : Fragment() {
         startDate = currentLocalDate
         endDate = currentLocalDate
 
+        println("start date: + $currentLocalDate")
+
         val currentYear = currentDate.get(Calendar.YEAR)
         val currentMonth = currentDate.get(Calendar.MONTH)
         val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
         val currentDateString = String.format(
             resources.getString(R.string.date_format),
             currentDay,
-            currentMonth,
+            currentMonth + 1,
             currentYear
         )
 
@@ -150,6 +152,7 @@ class FragmentAddActivity : Fragment() {
         selectedDay = currentDay
 
         startDateButton.text = currentDateString
+
         val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
         val currentButton = when (currentDayOfWeek) {
             "sunday" -> btnSunday
