@@ -67,6 +67,7 @@ class LargeMonCalFragment : Fragment() {
 
         activityRepository.readAllActivities { activities ->
             allActivities = activities
+            updateCalendarData()
         }
     }
 
@@ -74,6 +75,7 @@ class LargeMonCalFragment : Fragment() {
         super.onResume()
         setupMainActivity()
         calculateDate()
+        updateCalendarData()
     }
 
     override fun onDestroyView() {
@@ -144,6 +146,21 @@ class LargeMonCalFragment : Fragment() {
                 editor?.apply()
             }
         })
+    }
+
+    private fun updateCalendarData() {
+        getUpdatedActivities {
+            for (position in 0 until (viewPager.adapter as CalendarPagerAdapter).itemCount) {
+                (viewPager.adapter as CalendarPagerAdapter).notifyItemChanged(position)
+            }
+        }
+    }
+
+    private fun getUpdatedActivities(onSuccess: (List<Activity>) -> Unit) {
+        activityRepository.readAllActivities { activities ->
+            allActivities = activities
+            onSuccess(activities)
+        }
     }
 
     private fun setupReturnToTodayButton() {
@@ -343,35 +360,14 @@ class LargeMonCalFragment : Fragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val dayItem = days[position]
-
-            holder.textView.text = dayItem.day
-
-            if (dayItem.isCurrentMonth) {
-                holder.textView.setTextColor(
-                    ContextCompat.getColor(
-                        holder.itemView.context,
-                        android.R.color.black
-                    )
-                )
-            } else {
-                holder.textView.setTextColor(
-                    ContextCompat.getColor(
-                        holder.itemView.context,
-                        R.color.gray
-                    )
-                )
-            }
-
-            val currentDate = Calendar.getInstance()
-
-            val itemYear = days[position].year
-            val itemMonth = days[position].month - 1
+            val itemYear = dayItem.year
+            val itemMonth = dayItem.month - 1
             val itemDay = dayItem.day.toInt()
 
-            if (currentDate.get(Calendar.YEAR) == itemYear &&
-                currentDate.get(Calendar.MONTH) == itemMonth &&
-                currentDate.get(Calendar.DAY_OF_MONTH) == itemDay &&
-                dayItem.isCurrentMonth) {
+            holder.textView.text = dayItem.day
+            holder.textView.setTextColor(getTextColor(dayItem.isCurrentMonth, holder))
+
+            if (isCurrentDate(itemYear, itemMonth, itemDay, dayItem.isCurrentMonth)) {
                 holder.itemView.setBackgroundResource(R.color.twilightBlue)
             }
 
@@ -379,39 +375,10 @@ class LargeMonCalFragment : Fragment() {
 
             CoroutineScope(Dispatchers.Main).launch {
                 val selectedDate = LocalDate.of(itemYear, itemMonth + 1, itemDay)
-
-
-                val activitiesForSelectedDate = allActivities.filter { activity ->
-                    val startDate = LocalDate.parse(activity.startDate)
-                    val endDate = LocalDate.parse(activity.endDate)
-                    val activityWeekDays = activity.weekDays
-
-                    val isStartDate = selectedDate.isEqual(startDate)
-                    val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
-                    val isEndDate = selectedDate.isEqual(endDate)
-
-                    val isDateInRange = isStartDate || isBetween || isEndDate
-
-                    val isDayOfWeekInActivityWeekDays =
-                        activityWeekDays?.contains(
-                            selectedDate.dayOfWeek.toString().lowercase(
-                                Locale.ROOT
-                            )
-                        ) == true
-
-                    isDateInRange && isDayOfWeekInActivityWeekDays
-                }
+                val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
 
                 holder.itemView.post {
-                    activitiesForSelectedDate.forEach { activity ->
-                        val activityTextView = TextView(holder.itemView.context).apply {
-                            text = activity.name
-                            gravity = Gravity.CENTER
-                            maxLines = 1
-                            ellipsize = TextUtils.TruncateAt.END
-                        }
-                        holder.activitiesContainer.addView(activityTextView)
-                    }
+                    addActivitiesToView(activitiesForSelectedDate, holder)
                 }
             }
 
@@ -427,6 +394,62 @@ class LargeMonCalFragment : Fragment() {
                         selectedYear
                     )
                 findNavController().navigate(action)
+            }
+        }
+
+        private fun getTextColor(isCurrentMonth: Boolean, holder: ViewHolder): Int {
+            return if (isCurrentMonth) {
+                ContextCompat.getColor(holder.itemView.context, R.color.black)
+            } else {
+                ContextCompat.getColor(holder.itemView.context, R.color.gray)
+            }
+        }
+
+        private fun isCurrentDate(
+            itemYear: Int,
+            itemMonth: Int,
+            itemDay: Int,
+            isCurrentMonth: Boolean
+        ): Boolean {
+            val currentDate = Calendar.getInstance()
+            return currentDate.get(Calendar.YEAR) == itemYear &&
+                    currentDate.get(Calendar.MONTH) == itemMonth &&
+                    currentDate.get(Calendar.DAY_OF_MONTH) == itemDay &&
+                    isCurrentMonth
+        }
+
+        private fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
+            return allActivities.filter { activity ->
+                val startDate = LocalDate.parse(activity.startDate)
+                val endDate = LocalDate.parse(activity.endDate)
+                val activityWeekDays = activity.weekDays
+
+                val isStartDate = selectedDate.isEqual(startDate)
+                val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
+                val isEndDate = selectedDate.isEqual(endDate)
+
+                val isDateInRange = isStartDate || isBetween || isEndDate
+
+                val isDayOfWeekInActivityWeekDays =
+                    activityWeekDays?.contains(
+                        selectedDate.dayOfWeek.toString().lowercase(
+                            Locale.ROOT
+                        )
+                    ) == true
+
+                isDateInRange && isDayOfWeekInActivityWeekDays
+            }
+        }
+
+        private fun addActivitiesToView(activities: List<Activity>, holder: ViewHolder) {
+            activities.forEach { activity ->
+                val activityTextView = TextView(holder.itemView.context).apply {
+                    text = activity.name
+                    gravity = Gravity.CENTER
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                }
+                holder.activitiesContainer.addView(activityTextView)
             }
         }
 
