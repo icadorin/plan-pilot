@@ -366,27 +366,7 @@ class LargeMonCalFragment : Fragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val dayItem = days[position]
-            val itemYear = dayItem.year
-            val itemMonth = dayItem.month - 1
-            val itemDay = dayItem.day.toInt()
-
-            holder.textView.text = dayItem.day
-            holder.textView.setTextColor(getTextColor(dayItem.isCurrentMonth, holder))
-
-            if (isCurrentDate(itemYear, itemMonth, itemDay, dayItem.isCurrentMonth)) {
-                holder.itemView.setBackgroundResource(R.color.twilightBlue)
-            }
-
-            holder.activitiesContainer.removeAllViews()
-
-            CoroutineScope(Dispatchers.Main).launch {
-                val selectedDate = LocalDate.of(itemYear, itemMonth + 1, itemDay)
-                val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
-
-                holder.itemView.post {
-                    addActivitiesToView(activitiesForSelectedDate, holder)
-                }
-            }
+            holder.bind(dayItem)
 
             holder.itemView.setOnClickListener {
                 val selectedDay = dayItem.day.toInt()
@@ -401,27 +381,6 @@ class LargeMonCalFragment : Fragment() {
                     )
                 findNavController().navigate(action)
             }
-        }
-
-        private fun getTextColor(isCurrentMonth: Boolean, holder: ViewHolder): Int {
-            return if (isCurrentMonth) {
-                ContextCompat.getColor(holder.itemView.context, R.color.black)
-            } else {
-                ContextCompat.getColor(holder.itemView.context, R.color.gray)
-            }
-        }
-
-        private fun isCurrentDate(
-            itemYear: Int,
-            itemMonth: Int,
-            itemDay: Int,
-            isCurrentMonth: Boolean
-        ): Boolean {
-            val currentDate = Calendar.getInstance()
-            return currentDate.get(Calendar.YEAR) == itemYear &&
-                    currentDate.get(Calendar.MONTH) == itemMonth &&
-                    currentDate.get(Calendar.DAY_OF_MONTH) == itemDay &&
-                    isCurrentMonth
         }
 
         private fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
@@ -447,18 +406,6 @@ class LargeMonCalFragment : Fragment() {
             }
         }
 
-        private fun addActivitiesToView(activities: List<Activity>, holder: ViewHolder) {
-            activities.forEach { activity ->
-                val activityTextView = TextView(holder.itemView.context).apply {
-                    text = activity.name
-                    gravity = Gravity.CENTER
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                }
-                holder.activitiesContainer.addView(activityTextView)
-            }
-        }
-
         override fun getItemCount(): Int {
             return days.size
         }
@@ -466,7 +413,57 @@ class LargeMonCalFragment : Fragment() {
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val textView: TextView = itemView.findViewById(R.id.textDay)
             val activitiesContainer: LinearLayout = itemView.findViewById(R.id.activitiesContainer)
+
+            fun bind(dayItem: DayItem) {
+                textView.text = dayItem.day
+
+                val textColor = if (dayItem.isCurrentMonth) {
+                    ContextCompat.getColor(itemView.context, R.color.black)
+                } else {
+                    ContextCompat.getColor(itemView.context, R.color.gray)
+                }
+                textView.setTextColor(textColor)
+
+                if (isCurrentDate(
+                        dayItem.year,
+                        dayItem.month - 1,
+                        dayItem.day.toInt(),
+                        dayItem.isCurrentMonth)
+                    ) {
+                    itemView.setBackgroundResource(R.color.twilightBlue)
+                }
+
+                updateActivitiesView(dayItem)
+            }
+
+            private fun updateActivitiesView(dayItem: DayItem) {
+                activitiesContainer.removeAllViews()
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    val selectedDate = LocalDate.of(dayItem.year, dayItem.month, dayItem.day.toInt())
+                    val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
+
+                    activitiesForSelectedDate.forEach { activity ->
+                        val activityTextView = TextView(itemView.context).apply {
+                            text = activity.name
+                            gravity = Gravity.CENTER
+                            maxLines = 1
+                            ellipsize = TextUtils.TruncateAt.END
+                        }
+                        activitiesContainer.addView(activityTextView)
+                    }
+                }
+            }
+
+            private fun isCurrentDate(itemYear: Int, itemMonth: Int, itemDay: Int, isCurrentMonth: Boolean): Boolean {
+                val currentDate = Calendar.getInstance()
+                return currentDate.get(Calendar.YEAR) == itemYear &&
+                        currentDate.get(Calendar.MONTH) == itemMonth &&
+                        currentDate.get(Calendar.DAY_OF_MONTH) == itemDay &&
+                        isCurrentMonth
+            }
         }
+
     }
 
     private inner class DiffCallback(
