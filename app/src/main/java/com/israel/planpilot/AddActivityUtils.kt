@@ -33,7 +33,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-object ActivityUtils {
+object AddActivityUtils {
 
     private var alarmToneSelected: Uri? = null
     private var alarmTimestamp: Long? = null
@@ -216,7 +216,7 @@ object ActivityUtils {
                     Locale.getDefault()
                 ).format(Date())
 
-                val alarmActivated = ActivityUtils.alarmActivated
+                val alarmActivated = AddActivityUtils.alarmActivated
 
                 val activity = Activity(
                     name = name,

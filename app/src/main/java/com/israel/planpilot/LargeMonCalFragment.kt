@@ -40,6 +40,7 @@ class LargeMonCalFragment : Fragment() {
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
     private lateinit var activityRepository: ActivityRepository
     private var allActivities = listOf<Activity>()
+    private var activitiesHash: Int? = null
 
     private inner class DayItem(
         val day: String,
@@ -149,9 +150,14 @@ class LargeMonCalFragment : Fragment() {
     }
 
     private fun updateCalendarData() {
-        getUpdatedActivities {
-            for (position in 0 until (viewPager.adapter as CalendarPagerAdapter).itemCount) {
-                (viewPager.adapter as CalendarPagerAdapter).notifyItemChanged(position)
+        getUpdatedActivities { activities ->
+            val newHash = activities.hashCode()
+            if (newHash != activitiesHash) {
+                activitiesHash = newHash
+                allActivities = activities
+                for (position in 0 until (viewPager.adapter as CalendarPagerAdapter).itemCount) {
+                    (viewPager.adapter as CalendarPagerAdapter).notifyItemChanged(position)
+                }
             }
         }
     }

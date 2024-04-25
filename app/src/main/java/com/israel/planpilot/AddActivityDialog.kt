@@ -248,15 +248,15 @@ class AddActivityDialog : DialogFragment() {
             }
 
             alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
-                ActivityUtils.setAlarmSwitchListener(isChecked)
+                AddActivityUtils.setAlarmSwitchListener(isChecked)
             }
 
             timePicker.setOnClickListener {
-                ActivityUtils.setTimePicker(timePicker, childFragmentManager)
+                AddActivityUtils.setTimePicker(timePicker, childFragmentManager)
             }
 
             alarmTone.setOnClickListener {
-                ActivityUtils.setupAlarmToneButton(view, requireContext())
+                AddActivityUtils.setupAlarmToneButton(view, requireContext())
             }
 
             saveButton.setOnClickListener {
@@ -266,7 +266,7 @@ class AddActivityDialog : DialogFragment() {
                 val endDateString = endDate?.format(formatter)
 
                 lifecycleScope.launch {
-                    ActivityUtils.saveActivity(
+                    AddActivityUtils.saveActivity(
                         view,
                         nameActivity,
                         timePicker,
