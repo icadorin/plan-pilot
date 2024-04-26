@@ -354,9 +354,7 @@ class LargeMonCalFragment : Fragment() {
                 .inflate(R.layout.item_calendar_day_large, parent, false)
 
             val viewPagerHeight = viewPager.measuredHeight
-
             val itemHeight = viewPagerHeight / VERTICAL_CELLS
-
             val params = view.layoutParams
             params.height = itemHeight
             view.layoutParams = params
@@ -455,7 +453,12 @@ class LargeMonCalFragment : Fragment() {
                 }
             }
 
-            private fun isCurrentDate(itemYear: Int, itemMonth: Int, itemDay: Int, isCurrentMonth: Boolean): Boolean {
+            private fun isCurrentDate(
+                itemYear: Int,
+                itemMonth: Int,
+                itemDay: Int,
+                isCurrentMonth: Boolean
+            ): Boolean {
                 val currentDate = Calendar.getInstance()
                 return currentDate.get(Calendar.YEAR) == itemYear &&
                         currentDate.get(Calendar.MONTH) == itemMonth &&
@@ -463,7 +466,6 @@ class LargeMonCalFragment : Fragment() {
                         isCurrentMonth
             }
         }
-
     }
 
     private inner class DiffCallback(
