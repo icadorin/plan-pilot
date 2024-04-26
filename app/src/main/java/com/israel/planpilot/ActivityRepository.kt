@@ -3,6 +3,7 @@ package com.israel.planpilot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 
 class ActivityRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -28,7 +29,11 @@ class ActivityRepository {
                 return@addSnapshotListener
             }
 
-            val activities = value?.toObjects(Activity::class.java) ?: listOf()
+            val activities = value?.toObjects(Activity::class.java)?.onEach { activity ->
+                activity.startDate = LocalDate.parse(activity.startDate).toString()
+                activity.endDate = LocalDate.parse(activity.endDate).toString()
+            } ?: listOf()
+
             activitiesCache = activities
             onSuccess(activities)
         }

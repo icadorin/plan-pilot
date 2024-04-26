@@ -333,6 +333,7 @@ class LargeMonCalFragment : Fragment() {
 
     private inner class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
 
+        private val activitiesCache = mutableMapOf<LocalDate, List<Activity>>()
         private var days: List<DayItem> = emptyList()
 
         init {
@@ -382,25 +383,27 @@ class LargeMonCalFragment : Fragment() {
         }
 
         private fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
-            return allActivities.filter { activity ->
-                val startDate = LocalDate.parse(activity.startDate)
-                val endDate = LocalDate.parse(activity.endDate)
-                val activityWeekDays = activity.weekDays
+            return activitiesCache.getOrPut(selectedDate) {
+                allActivities.filter { activity ->
+                    val startDate = LocalDate.parse(activity.startDate)
+                    val endDate = LocalDate.parse(activity.endDate)
+                    val activityWeekDays = activity.weekDays
 
-                val isStartDate = selectedDate.isEqual(startDate)
-                val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
-                val isEndDate = selectedDate.isEqual(endDate)
+                    val isStartDate = selectedDate.isEqual(startDate)
+                    val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
+                    val isEndDate = selectedDate.isEqual(endDate)
 
-                val isDateInRange = isStartDate || isBetween || isEndDate
+                    val isDateInRange = isStartDate || isBetween || isEndDate
 
-                val isDayOfWeekInActivityWeekDays =
-                    activityWeekDays?.contains(
-                        selectedDate.dayOfWeek.toString().lowercase(
-                            Locale.ROOT
-                        )
-                    ) == true
+                    val isDayOfWeekInActivityWeekDays =
+                        activityWeekDays?.contains(
+                            selectedDate.dayOfWeek.toString().lowercase(
+                                Locale.ROOT
+                            )
+                        ) == true
 
-                isDateInRange && isDayOfWeekInActivityWeekDays
+                    isDateInRange && isDayOfWeekInActivityWeekDays
+                }
             }
         }
 
@@ -409,17 +412,16 @@ class LargeMonCalFragment : Fragment() {
         }
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val textView: TextView = itemView.findViewById(R.id.textDay)
+            private val colorBlack = ContextCompat.getColor(itemView.context, R.color.black)
+            private val colorGray = ContextCompat.getColor(itemView.context, R.color.gray)
+            private val activityTextViews = mutableListOf<TextView>()
             val activitiesContainer: LinearLayout = itemView.findViewById(R.id.activitiesContainer)
+            val textView: TextView = itemView.findViewById(R.id.textDay)
 
             fun bind(dayItem: DayItem) {
                 textView.text = dayItem.day
 
-                val textColor = if (dayItem.isCurrentMonth) {
-                    ContextCompat.getColor(itemView.context, R.color.black)
-                } else {
-                    ContextCompat.getColor(itemView.context, R.color.gray)
-                }
+                val textColor = if (dayItem.isCurrentMonth) colorBlack else colorGray
                 textView.setTextColor(textColor)
 
                 if (isCurrentDate(
@@ -427,7 +429,7 @@ class LargeMonCalFragment : Fragment() {
                         dayItem.month - 1,
                         dayItem.day.toInt(),
                         dayItem.isCurrentMonth)
-                    ) {
+                ) {
                     itemView.setBackgroundResource(R.color.twilightBlue)
                 }
 
@@ -435,20 +437,30 @@ class LargeMonCalFragment : Fragment() {
             }
 
             private fun updateActivitiesView(dayItem: DayItem) {
-                activitiesContainer.removeAllViews()
-
                 CoroutineScope(Dispatchers.Main).launch {
                     val selectedDate = LocalDate.of(dayItem.year, dayItem.month, dayItem.day.toInt())
                     val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
 
-                    activitiesForSelectedDate.forEach { activity ->
-                        val activityTextView = TextView(itemView.context).apply {
-                            text = activity.name
-                            gravity = Gravity.CENTER
-                            maxLines = 1
-                            ellipsize = TextUtils.TruncateAt.END
+                    for (i in activitiesForSelectedDate.indices) {
+                        val activity = activitiesForSelectedDate[i]
+                        val activityTextView = if (i < activityTextViews.size) {
+                            activityTextViews[i]
+                        } else {
+                            TextView(itemView.context).apply {
+                                gravity = Gravity.CENTER
+                                maxLines = 1
+                                ellipsize = TextUtils.TruncateAt.END
+                                activityTextViews.add(this)
+                            }
                         }
-                        activitiesContainer.addView(activityTextView)
+                        activityTextView.text = activity.name
+                        if (activityTextView.parent == null) {
+                            activitiesContainer.addView(activityTextView)
+                        }
+                    }
+
+                    for (i in activitiesForSelectedDate.size until activityTextViews.size) {
+                        activitiesContainer.removeView(activityTextViews[i])
                     }
                 }
             }
