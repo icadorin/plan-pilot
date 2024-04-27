@@ -1,5 +1,6 @@
 package com.israel.planpilot
 
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
@@ -23,19 +24,27 @@ class ActivityRepository {
             return
         }
 
-        activitiesCollection.addSnapshotListener { value, error ->
+        activitiesCollection.addSnapshotListener { snapshots, error ->
             if (error != null) {
                 println("Erro ao ler as atividades: ${(error as FirebaseFirestoreException).message}")
                 return@addSnapshotListener
             }
 
-            val activities = value?.toObjects(Activity::class.java)?.onEach { activity ->
-                activity.startDate = LocalDate.parse(activity.startDate).toString()
-                activity.endDate = LocalDate.parse(activity.endDate).toString()
+            val updatedActivities = snapshots?.documentChanges?.mapNotNull { change ->
+                when (change.type) {
+                    DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                        val activity = change.document.toObject(Activity::class.java)
+                        activity.apply {
+                            startDate = LocalDate.parse(startDate).toString()
+                            endDate = LocalDate.parse(endDate).toString()
+                        }
+                    }
+                    DocumentChange.Type.REMOVED -> null
+                }
             } ?: listOf()
 
-            activitiesCache = activities
-            onSuccess(activities)
+            activitiesCache = updatedActivities
+            onSuccess(updatedActivities)
         }
     }
 

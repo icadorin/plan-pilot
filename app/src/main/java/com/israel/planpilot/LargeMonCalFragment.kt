@@ -26,6 +26,8 @@ import com.israel.planpilot.Constants.START_YEAR
 import com.israel.planpilot.Constants.VERTICAL_CELLS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Calendar
@@ -39,6 +41,7 @@ class LargeMonCalFragment : Fragment() {
     private lateinit var currentDate: Calendar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
     private lateinit var activityRepository: ActivityRepository
+    private var coroutineScope = CoroutineScope(Dispatchers.Main)
     private var allActivities = listOf<Activity>()
     private var activitiesHash: Int? = null
 
@@ -61,6 +64,7 @@ class LargeMonCalFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        coroutineScope = CoroutineScope(Dispatchers.Main)
         activityRepository = ActivityRepository()
         toolbar = requireActivity().findViewById(R.id.custom_toolbar)
         (activity as MainActivity).showReturnToTodayButton()
@@ -81,6 +85,9 @@ class LargeMonCalFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        if (isAdded) {
+            coroutineScope.cancel()
+        }
         (activity as MainActivity).hideReturnToTodayButton()
     }
 
@@ -99,7 +106,6 @@ class LargeMonCalFragment : Fragment() {
     private fun calculateDate() {
         val sharedPreferences = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val currentPagePosition = sharedPreferences?.getInt("lastPagePosition", 0) ?: 0
-
         val year = START_YEAR + currentPagePosition / MONTHS_IN_YEAR
         val month = (currentPagePosition % MONTHS_IN_YEAR) + 1
 
@@ -109,17 +115,13 @@ class LargeMonCalFragment : Fragment() {
     private fun initCalendarViewPager(view: View) {
         viewPager = view.findViewById(R.id.viewPager)
         selectedDate = Calendar.getInstance().time
-
         viewPager.setPageTransformer(CustomPageTransformer())
 
         val startDate = Calendar.getInstance()
         val startYear = START_YEAR
-
         val currentYear = startDate.get(Calendar.YEAR)
         val currentMonth = startDate.get(Calendar.MONTH)
-
         val initialPosition = (currentYear - startYear) * MONTHS_IN_YEAR + currentMonth
-
         val adapter = CalendarPagerAdapter()
         viewPager.adapter = adapter
 
@@ -128,6 +130,7 @@ class LargeMonCalFragment : Fragment() {
 
         lastPagePosition?.let { viewPager.setCurrentItem(it, false) }
 
+        println("Montando Calendário")
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
@@ -142,21 +145,24 @@ class LargeMonCalFragment : Fragment() {
 
                 updateToolbar(year, month)
 
-                val editor = sharedPreferences?.edit()
-                editor?.putInt("lastPagePosition", position)
-                editor?.apply()
+                sharedPreferences?.edit()?.apply {
+                    putInt("lastPagePosition", position)
+                    apply()
+                }
             }
         })
     }
 
     private fun updateCalendarData() {
-        getUpdatedActivities { activities ->
-            val newHash = activities.hashCode()
-            if (newHash != activitiesHash) {
-                activitiesHash = newHash
-                allActivities = activities
-                for (position in 0 until (viewPager.adapter as CalendarPagerAdapter).itemCount) {
-                    (viewPager.adapter as CalendarPagerAdapter).notifyItemChanged(position)
+        coroutineScope.launch {
+            getUpdatedActivities { activities ->
+                val newHash = activities.hashCode()
+                if (newHash != activitiesHash) {
+                    activitiesHash = newHash
+                    allActivities = activities
+                    for (position in 0 until (viewPager.adapter as CalendarPagerAdapter).itemCount) {
+                        (viewPager.adapter as CalendarPagerAdapter).notifyItemChanged(position)
+                    }
                 }
             }
         }
@@ -382,8 +388,9 @@ class LargeMonCalFragment : Fragment() {
             }
         }
 
-        private fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
-            return activitiesCache.getOrPut(selectedDate) {
+        private suspend fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
+            println("Atualizando dados!!!!")
+            return coroutineScope.async(Dispatchers.IO) {
                 allActivities.filter { activity ->
                     val startDate = LocalDate.parse(activity.startDate)
                     val endDate = LocalDate.parse(activity.endDate)
@@ -404,7 +411,7 @@ class LargeMonCalFragment : Fragment() {
 
                     isDateInRange && isDayOfWeekInActivityWeekDays
                 }
-            }
+            }.await()
         }
 
         override fun getItemCount(): Int {
@@ -440,6 +447,8 @@ class LargeMonCalFragment : Fragment() {
                 CoroutineScope(Dispatchers.Main).launch {
                     val selectedDate = LocalDate.of(dayItem.year, dayItem.month, dayItem.day.toInt())
                     val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
+
+                    println("Escrevendo dados!!!!")
 
                     for (i in activitiesForSelectedDate.indices) {
                         val activity = activitiesForSelectedDate[i]
