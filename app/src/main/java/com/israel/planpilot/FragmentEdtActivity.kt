@@ -22,7 +22,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-
 class FragmentEdtActivity : Fragment() {
 
     private var selectedYear: Int = 0
@@ -164,8 +163,6 @@ class FragmentEdtActivity : Fragment() {
         selectedMonth = currentMonth + 1
         selectedDay = currentDay
 
-        startDateButton.text = DateFormatterUtils.formatLocalDateToString(currentLocalDate)
-
         val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
         val currentButton = when (currentDayOfWeek) {
             "sunday" -> btnSunday
@@ -179,8 +176,6 @@ class FragmentEdtActivity : Fragment() {
         }
 
         toggleWeekDaySelection(currentButton, currentDayOfWeek, selectedWeekDays)
-
-        endDateButton.text = DateFormatterUtils.formatLocalDateToString(currentLocalDate)
 
         startDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
@@ -339,6 +334,9 @@ class FragmentEdtActivity : Fragment() {
                     withContext(Dispatchers.Main) {
                         startDateButton.text = DateFormatterUtils.formatLocalDateToString(startDate)
                         endDateButton.text = DateFormatterUtils.formatLocalDateToString(endDate)
+
+                        this@FragmentEdtActivity.startDate = startDate
+                        this@FragmentEdtActivity.endDate = endDate
                     }
                 }
             } catch (e: Exception) {
