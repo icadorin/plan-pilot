@@ -140,15 +140,15 @@ class FragmentAddActivity2 : Fragment() {
         }
 
         alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
-            AddActivityUtils.setAlarmSwitchListener(isChecked)
+            ActivityUtils.setAlarmSwitchListener(isChecked)
         }
 
         timePicker.setOnClickListener {
-            AddActivityUtils.setTimePicker(timePicker, childFragmentManager)
+            ActivityUtils.setTimePicker(timePicker, childFragmentManager)
         }
 
         alarmTone.setOnClickListener {
-            AddActivityUtils.setupAlarmToneButton(view, requireContext())
+            ActivityUtils.setupAlarmToneButton(view, requireContext())
         }
 
 //        saveButton.setOnClickListener {

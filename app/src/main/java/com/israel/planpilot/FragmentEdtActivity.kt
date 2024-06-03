@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.graphics.Color
 import android.icu.util.Calendar
 import android.os.Bundle
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.google.firebase.installations.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -154,7 +152,8 @@ class FragmentEdtActivity : Fragment() {
         val currentYear = currentDate.get(Calendar.YEAR)
         val currentMonth = currentDate.get(Calendar.MONTH)
         val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
-        val currentDateString = String.format(
+
+        String.format(
             resources.getString(R.string.date_format),
             currentDay,
             currentMonth + 1,
@@ -165,7 +164,7 @@ class FragmentEdtActivity : Fragment() {
         selectedMonth = currentMonth + 1
         selectedDay = currentDay
 
-        startDateButton.text = currentDateString
+        startDateButton.text = DateFormatterUtils.formatLocalDateToString(currentLocalDate)
 
         val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
         val currentButton = when (currentDayOfWeek) {
@@ -181,39 +180,19 @@ class FragmentEdtActivity : Fragment() {
 
         toggleWeekDaySelection(currentButton, currentDayOfWeek, selectedWeekDays)
 
-        endDateButton.text = currentDateString
+        endDateButton.text = DateFormatterUtils.formatLocalDateToString(currentLocalDate)
 
         startDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val yearCal = if (startDate != null) {
-                startDate!!.year
-            } else {
-                calendar.get(Calendar.YEAR)
-            }
-
-            val monthCal = if (startDate != null) {
-                startDate!!.monthValue - 1
-            } else {
-                calendar.get(Calendar.MONTH)
-            }
-
-            val dayCal = if (startDate != null) {
-                startDate!!.dayOfMonth
-            } else {
-                calendar.get(Calendar.DAY_OF_MONTH)
-            }
+            val yearCal = startDate?.year ?: calendar.get(Calendar.YEAR)
+            val monthCal = startDate?.monthValue?.minus(1) ?: calendar.get(Calendar.MONTH)
+            val dayCal = startDate?.dayOfMonth ?: calendar.get(Calendar.DAY_OF_MONTH)
 
             val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
                 val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
                 startDate = selectedLocalDate
 
-                val dateString = String.format(
-                    resources.getString(R.string.date_format),
-                    dayOfMonth,
-                    monthOfYear + 1,
-                    year
-                )
-
+                val dateString = DateFormatterUtils.formatLocalDateToString(selectedLocalDate)
                 startDateButton.text = dateString
 
                 if (startDate?.isAfter(endDate) == true) {
@@ -229,35 +208,15 @@ class FragmentEdtActivity : Fragment() {
 
         endDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val yearCal = if (endDate != null) {
-                endDate!!.year
-            } else {
-                calendar.get(Calendar.YEAR)
-            }
-
-            val monthCal = if (endDate != null) {
-                endDate!!.monthValue - 1
-            } else {
-                calendar.get(Calendar.MONTH)
-            }
-
-            val dayCal = if (endDate != null) {
-                endDate!!.dayOfMonth
-            } else {
-                calendar.get(Calendar.DAY_OF_MONTH)
-            }
+            val yearCal = endDate?.year ?: calendar.get(Calendar.YEAR)
+            val monthCal = endDate?.monthValue?.minus(1) ?: calendar.get(Calendar.MONTH)
+            val dayCal = endDate?.dayOfMonth ?: calendar.get(Calendar.DAY_OF_MONTH)
 
             val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
                 val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
                 endDate = selectedLocalDate
 
-                val dateString = String.format(
-                    resources.getString(R.string.date_format),
-                    dayOfMonth,
-                    monthOfYear + 1,
-                    year
-                )
-
+                val dateString = DateFormatterUtils.formatLocalDateToString(selectedLocalDate)
                 endDateButton.text = dateString
 
                 if (endDate?.isBefore(startDate) == true) {
@@ -300,15 +259,15 @@ class FragmentEdtActivity : Fragment() {
         }
 
         alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
-            AddActivityUtils.setAlarmSwitchListener(isChecked)
+            ActivityUtils.setAlarmSwitchListener(isChecked)
         }
 
         timePicker.setOnClickListener {
-            AddActivityUtils.setTimePicker(timePicker, childFragmentManager)
+            ActivityUtils.setTimePicker(timePicker, childFragmentManager)
         }
 
         alarmTone.setOnClickListener {
-            AddActivityUtils.setupAlarmToneButton(view, requireContext())
+            ActivityUtils.setupAlarmToneButton(view, requireContext())
         }
 
         saveButton.setOnClickListener {
@@ -318,8 +277,9 @@ class FragmentEdtActivity : Fragment() {
             val endDateString = endDate?.format(formatter)
 
             lifecycleScope.launch {
-                AddActivityUtils.saveActivity(
+                ActivityUtils.edtActivity(
                     view,
+                    activityId,
                     nameActivity,
                     timePicker,
                     alarmSwitch,
@@ -367,7 +327,7 @@ class FragmentEdtActivity : Fragment() {
                 val activity = withContext(Dispatchers.IO) {
                     activityRepository.getActivityById(activityId)
                 }
-                activity?.let { it ->
+                activity?.let {
                     nameActivity.setText(it.name)
 
                     val startDateString = it.startDate
@@ -377,8 +337,8 @@ class FragmentEdtActivity : Fragment() {
                     val endDate = LocalDate.parse(endDateString, endDateFormatter)
 
                     withContext(Dispatchers.Main) {
-                        startDateButton.text = startDateFormatter.format(startDate)
-                        endDateButton.text = endDateFormatter.format(endDate)
+                        startDateButton.text = DateFormatterUtils.formatLocalDateToString(startDate)
+                        endDateButton.text = DateFormatterUtils.formatLocalDateToString(endDate)
                     }
                 }
             } catch (e: Exception) {
@@ -394,3 +354,4 @@ class FragmentEdtActivity : Fragment() {
         mainActivity.btnAddActivity.visibility = View.VISIBLE
     }
 }
+

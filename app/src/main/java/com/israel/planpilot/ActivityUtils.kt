@@ -16,7 +16,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -35,7 +34,7 @@ import java.util.Locale
 import java.util.UUID
 import kotlin.text.*
 
-object EdtActivityUtils {
+object ActivityUtils {
 
     private var alarmToneSelected: Uri? = null
     private var alarmTimestamp: Long? = null
@@ -184,6 +183,193 @@ object EdtActivityUtils {
         }
     }
 
+    suspend fun saveActivity(
+        view: View,
+        nameActivity: EditText,
+        timePicker: TextView,
+        alarmSwitch: SwitchCompat,
+        selectedDay: Int?,
+        selectedMonth: Int?,
+        selectedYear: Int?,
+        startDate: String?,
+        endDate: String?,
+        selectedWeekDays: MutableList<String>?,
+        scope: CoroutineScope,
+        context: Context?
+    ) {
+        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+        val repository = context?.let { ActivityRepository() }
+        try {
+            val name = nameActivity.text.toString().trim()
+            if (TextUtils.isEmpty(name)) {
+                nameActivity.error = "Nome da atividade é obrigatório"
+            } else if (selectedWeekDays.isNullOrEmpty()) {
+                Toast.makeText(
+                    context,
+                    "Selecione pelo menos um dia da semana",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                val alarmTriggerTime = timePicker.text.toString()
+                val alarmToneString = alarmToneSelected?.toString()
+                val currentTime = SimpleDateFormat(
+                    "HH:mm",
+                    Locale.getDefault()
+                ).format(Date())
+
+                val alarmActivated = ActivityUtils.alarmActivated
+
+                val activity = Activity(
+                    name = name,
+                    day = selectedDay,
+                    month = selectedMonth,
+                    year = selectedYear,
+                    time = currentTime,
+                    startDate = startDate,
+                    endDate = endDate,
+                    contactForMessage = null,
+                    alarmTriggerTime = alarmTriggerTime,
+                    alarmActivated = alarmActivated,
+                    alarmTone = alarmToneString,
+                    category = null,
+                    weekDays = selectedWeekDays
+                )
+
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        repository?.createActivity(activity)
+                        if (alarmActivated && alarmTimestamp != null) {
+                            setAlarm(
+                                name,
+                                alarmToneString,
+                                context,
+                                startDate,
+                                endDate,
+                                selectedWeekDays,
+                                alarmTriggerTime
+                            )
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            Snackbar.make(
+                                view,
+                                "Erro ao criar a atividade: ${e.message}",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    nameActivity.text.clear()
+                    alarmSwitch.isChecked = false
+                    alarmToneSelected = null
+                    "Padrão".also { alarmToneNameTextView?.text = it }
+
+                    Snackbar.make(
+                        view,
+                        "Atividade criada com sucesso!",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun edtActivity(
+        view: View,
+        activityId: String,
+        nameActivity: EditText,
+        timePicker: TextView,
+        alarmSwitch: SwitchCompat,
+        selectedDay: Int?,
+        selectedMonth: Int?,
+        selectedYear: Int?,
+        startDate: String?,
+        endDate: String?,
+        selectedWeekDays: MutableList<String>?,
+        scope: CoroutineScope,
+        context: Context?
+    ) {
+        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
+        val repository = context?.let { ActivityRepository() }
+        try {
+            val name = nameActivity.text.toString().trim()
+            if (TextUtils.isEmpty(name)) {
+                nameActivity.error = "Nome da atividade é obrigatório"
+            } else if (selectedWeekDays.isNullOrEmpty()) {
+                Toast.makeText(
+                    context,
+                    "Selecione pelo menos um dia da semana",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                val alarmTriggerTime = timePicker.text.toString()
+                val alarmToneString = alarmToneSelected?.toString()
+                val currentTime = SimpleDateFormat(
+                    "HH:mm",
+                    Locale.getDefault()
+                ).format(Date())
+
+                val alarmActivated = ActivityUtils.alarmActivated
+
+                val activity = Activity(
+                    id = activityId,
+                    name = name,
+                    day = selectedDay,
+                    month = selectedMonth,
+                    year = selectedYear,
+                    time = currentTime,
+                    startDate = startDate,
+                    endDate = endDate,
+                    contactForMessage = null,
+                    alarmTriggerTime = alarmTriggerTime,
+                    alarmActivated = alarmActivated,
+                    alarmTone = alarmToneString,
+                    category = null,
+                    weekDays = selectedWeekDays
+                )
+
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        repository?.updateActivity(activity) // Atualizar a atividade existente
+                        if (alarmActivated && alarmTimestamp != null) {
+                            setAlarm(
+                                name,
+                                alarmToneString,
+                                context,
+                                startDate,
+                                endDate,
+                                selectedWeekDays,
+                                alarmTriggerTime
+                            )
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            Snackbar.make(
+                                view,
+                                "Erro ao atualizar a atividade: ${e.message}",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    Snackbar.make(
+                        view,
+                        "Atividade atualizada com sucesso!",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun setAlarmSwitchListener(isChecked: Boolean) {
         alarmActivated = isChecked
     }
@@ -232,7 +418,7 @@ object EdtActivityUtils {
 
                 ringtoneName.text = list[position]
 
-                if (position == 0) {
+                if (position ==  0) {
                     playButton.visibility = View.GONE
                 } else {
                     playButton.visibility = View.VISIBLE
@@ -291,127 +477,6 @@ object EdtActivityUtils {
             alarmToneSelected = uriList[position]
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
             alarmToneNameTextView?.text = list[position]
-        }
-    }
-
-    fun loadActivityData(
-        activity: Activity,
-        nameActivity: EditText,
-        timePicker: TextView,
-        alarmSwitch: SwitchCompat,
-        weekDaysView: List<CheckBox>,
-        alarmToneNameTextView: TextView
-    ) {
-        nameActivity.setText(activity.name)
-        timePicker.text = activity.alarmTriggerTime ?: ""
-        alarmSwitch.isChecked = activity.alarmActivated
-        alarmToneSelected = activity.alarmTone?.let { Uri.parse(it) }
-        alarmToneNameTextView.text = alarmToneSelected?.toString() ?: "Padrão"
-
-        weekDaysView.forEach { checkBox ->
-            checkBox.isChecked = activity.weekDays?.contains(checkBox.text.toString()) == true
-        }
-    }
-
-    suspend fun saveActivity(
-        view: View,
-        nameActivity: EditText,
-        timePicker: TextView,
-        alarmSwitch: SwitchCompat,
-        selectedDay: Int?,
-        selectedMonth: Int?,
-        selectedYear: Int?,
-        startDate: String?,
-        endDate: String?,
-        selectedWeekDays: MutableList<String>?,
-        scope: CoroutineScope,
-        context: Context?,
-        isEdit: Boolean,
-        activityId: String?
-    ) {
-        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-        val repository = context?.let { ActivityRepository() }
-        try {
-            val name = nameActivity.text.toString().trim()
-            if (TextUtils.isEmpty(name)) {
-                nameActivity.error = "Nome da atividade é obrigatório"
-            } else if (selectedWeekDays.isNullOrEmpty()) {
-                Toast.makeText(
-                    context,
-                    "Selecione pelo menos um dia da semana",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                val alarmTriggerTime = timePicker.text.toString()
-                val alarmToneString = alarmToneSelected?.toString()
-                val currentTime = SimpleDateFormat(
-                    "HH:mm",
-                    Locale.getDefault()
-                ).format(Date())
-
-                val alarmActivated = EdtActivityUtils.alarmActivated
-
-                val activity = Activity(
-                    id = activityId ?: UUID.randomUUID().toString(),
-                    name = name,
-                    day = selectedDay,
-                    month = selectedMonth,
-                    year = selectedYear,
-                    time = currentTime,
-                    startDate = startDate,
-                    endDate = endDate,
-                    contactForMessage = null,
-                    alarmTriggerTime = alarmTriggerTime,
-                    alarmActivated = alarmActivated,
-                    alarmTone = alarmToneString,
-                    category = null,
-                    weekDays = selectedWeekDays
-                )
-
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        if (isEdit) {
-                            repository?.updateActivity(activity)
-                        } else {
-                            repository?.createActivity(activity)
-                        }
-                        if (alarmActivated && alarmTimestamp != null) {
-                            setAlarm(
-                                name,
-                                alarmToneString,
-                                context,
-                                startDate,
-                                endDate,
-                                selectedWeekDays,
-                                alarmTriggerTime
-                            )
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        withContext(Dispatchers.Main) {
-                            Snackbar.make(
-                                view,
-                                "Erro ao ${if (isEdit) "atualizar" else "criar"} a atividade: ${e.message}",
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
-                withContext(Dispatchers.Main) {
-                    nameActivity.text.clear()
-                    alarmSwitch.isChecked = false
-                    alarmToneSelected = null
-                    "Padrão".also { alarmToneNameTextView?.text = it }
-
-                    Snackbar.make(
-                        view,
-                        "Atividade ${if (isEdit) "atualizada" else "criada"} com sucesso!",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 }

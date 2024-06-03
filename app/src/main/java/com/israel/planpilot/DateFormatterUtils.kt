@@ -6,19 +6,13 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object DateFormatterUtils {
-
-    fun stringToDateFormatted(data: String): String {
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        return sdf.format(data)
+    fun formatLocalDateToString(date: LocalDate): String {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        return date.format(formatter)
     }
 
-    fun convertToLocalDate(date: String): LocalDate {
-        val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        val outputFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-
-        val localDate = LocalDate.parse(date, inputFormatter)
-        val formattedDate = localDate.format(outputFormatter)
-
-        return LocalDate.parse(formattedDate, outputFormatter)
+    fun parseStringToLocalDate(date: String): LocalDate {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        return LocalDate.parse(date, formatter)
     }
 }
