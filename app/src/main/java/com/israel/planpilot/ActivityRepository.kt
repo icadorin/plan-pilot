@@ -57,4 +57,14 @@ class ActivityRepository {
         activitiesCollection.document(id).delete().await()
         activitiesCache = null
     }
+
+    suspend fun getActivityById(activityId: String): Activity? {
+        return try {
+            val documentSnapshot = activitiesCollection.document(activityId).get().await()
+            documentSnapshot.toObject(Activity::class.java)
+        } catch (e: Exception) {
+            println("Erro ao obter atividade pelo ID: ${e.message}")
+            null
+        }
+    }
 }

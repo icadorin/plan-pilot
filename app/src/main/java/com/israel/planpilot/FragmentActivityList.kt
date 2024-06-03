@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class FragmentActivityList : Fragment() {
@@ -131,8 +132,13 @@ class FragmentActivityList : Fragment() {
 
                     val activity = getItem(position)
                     activityName.text = activity?.name
-                    "${activity?.startDate}".also { activityStartDate.text = it }
-                    "${activity?.endDate}".also { activityEndDate.text = it }
+
+                    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+                    val startDate = LocalDate.parse(activity?.startDate)
+                    val endDate = LocalDate.parse(activity?.endDate)
+                    activityStartDate.text = startDate.format(formatter)
+                    activityEndDate.text = endDate.format(formatter)
 
                     return view
                 }

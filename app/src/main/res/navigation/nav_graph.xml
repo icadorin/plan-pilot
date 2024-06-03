@@ -63,6 +63,11 @@
         tools:layout="@layout/fragment_activities_list" />
 
     <fragment
+        android:id="@+id/fragmentEdtActivity"
+        android:name="com.israel.planpilot.FragmentEdtActivity"
+        tools:layout="@layout/fragment_edt_activity" />
+
+    <fragment
         android:id="@+id/fragmentAddActivity"
         android:name="com.israel.planpilot.FragmentAddActivity2"
         tools:layout="@layout/fragment_add_activity2" />

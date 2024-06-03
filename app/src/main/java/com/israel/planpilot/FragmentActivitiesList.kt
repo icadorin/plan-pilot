@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class FragmentActivitiesList : Fragment() {
     private lateinit var activityRepository: ActivityRepository
@@ -65,8 +67,13 @@ class FragmentActivitiesList : Fragment() {
 
                     val activity = getItem(position)
                     activityName.text = activity?.name
-                    "${activity?.startDate}".also { activityStartDate.text = it }
-                    "${activity?.endDate}".also { activityEndDate.text = it }
+
+                    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+                    val startDate = LocalDate.parse(activity?.startDate)
+                    val endDate = LocalDate.parse(activity?.endDate)
+                    activityStartDate.text = startDate.format(formatter)
+                    activityEndDate.text = endDate.format(formatter)
 
                     return view
                 }
@@ -83,7 +90,19 @@ class FragmentActivitiesList : Fragment() {
                             activityRepository.deleteActivity(activity?.id.toString())
                         }
                     }
-                    .setNegativeButton("Editar", null)
+                    .setNegativeButton("Editar") { _, _ ->
+                        val selectedActivity = adapter.getItem(position)
+                        val fragment = FragmentEdtActivity().apply {
+                            arguments = Bundle().apply {
+                                putString("activityId", selectedActivity?.id.toString())
+                            }
+                        }
+                        val transaction = requireActivity().supportFragmentManager.beginTransaction()
+                        transaction.replace(R.id.nav_host_fragment, fragment)
+                        transaction.addToBackStack(null)
+                        transaction.commit()
+                    }
+
                     .show()
                 true
             }
