@@ -298,11 +298,19 @@ class FragmentEdtActivity : Fragment() {
         selectedDays: MutableList<String>
     ) {
         if (selectedDays.contains(dayName)) {
-            selectedDays.remove(dayName)
-            println("false")
-            println("$selectedDays")
-            button.isSelected = false
-            button.setTextColor(Color.BLACK)
+            if (selectedDays.size > 1) {
+                selectedDays.remove(dayName)
+                println("false")
+                println("$selectedDays")
+                button.isSelected = false
+                button.setTextColor(Color.BLACK)
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "É necessário ter pelo menos 1 dia da semana ativo",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         } else {
             selectedDays.add(dayName)
             println("true")
