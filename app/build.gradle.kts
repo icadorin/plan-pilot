@@ -57,6 +57,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
     implementation("androidx.compose.ui:ui:1.6.7")
+    implementation("com.jakewharton.threetenabp:threetenabp:1.3.1")
     implementation("androidx.paging:paging-runtime-ktx:3.3.0")
     implementation("androidx.compose.material:material:1.6.7")
     implementation("androidx.compose.runtime:runtime:1.6.7")

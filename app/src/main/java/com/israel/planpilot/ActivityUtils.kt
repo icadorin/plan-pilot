@@ -37,7 +37,7 @@ import kotlin.text.*
 object ActivityUtils {
 
     private var alarmToneSelected: Uri? = null
-    private var alarmTimestamp: Long? = null
+    var alarmTimestamp: Long? = null
     private var alarmActivated: Boolean = false
     private var currentMediaPlayer: MediaPlayer? = null
 
@@ -293,7 +293,6 @@ object ActivityUtils {
         scope: CoroutineScope,
         context: Context?
     ) {
-        val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
         val repository = context?.let { ActivityRepository() }
         try {
             val name = nameActivity.text.toString().trim()

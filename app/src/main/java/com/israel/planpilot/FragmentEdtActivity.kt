@@ -3,6 +3,8 @@ package com.israel.planpilot
 import android.app.DatePickerDialog
 import android.graphics.Color
 import android.icu.util.Calendar
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
@@ -18,8 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 class FragmentEdtActivity : Fragment() {
@@ -27,6 +30,8 @@ class FragmentEdtActivity : Fragment() {
     private var selectedYear: Int = 0
     private var selectedMonth: Int = 0
     private var selectedDay: Int = 0
+    private var selectedHour: Int = 0
+    private var selectedMinute: Int = 0
     private var startDate: LocalDate? = null
     private var endDate: LocalDate? = null
     private var activityId: String = ""
@@ -42,6 +47,9 @@ class FragmentEdtActivity : Fragment() {
     private lateinit var btnThursday: Button
     private lateinit var btnFriday: Button
     private lateinit var btnSaturday: Button
+    private lateinit var timePicker: Button
+    private lateinit var alarmTone: ImageButton
+    private lateinit var alarmToneName: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,12 +67,13 @@ class FragmentEdtActivity : Fragment() {
         activityRepository = ActivityRepository()
 
         nameActivity = view.findViewById(R.id.nameActivity)
+        timePicker = view.findViewById(R.id.timePicker)
         startDateButton = view.findViewById(R.id.startDateButton)
         endDateButton = view.findViewById(R.id.endDateButton)
+        alarmToneName = view.findViewById(R.id.alarmToneName)
+        alarmTone = view.findViewById(R.id.alarmTone)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
-        val timePicker = view.findViewById<Button>(R.id.timePicker)
-        val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
 
         val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
 
@@ -79,16 +88,6 @@ class FragmentEdtActivity : Fragment() {
         btnThursday = view.findViewById(R.id.btnThursday)
         btnFriday = view.findViewById(R.id.btnFriday)
         btnSaturday = view.findViewById(R.id.btnSaturday)
-
-        val buttonDayMap = mapOf(
-            btnSunday to "sunday",
-            btnMonday to "monday",
-            btnTuesday to "tuesday",
-            btnWednesday to "wednesday",
-            btnThursday to "thursday",
-            btnFriday to "friday",
-            btnSaturday to "saturday"
-        )
 
         addDescriptionButton.setOnClickListener {
             when {
@@ -111,38 +110,6 @@ class FragmentEdtActivity : Fragment() {
             }
         }
 
-        fun updateWeekButtons(date1: LocalDate?, date2: LocalDate?) {
-            buttonDayMap.keys.forEach { button ->
-                if (selectedWeekDays.contains(buttonDayMap[button])) {
-                    toggleWeekDaySelection(button, buttonDayMap[button]!!, selectedWeekDays)
-                }
-            }
-
-            val daysBetween = ChronoUnit.DAYS.between(date1, date2)
-
-            if (daysBetween >= 7) {
-                buttonDayMap.forEach { (button, day) ->
-                    toggleWeekDaySelection(button, day, selectedWeekDays)
-                }
-            } else {
-                var currentDate = date1
-                while (currentDate!!.isBefore(date2) || currentDate.isEqual(date2)) {
-                    val dayOfWeek = currentDate.dayOfWeek.name.lowercase(Locale.ROOT)
-                    toggleWeekDaySelection(when (dayOfWeek) {
-                        "sunday" -> btnSunday
-                        "monday" -> btnMonday
-                        "tuesday" -> btnTuesday
-                        "wednesday" -> btnWednesday
-                        "thursday" -> btnThursday
-                        "friday" -> btnFriday
-                        "saturday" -> btnSaturday
-                        else -> throw IllegalArgumentException("Invalid day of week")
-                    }, dayOfWeek, selectedWeekDays)
-                    currentDate = currentDate.plusDays(1)
-                }
-            }
-        }
-
         startDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
             val yearCal = startDate?.year ?: calendar.get(Calendar.YEAR)
@@ -160,8 +127,6 @@ class FragmentEdtActivity : Fragment() {
                     endDate = startDate
                     endDateButton.text = dateString
                 }
-
-                updateWeekButtons(startDate, endDate)
 
             }, yearCal, monthCal, dayCal)
             dpd.show()
@@ -184,8 +149,6 @@ class FragmentEdtActivity : Fragment() {
                     startDate = endDate
                     startDateButton.text = dateString
                 }
-
-                updateWeekButtons(startDate, endDate)
 
             }, yearCal, monthCal, dayCal)
             dpd.show()
@@ -224,7 +187,27 @@ class FragmentEdtActivity : Fragment() {
         }
 
         timePicker.setOnClickListener {
-            ActivityUtils.setTimePicker(timePicker, childFragmentManager)
+            val timePickerDialog = com.wdullaer.materialdatetimepicker.time.TimePickerDialog.newInstance(
+                { _, hourOfDay, minute, _ ->
+                    val time = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute)
+                    timePicker.text = time
+
+                    val calendar = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        set(Calendar.MINUTE, minute)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    ActivityUtils.alarmTimestamp = calendar.timeInMillis
+
+                    selectedHour = hourOfDay
+                    selectedMinute = minute
+                },
+                selectedHour,
+                selectedMinute,
+                true
+            )
+            timePickerDialog.show(childFragmentManager, "TimePickerDialog")
         }
 
         alarmTone.setOnClickListener {
@@ -255,6 +238,7 @@ class FragmentEdtActivity : Fragment() {
             }
         }
         loadActivityDetails()
+        loadAlarmTone()
         return view
     }
 
@@ -284,8 +268,10 @@ class FragmentEdtActivity : Fragment() {
 
     private fun loadActivityDetails() {
         val dateFormatPattern = "yyyy-MM-dd"
+        val timeFormatPattern = "HH:mm"
         val startDateFormatter = DateTimeFormatter.ofPattern(dateFormatPattern)
         val endDateFormatter = DateTimeFormatter.ofPattern(dateFormatPattern)
+        val timeFormatter = DateTimeFormatter.ofPattern(timeFormatPattern)
 
         lifecycleScope.launch {
             try {
@@ -297,6 +283,7 @@ class FragmentEdtActivity : Fragment() {
 
                     val startDateString = it.startDate
                     val endDateString = it.endDate
+                    val timeString = it.alarmTriggerTime
 
                     val startDate = LocalDate.parse(startDateString, startDateFormatter)
                     val endDate = LocalDate.parse(endDateString, endDateFormatter)
@@ -307,6 +294,21 @@ class FragmentEdtActivity : Fragment() {
 
                         this@FragmentEdtActivity.startDate = startDate
                         this@FragmentEdtActivity.endDate = endDate
+
+                        val time = LocalTime.parse(timeString, timeFormatter)
+                        val originalHour = time.hour
+                        val originalMinute = time.minute
+
+                        val formattedTime = String.format(
+                            Locale.getDefault(),
+                            "%02d:%02d",
+                            originalHour,
+                            originalMinute
+                        )
+
+                        timePicker.text = formattedTime
+                        selectedHour = originalHour
+                        selectedMinute = originalMinute
                     }
 
                     withContext(Dispatchers.Main) {
@@ -336,6 +338,26 @@ class FragmentEdtActivity : Fragment() {
                 }
             } catch (e: Exception) {
                 println("Erro ao carregar detalhes da atividade: ${e.message}")
+            }
+        }
+    }
+
+    private fun loadAlarmTone() {
+        lifecycleScope.launch {
+            try {
+                val activity = withContext(Dispatchers.IO) {
+                    activityRepository.getActivityById(activityId)
+                }
+                activity?.let {
+                    val alarmToneUri = it.alarmTone
+                    alarmToneUri?.let { uri ->
+                        val alarmTone = RingtoneManager.getRingtone(requireContext(), Uri.parse(uri))
+                        val alarmToneTitle = alarmTone.getTitle(requireContext())
+                        alarmToneName.text = alarmToneTitle
+                    }
+                }
+            } catch (e: Exception) {
+                println("Erro ao carregar alarme: ${e.message}")
             }
         }
     }
