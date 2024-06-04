@@ -35,6 +35,13 @@ class FragmentEdtActivity : Fragment() {
     private lateinit var nameActivity: EditText
     private lateinit var startDateButton: Button
     private lateinit var endDateButton: Button
+    private lateinit var btnSunday: Button
+    private lateinit var btnMonday: Button
+    private lateinit var btnTuesday: Button
+    private lateinit var btnWednesday: Button
+    private lateinit var btnThursday: Button
+    private lateinit var btnFriday: Button
+    private lateinit var btnSaturday: Button
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,8 +58,6 @@ class FragmentEdtActivity : Fragment() {
 
         activityRepository = ActivityRepository()
 
-        loadActivityDetails()
-
         nameActivity = view.findViewById(R.id.nameActivity)
         startDateButton = view.findViewById(R.id.startDateButton)
         endDateButton = view.findViewById(R.id.endDateButton)
@@ -67,13 +72,13 @@ class FragmentEdtActivity : Fragment() {
         val secondDescriptionField = view.findViewById<EditText>(R.id.secondDescriptionField)
         val thirdDescriptionField = view.findViewById<EditText>(R.id.thirdDescriptionField)
 
-        val btnSunday = view.findViewById<Button>(R.id.btnSunday)
-        val btnMonday = view.findViewById<Button>(R.id.btnMonday)
-        val btnTuesday = view.findViewById<Button>(R.id.btnTuesday)
-        val btnWednesday = view.findViewById<Button>(R.id.btnWednesday)
-        val btnThursday = view.findViewById<Button>(R.id.btnThursday)
-        val btnFriday = view.findViewById<Button>(R.id.btnFriday)
-        val btnSaturday = view.findViewById<Button>(R.id.btnSaturday)
+        btnSunday = view.findViewById(R.id.btnSunday)
+        btnMonday = view.findViewById(R.id.btnMonday)
+        btnTuesday = view.findViewById(R.id.btnTuesday)
+        btnWednesday = view.findViewById(R.id.btnWednesday)
+        btnThursday = view.findViewById(R.id.btnThursday)
+        btnFriday = view.findViewById(R.id.btnFriday)
+        btnSaturday = view.findViewById(R.id.btnSaturday)
 
         val buttonDayMap = mapOf(
             btnSunday to "sunday",
@@ -137,45 +142,6 @@ class FragmentEdtActivity : Fragment() {
                 }
             }
         }
-
-        val currentDate = Calendar.getInstance()
-        val currentLocalDate = LocalDate.of(
-            currentDate.get(Calendar.YEAR),
-            currentDate.get(Calendar.MONTH) + 1,
-            currentDate.get(Calendar.DAY_OF_MONTH)
-        )
-
-        startDate = currentLocalDate
-        endDate = currentLocalDate
-
-        val currentYear = currentDate.get(Calendar.YEAR)
-        val currentMonth = currentDate.get(Calendar.MONTH)
-        val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
-
-        String.format(
-            resources.getString(R.string.date_format),
-            currentDay,
-            currentMonth + 1,
-            currentYear
-        )
-
-        selectedYear = currentYear
-        selectedMonth = currentMonth + 1
-        selectedDay = currentDay
-
-        val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
-        val currentButton = when (currentDayOfWeek) {
-            "sunday" -> btnSunday
-            "monday" -> btnMonday
-            "tuesday" -> btnTuesday
-            "wednesday" -> btnWednesday
-            "thursday" -> btnThursday
-            "friday" -> btnFriday
-            "saturday" -> btnSaturday
-            else -> throw IllegalArgumentException("Invalid day of week")
-        }
-
-        toggleWeekDaySelection(currentButton, currentDayOfWeek, selectedWeekDays)
 
         startDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
@@ -245,12 +211,12 @@ class FragmentEdtActivity : Fragment() {
             toggleWeekDaySelection(btnThursday, "thursday", selectedWeekDays)
         }
 
-        btnSaturday.setOnClickListener {
-            toggleWeekDaySelection(btnSaturday, "saturday", selectedWeekDays)
-        }
-
         btnFriday.setOnClickListener {
             toggleWeekDaySelection(btnFriday, "friday", selectedWeekDays)
+        }
+
+        btnSaturday.setOnClickListener {
+            toggleWeekDaySelection(btnSaturday, "saturday", selectedWeekDays)
         }
 
         alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -266,7 +232,6 @@ class FragmentEdtActivity : Fragment() {
         }
 
         saveButton.setOnClickListener {
-
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
             val startDateString = startDate?.format(formatter)
             val endDateString = endDate?.format(formatter)
@@ -289,6 +254,7 @@ class FragmentEdtActivity : Fragment() {
                 )
             }
         }
+        loadActivityDetails()
         return view
     }
 
@@ -300,8 +266,6 @@ class FragmentEdtActivity : Fragment() {
         if (selectedDays.contains(dayName)) {
             if (selectedDays.size > 1) {
                 selectedDays.remove(dayName)
-                println("false")
-                println("$selectedDays")
                 button.isSelected = false
                 button.setTextColor(Color.BLACK)
             } else {
@@ -313,8 +277,6 @@ class FragmentEdtActivity : Fragment() {
             }
         } else {
             selectedDays.add(dayName)
-            println("true")
-            println("$selectedDays")
             button.isSelected = true
             button.setTextColor(Color.WHITE)
         }
@@ -345,6 +307,31 @@ class FragmentEdtActivity : Fragment() {
 
                         this@FragmentEdtActivity.startDate = startDate
                         this@FragmentEdtActivity.endDate = endDate
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        selectedWeekDays.clear()
+                        it.weekDays?.let { it1 -> selectedWeekDays.addAll(it1) }
+
+                        val buttonDayMap = mapOf(
+                            btnSunday to "sunday",
+                            btnMonday to "monday",
+                            btnTuesday to "tuesday",
+                            btnWednesday to "wednesday",
+                            btnThursday to "thursday",
+                            btnFriday to "friday",
+                            btnSaturday to "saturday"
+                        )
+
+                        buttonDayMap.forEach { (button, day) ->
+                            if (selectedWeekDays.contains(day)) {
+                                button.isSelected = true
+                                button.setTextColor(Color.WHITE)
+                            } else {
+                                button.isSelected = false
+                                button.setTextColor(Color.BLACK)
+                            }
+                        }
                     }
                 }
             } catch (e: Exception) {
