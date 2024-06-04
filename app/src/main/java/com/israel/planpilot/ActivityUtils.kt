@@ -78,7 +78,7 @@ object ActivityUtils {
         val builder = AlertDialog.Builder(context).apply {
             setCustomTitle(dialogView)
             setSingleChoiceItems(adapter, -1) { _, position ->
-                selectAlarmTone(position, list, uriList, view)
+                selectAlarmTone(position, list, uriList, view, context)
                 dialog?.dismiss()
             }
         }
@@ -212,6 +212,8 @@ object ActivityUtils {
             } else {
                 val alarmTriggerTime = timePicker.text.toString()
                 val alarmToneString = alarmToneSelected?.toString()
+                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()
+
                 val currentTime = SimpleDateFormat(
                     "HH:mm",
                     Locale.getDefault()
@@ -264,7 +266,9 @@ object ActivityUtils {
                     nameActivity.text.clear()
                     alarmSwitch.isChecked = false
                     alarmToneSelected = null
-                    "Padrão".also { alarmToneNameTextView?.text = it }
+                    context?.let { nonNullContext ->
+                        defaultTone(nonNullContext)?.let { alarmToneNameTextView?.text = it }
+                    }
 
                     Snackbar.make(
                         view,
@@ -284,6 +288,7 @@ object ActivityUtils {
         nameActivity: EditText,
         timePicker: TextView,
         alarmSwitch: SwitchCompat,
+        tone: String?,
         selectedDay: Int?,
         selectedMonth: Int?,
         selectedYear: Int?,
@@ -306,14 +311,15 @@ object ActivityUtils {
                 ).show()
             } else {
                 val alarmTriggerTime = timePicker.text.toString()
-                val alarmToneString = alarmToneSelected?.toString()
+                val alarmToneString = alarmToneSelected?.toString() ?: tone
+
                 val currentTime = SimpleDateFormat(
                     "HH:mm",
                     Locale.getDefault()
                 ).format(Date())
 
                 val alarmActivated = ActivityUtils.alarmActivated
-
+                println("TOM DE ALARM: $alarmToneString")
                 val activity = Activity(
                     id = activityId,
                     name = name,
@@ -333,7 +339,7 @@ object ActivityUtils {
 
                 scope.launch(Dispatchers.IO) {
                     try {
-                        repository?.updateActivity(activity) // Atualizar a atividade existente
+                        repository?.updateActivity(activity)
                         if (alarmActivated && alarmTimestamp != null) {
                             setAlarm(
                                 name,
@@ -380,8 +386,12 @@ object ActivityUtils {
         val list = ArrayList<String>()
         val uriList = ArrayList<Uri>()
 
-        list.add("Padrão")
-        uriList.add(Uri.EMPTY)
+        val tone = defaultTone(context)?: ""
+        if (tone.isNotEmpty()) {
+            list.add(tone)
+        }
+
+        uriList.add(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
 
         while (cursor.moveToNext()) {
             val name = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX)
@@ -467,15 +477,29 @@ object ActivityUtils {
         )
     }
 
-    private fun selectAlarmTone(position: Int, list: List<String>, uriList: List<Uri>, view: View) {
+    private fun selectAlarmTone(
+        position: Int,
+        list: List<String>,
+        uriList: List<Uri>,
+        view: View,
+        context: Context
+    ) {
         if (position == 0) {
             alarmToneSelected = null
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-            "Padrão".also { alarmToneNameTextView?.text = it }
+            defaultTone(context).also { alarmToneNameTextView?.text = it }
         } else {
             alarmToneSelected = uriList[position]
             val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
             alarmToneNameTextView?.text = list[position]
         }
+    }
+
+    fun defaultTone(context: Context): String? {
+        val defaultRingtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        val defaultRingtone = RingtoneManager.getRingtone(context, defaultRingtoneUri)
+        val defaultRingtoneTitle = defaultRingtone.getTitle(context)
+
+        return defaultRingtoneTitle
     }
 }

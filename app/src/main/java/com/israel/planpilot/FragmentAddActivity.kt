@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
@@ -30,6 +31,7 @@ class FragmentAddActivity : Fragment() {
     private var startDate: LocalDate? = null
     private var endDate: LocalDate? = null
     private val selectedWeekDays = mutableListOf<String>()
+    private lateinit var timePicker: Button
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,10 +45,10 @@ class FragmentAddActivity : Fragment() {
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
-        val timePicker = view.findViewById<Button>(R.id.timePicker)
         val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
         val startDateButton: Button = view.findViewById(R.id.startDateButton)
         val endDateButton: Button = view.findViewById(R.id.endDateButton)
+        timePicker = view.findViewById(R.id.timePicker)
 
         val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
 
@@ -61,6 +63,15 @@ class FragmentAddActivity : Fragment() {
         val btnThursday = view.findViewById<Button>(R.id.btnThursday)
         val btnFriday = view.findViewById<Button>(R.id.btnFriday)
         val btnSaturday = view.findViewById<Button>(R.id.btnSaturday)
+        val alarmToneName = view.findViewById<TextView>(R.id.alarmToneName)
+
+        val calendarTimePicker = Calendar.getInstance()
+        val currentHour = calendarTimePicker.get(Calendar.HOUR_OF_DAY)
+        val currentMinute = calendarTimePicker.get(Calendar.MINUTE)
+        val formattedTime = String.format(Locale.getDefault(), "%02d:%02d", currentHour, currentMinute)
+        timePicker.text = formattedTime
+
+        alarmToneName.text = ActivityUtils.defaultTone(requireContext())
 
         val buttonDayMap = mapOf(
             btnSunday to "sunday",
@@ -135,23 +146,14 @@ class FragmentAddActivity : Fragment() {
         startDate = currentLocalDate
         endDate = currentLocalDate
 
-        println("start date: + $currentLocalDate")
-
-        val currentYear = currentDate.get(Calendar.YEAR)
-        val currentMonth = currentDate.get(Calendar.MONTH)
-        val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
-        val currentDateString = String.format(
-            resources.getString(R.string.date_format),
-            currentDay,
-            currentMonth + 1,
-            currentYear
-        )
-
-        selectedYear = currentYear
-        selectedMonth = currentMonth + 1
-        selectedDay = currentDay
+        val currentDateString = DateFormatterUtils.formatLocalDateToString(currentLocalDate)
 
         startDateButton.text = currentDateString
+        endDateButton.text = currentDateString
+
+        selectedYear = currentLocalDate.year
+        selectedMonth = currentLocalDate.monthValue
+        selectedDay = currentLocalDate.dayOfMonth
 
         val currentDayOfWeek = currentLocalDate.dayOfWeek.name.lowercase(Locale.ROOT)
         val currentButton = when (currentDayOfWeek) {
@@ -167,38 +169,17 @@ class FragmentAddActivity : Fragment() {
 
         toggleWeekDaySelection(currentButton, currentDayOfWeek, selectedWeekDays)
 
-        endDateButton.text = currentDateString
-
         startDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val yearCal = if (startDate != null) {
-                startDate!!.year
-            } else {
-                calendar.get(Calendar.YEAR)
-            }
-
-            val monthCal = if (startDate != null) {
-                startDate!!.monthValue - 1
-            } else {
-                calendar.get(Calendar.MONTH)
-            }
-
-            val dayCal = if (startDate != null) {
-                startDate!!.dayOfMonth
-            } else {
-                calendar.get(Calendar.DAY_OF_MONTH)
-            }
+            val yearCal = startDate?.year ?: calendar.get(Calendar.YEAR)
+            val monthCal = startDate?.monthValue?.minus(1) ?: calendar.get(Calendar.MONTH)
+            val dayCal = startDate?.dayOfMonth ?: calendar.get(Calendar.DAY_OF_MONTH)
 
             val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
                 val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
                 startDate = selectedLocalDate
 
-                val dateString = String.format(
-                    resources.getString(R.string.date_format),
-                    dayOfMonth,
-                    monthOfYear + 1,
-                    year
-                )
+                val dateString = DateFormatterUtils.formatLocalDateToString(selectedLocalDate)
                 startDateButton.text = dateString
 
                 if (startDate?.isAfter(endDate) == true) {
@@ -214,35 +195,15 @@ class FragmentAddActivity : Fragment() {
 
         endDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val yearCal = if (endDate != null) {
-                endDate!!.year
-            } else {
-                calendar.get(Calendar.YEAR)
-            }
-
-            val monthCal = if (endDate != null) {
-                endDate!!.monthValue - 1
-            } else {
-                calendar.get(Calendar.MONTH)
-            }
-
-            val dayCal = if (endDate != null) {
-                endDate!!.dayOfMonth
-            } else {
-                calendar.get(Calendar.DAY_OF_MONTH)
-            }
+            val yearCal = endDate?.year ?: calendar.get(Calendar.YEAR)
+            val monthCal = endDate?.monthValue?.minus(1) ?: calendar.get(Calendar.MONTH)
+            val dayCal = endDate?.dayOfMonth ?: calendar.get(Calendar.DAY_OF_MONTH)
 
             val dpd = DatePickerDialog(it.context, { _, year, monthOfYear, dayOfMonth ->
                 val selectedLocalDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
                 endDate = selectedLocalDate
 
-                val dateString = String.format(
-                    resources.getString(R.string.date_format),
-                    dayOfMonth,
-                    monthOfYear + 1,
-                    year
-                )
-
+                val dateString = DateFormatterUtils.formatLocalDateToString(selectedLocalDate)
                 endDateButton.text = dateString
 
                 if (endDate?.isBefore(startDate) == true) {

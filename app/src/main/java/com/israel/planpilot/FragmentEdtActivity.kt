@@ -48,8 +48,9 @@ class FragmentEdtActivity : Fragment() {
     private lateinit var btnFriday: Button
     private lateinit var btnSaturday: Button
     private lateinit var timePicker: Button
-    private lateinit var alarmTone: ImageButton
+    private lateinit var tone: String
     private lateinit var alarmToneName: TextView
+    private lateinit var alarmSwitch: SwitchCompat
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -71,8 +72,8 @@ class FragmentEdtActivity : Fragment() {
         startDateButton = view.findViewById(R.id.startDateButton)
         endDateButton = view.findViewById(R.id.endDateButton)
         alarmToneName = view.findViewById(R.id.alarmToneName)
-        alarmTone = view.findViewById(R.id.alarmTone)
-        val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
+        alarmSwitch = view.findViewById(R.id.alarmSwitch)
+        val alarmTone = view.findViewById<ImageButton>(R.id.alarmTone)
         val saveButton = view.findViewById<Button>(R.id.saveButton)
 
         val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
@@ -226,6 +227,7 @@ class FragmentEdtActivity : Fragment() {
                     nameActivity,
                     timePicker,
                     alarmSwitch,
+                    tone,
                     selectedDay,
                     selectedMonth,
                     selectedYear,
@@ -284,6 +286,8 @@ class FragmentEdtActivity : Fragment() {
                     val startDateString = it.startDate
                     val endDateString = it.endDate
                     val timeString = it.alarmTriggerTime
+                    tone = it.alarmTone.toString()
+                    val alarmActivated = it.alarmActivated
 
                     val startDate = LocalDate.parse(startDateString, startDateFormatter)
                     val endDate = LocalDate.parse(endDateString, endDateFormatter)
@@ -309,6 +313,7 @@ class FragmentEdtActivity : Fragment() {
                         timePicker.text = formattedTime
                         selectedHour = originalHour
                         selectedMinute = originalMinute
+                        alarmSwitch.isChecked = alarmActivated
                     }
 
                     withContext(Dispatchers.Main) {
@@ -353,7 +358,7 @@ class FragmentEdtActivity : Fragment() {
                     alarmToneUri?.let { uri ->
                         val alarmTone = RingtoneManager.getRingtone(requireContext(), Uri.parse(uri))
                         val alarmToneTitle = alarmTone.getTitle(requireContext())
-                        alarmToneName.text = alarmToneTitle
+                        alarmToneName.text = alarmToneTitle ?: "Padrão"
                     }
                 }
             } catch (e: Exception) {
@@ -369,4 +374,3 @@ class FragmentEdtActivity : Fragment() {
         mainActivity.btnAddActivity.visibility = View.VISIBLE
     }
 }
-
