@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter
 class FragmentActivitiesList : Fragment() {
     private lateinit var activityRepository: ActivityRepository
     private lateinit var activityListView: ListView
+    private lateinit var adapter: ArrayAdapter<Activity>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,11 +47,10 @@ class FragmentActivitiesList : Fragment() {
     }
 
     private fun loadActivities() {
-
         val context = context ?: return
 
         activityRepository.readAllActivities { activities ->
-            val adapter = object : ArrayAdapter<Activity>(
+            adapter = object : ArrayAdapter<Activity>(
                 context,
                 R.layout.activity_item,
                 activities
@@ -82,12 +82,14 @@ class FragmentActivitiesList : Fragment() {
 
             activityListView.setOnItemLongClickListener { _, _, position, _ ->
                 val activity = adapter.getItem(position)
+
                 AlertDialog.Builder(context)
                     .setTitle("Opções")
                     .setMessage("Escolha uma opção para a atividade ${activity?.name}")
                     .setPositiveButton("Deletar") { _, _ ->
                         CoroutineScope(Dispatchers.IO).launch {
                             activityRepository.deleteActivity(activity?.id.toString())
+                            loadActivities()
                         }
                     }
                     .setNegativeButton("Editar") { _, _ ->
@@ -102,7 +104,6 @@ class FragmentActivitiesList : Fragment() {
                         transaction.addToBackStack(null)
                         transaction.commit()
                     }
-
                     .show()
                 true
             }
