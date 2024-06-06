@@ -11,15 +11,11 @@
         android:title="@string/nav_login" />
 
     <item
-        android:id="@+id/nav_cal_mon_small"
-        android:title="@string/nav_cal_mon_small" />
-
-    <item
-        android:id="@+id/nav_cal_week"
-        android:title="@string/nav_cal_week" />
-
-    <item
         android:id="@+id/nav_cal_mon_large"
         android:title="@string/nav_cal_mon_large" />
+
+    <item
+        android:id="@+id/nav_stretch_break"
+        android:title="@string/nav_stretch_break" />
 
 </menu>

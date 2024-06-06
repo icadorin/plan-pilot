@@ -84,9 +84,8 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.nav_home,
                 R.id.nav_login,
-                R.id.nav_cal_mon_small,
-                R.id.nav_cal_week,
-                R.id.nav_cal_mon_large
+                R.id.nav_cal_mon_large,
+                R.id.nav_stretch_break
             ),
             drawerLayout
         )
@@ -145,18 +144,13 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.closeDrawers()
                 return true
             }
-            R.id.nav_cal_mon_small -> {
-                navController.navigate(R.id.nav_cal_mon_small)
-                drawerLayout.closeDrawers()
-                return true
-            }
-            R.id.nav_cal_week -> {
-                navController.navigate(R.id.nav_cal_week)
-                drawerLayout.closeDrawers()
-                return true
-            }
             R.id.nav_cal_mon_large -> {
                 navController.navigate(R.id.nav_cal_mon_large)
+                drawerLayout.closeDrawers()
+                return true
+            }
+            R.id.nav_stretch_break -> {
+                navController.navigate(R.id.nav_stretch_break)
                 drawerLayout.closeDrawers()
                 return true
             }
@@ -169,9 +163,8 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.title = when (destination.id) {
                 R.id.nav_home -> "Home"
                 R.id.nav_login -> "Login"
-                R.id.nav_cal_mon_small -> "Cal. Mensal"
-                R.id.nav_cal_week -> "Cal. Semanal"
                 R.id.nav_cal_mon_large -> "Cal. Mensal Full Screen"
+                R.id.nav_stretch_break -> "Intervalo Ativo"
                 R.id.fragmentAddActivity -> "Criar Atividade"
 
                 else -> "Plan Pilot"

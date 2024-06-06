@@ -19,16 +19,10 @@
         tools:layout="@layout/fragment_login" />
 
     <fragment
-        android:id="@+id/nav_cal_mon_small"
-        android:name="com.israel.planpilot.SmallMonCalFragment"
-        android:label="fragment_calendar"
-        tools:layout="@layout/fragment_small_mon_cal" />
-
-    <fragment
-        android:id="@+id/nav_cal_week"
-        android:name="com.israel.planpilot.WeeklyCalFragment"
-        android:label="fragment_week_view"
-        tools:layout="@layout/fragment_weekly_cal" />
+        android:id="@+id/nav_stretch_break"
+        android:name="com.israel.planpilot.FragmentStretchBreak"
+        android:label="fragment_stretch_break"
+        tools:layout="@layout/fragment_stretch_break" />
 
     <fragment
         android:id="@+id/nav_cal_mon_large"

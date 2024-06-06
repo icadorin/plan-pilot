@@ -223,7 +223,7 @@
             <View
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"/>
+                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/saveButton"
@@ -234,7 +234,7 @@
                 android:layout_marginEnd="2dp"
                 android:background="@drawable/button_background"
                 android:text="@string/save"
-                android:stateListAnimator="@null"/>
+                android:stateListAnimator="@null" />
         </LinearLayout>
     </RelativeLayout>
 </ScrollView>

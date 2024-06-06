@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".FragmentStretchBreak">
+
+    <TextView
+        android:id="@+id/tvTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:textSize="48sp"
+        android:text="02:00:00" />
+
+    <Button
+        android:id="@+id/btnWork"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvTimer"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:textColor="@color/white"
+        android:background="@drawable/button_background"
+        android:text="Iniciar"
+        android:stateListAnimator="@null" />
+
+    <Button
+        android:id="@+id/btnStretch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnWork"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:textColor="@color/white"
+        android:background="@drawable/button_background"
+        android:text="Intervalo ativo"
+        android:stateListAnimator="@null" />
+
+    <Button
+        android:id="@+id/btnPause"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnStretch"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/white"
+        android:background="@drawable/button_background"
+        android:text="Pause"
+        android:stateListAnimator="@null" />
+
+    <TextView
+        android:id="@+id/tvCyclesCompleted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnPause"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="Ciclos concluídos: 0" />
+
+    <TextView
+        android:id="@+id/tvHoursWorked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvCyclesCompleted"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="Horas trabalhadas: 00:00:00" />
+
+    <TextView
+        android:id="@+id/tvIntervalsCompleted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvHoursWorked"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="Intervalos ativos concluídos: 0" />
+
+</RelativeLayout>
