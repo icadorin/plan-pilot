@@ -5,8 +5,74 @@
     android:layout_height="match_parent"
     tools:context=".FragmentStretchBreak">
 
+    <LinearLayout
+        android:id="@+id/liWork"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/tvWork"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:text="Tempo atividade: "
+            android:background="@null"
+            android:gravity="end" />
+
+        <EditText
+            android:id="@+id/etWorkTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textColorHint="@color/black"
+            android:hint="02:00:00"
+            android:maxLength="8"
+            android:inputType="number"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/liRest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/liWork"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/etRest"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:text="Tempo intervalo: "
+            android:background="@null"
+            android:gravity="end" />
+
+        <EditText
+            android:id="@+id/etRestTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textColorHint="@color/black"
+            android:hint="00:02:00"
+            android:maxLength="8"
+            android:inputType="number"/>
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvTimer"
+        android:layout_below="@id/liRest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -23,7 +89,7 @@
         android:layout_marginTop="20dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
-        android:textColor="@color/white"
+        android:textColor="@android:color/white"
         android:background="@drawable/button_background"
         android:text="Iniciar"
         android:stateListAnimator="@null" />
@@ -37,7 +103,7 @@
         android:layout_marginTop="20dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
-        android:textColor="@color/white"
+        android:textColor="@android:color/white"
         android:background="@drawable/button_background"
         android:text="Intervalo ativo"
         android:stateListAnimator="@null" />
@@ -49,7 +115,7 @@
         android:layout_below="@id/btnStretch"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:textColor="@color/white"
+        android:textColor="@android:color/white"
         android:background="@drawable/button_background"
         android:text="Pause"
         android:stateListAnimator="@null" />

@@ -1,17 +1,20 @@
 package com.israel.planpilot
 
 import android.media.MediaPlayer
+import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
-import androidx.fragment.app.Fragment
-import java.util.Locale
-import java.util.Timer
+import androidx.fragment.app.activityViewModels
+import java.util.*
 import kotlin.concurrent.timerTask
 
 class FragmentStretchBreak : Fragment() {
@@ -23,17 +26,12 @@ class FragmentStretchBreak : Fragment() {
     private lateinit var tvCyclesCompleted: TextView
     private lateinit var tvHoursWorked: TextView
     private lateinit var tvIntervalsCompleted: TextView
+    private lateinit var etWorkTime: EditText
+    private lateinit var etRestTime: EditText
 
-    private var mainTime: Int = 7200
-    private var isWorking = false
-    private var isResting = false
-    private var isPaused = false
-    private var completeCycles = 0
-    private var fullWorkingTime = 0
-    private var numberOfIntervals = 0
-    private var cyclesQtdManager = ArrayList<Boolean>()
+    private val viewModel: TimerViewModel by activityViewModels()
+
     private val handler = Handler(Looper.getMainLooper())
-    private var timer: Timer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -48,74 +46,129 @@ class FragmentStretchBreak : Fragment() {
         tvCyclesCompleted = view.findViewById(R.id.tvCyclesCompleted)
         tvHoursWorked = view.findViewById(R.id.tvHoursWorked)
         tvIntervalsCompleted = view.findViewById(R.id.tvIntervalsCompleted)
+        etWorkTime = view.findViewById(R.id.etWorkTime)
+        etRestTime = view.findViewById(R.id.etRestTime)
 
-        for (i in 1..4) cyclesQtdManager.add(true)
+        addTextWatcher(etWorkTime)
+        addTextWatcher(etRestTime)
+
+        for (i in 1..4) viewModel.cyclesQtdManager.add(true)
 
         btnWork.setOnClickListener { configureWork() }
         btnStretch.setOnClickListener { configureRest(false) }
         btnPause.setOnClickListener { togglePause() }
 
+        updateUI()
+
         return view
     }
 
+    private fun addTextWatcher(editText: EditText) {
+        editText.addTextChangedListener(object : TextWatcher {
+            private var isUpdating = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (isUpdating) return
+
+                var newText = s.toString().filter { it.isDigit() }
+
+                if (newText.length > 6) {
+                    newText = newText.substring(0, 6)
+                }
+
+                val sb = StringBuilder(newText)
+                if (newText.length > 2) sb.insert(2, ":")
+                if (newText.length > 4) sb.insert(5, ":")
+
+                isUpdating = true
+                editText.setText(sb.toString())
+                editText.setSelection(sb.length)
+                isUpdating = false
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
     private fun configureWork() {
-        isWorking = true
-        isResting = false
-        mainTime = 1500
+        viewModel.isWorking = true
+        viewModel.isResting = false
+        viewModel.mainTime = if (etWorkTime.text.isNotBlank()) {
+            timeToSeconds(etWorkTime.text.toString())
+        } else {
+            7200
+        }
         startTimer()
         playSound(R.raw.bell_start)
     }
 
     private fun configureRest(long: Boolean) {
-        isWorking = false
-        isResting = true
-        mainTime = if (long) 300 else 120
+        viewModel.isWorking = false
+        viewModel.isResting = true
+        val restTime = if (etRestTime.text.isNotBlank()) {
+            timeToSeconds(etRestTime.text.toString())
+        } else {
+            120
+        }
+        viewModel.mainTime = if (long) restTime * 2 else restTime
         startTimer()
         playSound(R.raw.bell_finish)
     }
 
+    private fun timeToSeconds(time: String): Int {
+        val parts = time.split(":").map { it.toIntOrNull() ?: 0 }
+        return when (parts.size) {
+            3 -> parts[0] * 3600 + parts[1] * 60 + parts[2]
+            2 -> parts[0] * 60 + parts[1]
+            1 -> parts[0]
+            else -> 0
+        }
+    }
+
     private fun startTimer() {
-        timer?.cancel()
-        timer = Timer()
-        timer!!.schedule(timerTask {
+        viewModel.timer?.cancel()
+        viewModel.timer = Timer()
+        viewModel.timer!!.schedule(timerTask {
             handler.post {
-                if (isPaused) return@post
-                mainTime--
+                if (viewModel.isPaused) return@post
+                viewModel.mainTime--
                 updateUI()
 
-                if (mainTime <= 0) {
-                    if (isWorking) {
-                        if (cyclesQtdManager.isNotEmpty()) {
-                            cyclesQtdManager.removeAt(0)
+                if (viewModel.mainTime <= 0) {
+                    if (viewModel.isWorking) {
+                        if (viewModel.cyclesQtdManager.isNotEmpty()) {
+                            viewModel.cyclesQtdManager.removeAt(0)
                             configureRest(false)
                         } else {
                             configureRest(true)
-                            completeCycles++
-                            for (i in 1..4) cyclesQtdManager.add(true)
+                            viewModel.completeCycles++
+                            for (i in 1..4) viewModel.cyclesQtdManager.add(true)
                         }
-                        numberOfIntervals++
+                        viewModel.numberOfIntervals++
                     } else {
                         configureWork()
                     }
                 }
 
-                if (isWorking) {
-                    fullWorkingTime++
+                if (viewModel.isWorking) {
+                    viewModel.fullWorkingTime++
                 }
             }
         }, 0, 1000)
     }
 
     private fun togglePause() {
-        isPaused = !isPaused
-        btnPause.text = if (isPaused) "Play" else "Pause"
+        viewModel.isPaused = !viewModel.isPaused
+        btnPause.text = if (viewModel.isPaused) "Play" else "Pause"
     }
 
     private fun updateUI() {
-        tvTimer.text = secondsToTime(mainTime)
-        tvCyclesCompleted.text = "Ciclos concluídos: $completeCycles"
-        tvHoursWorked.text = "Horas trabalhadas: ${secondsToTime(fullWorkingTime)}"
-        tvIntervalsCompleted.text = "Pomodoros concluídos: $numberOfIntervals"
+        tvTimer.text = secondsToTime(viewModel.mainTime)
+        tvCyclesCompleted.text = "Ciclos concluídos: ${viewModel.completeCycles}"
+        tvHoursWorked.text = "Horas trabalhadas: ${secondsToTime(viewModel.fullWorkingTime)}"
+        tvIntervalsCompleted.text = "Pomodoros concluídos: ${viewModel.numberOfIntervals}"
     }
 
     private fun playSound(resourceId: Int) {
@@ -130,10 +183,25 @@ class FragmentStretchBreak : Fragment() {
         val secs = seconds % 60
         return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, secs)
     }
+
+    override fun onResume() {
+        super.onResume()
+        updateUI()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        startUpdatingUI()
+    }
+
+    private fun startUpdatingUI() {
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                if (!viewModel.isPaused) {
+                    updateUI()
+                }
+                handler.postDelayed(this, 1000)
+            }
+        }, 1000)
+    }
 }
-
-
-
-
-
-
