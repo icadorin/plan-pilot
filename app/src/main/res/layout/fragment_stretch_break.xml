@@ -6,79 +6,96 @@
     tools:context=".FragmentStretchBreak">
 
     <LinearLayout
-        android:id="@+id/liWork"
+        android:id="@+id/inputContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:orientation="horizontal"
-        android:gravity="center_horizontal">
+        android:layout_marginTop="30dp"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/tvWork"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/liWork"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:text="Tempo atividade: "
-            android:background="@null"
-            android:gravity="end" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical|center_horizontal">
 
-        <EditText
-            android:id="@+id/etWorkTime"
-            android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvWork"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:gravity="end"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="@string/activity_time"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                tools:ignore="TextSizeCheck,TextSizeCheck" />
+
+            <EditText
+                android:id="@+id/etWorkTime"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:autofillHints=""
+                android:hint="@string/_02_00_00"
+                android:inputType="number"
+                android:maxLength="8"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black"
+                android:textSize="18sp"
+                android:gravity="center"
+                tools:ignore="TouchTargetSizeCheck" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/liRest"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textColorHint="@color/black"
-            android:hint="02:00:00"
-            android:maxLength="8"
-            android:inputType="number"/>
-    </LinearLayout>
+            android:orientation="horizontal"
+            android:gravity="center_vertical|center_horizontal">
 
-    <LinearLayout
-        android:id="@+id/liRest"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/liWork"
-        android:layout_marginTop="20dp"
-        android:orientation="horizontal"
-        android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/etRest"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:gravity="end"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="@string/time_interval"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                tools:ignore="TextSizeCheck" />
 
-        <TextView
-            android:id="@+id/etRest"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:text="Tempo intervalo: "
-            android:background="@null"
-            android:gravity="end" />
+            <EditText
+                android:id="@+id/etRestTime"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:autofillHints=""
+                android:hint="@string/_00_02_00"
+                android:inputType="number"
+                android:maxLength="8"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black"
+                android:textSize="18sp"
+                android:gravity="center"
+                tools:ignore="TouchTargetSizeCheck" />
 
-        <EditText
-            android:id="@+id/etRestTime"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textColorHint="@color/black"
-            android:hint="00:02:00"
-            android:maxLength="8"
-            android:inputType="number"/>
+        </LinearLayout>
+
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvTimer"
-        android:layout_below="@id/liRest"
+        android:layout_below="@id/inputContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
         android:textSize="48sp"
-        android:text="02:00:00" />
+        android:textColor="@color/text_default"
+        android:text="@string/_00_00_00" />
 
     <Button
         android:id="@+id/btnWork"
@@ -91,7 +108,7 @@
         android:paddingRight="20dp"
         android:textColor="@android:color/white"
         android:background="@drawable/button_background"
-        android:text="Iniciar"
+        android:text="@string/start_stretch"
         android:stateListAnimator="@null" />
 
     <Button
@@ -105,7 +122,7 @@
         android:paddingRight="20dp"
         android:textColor="@android:color/white"
         android:background="@drawable/button_background"
-        android:text="Intervalo ativo"
+        android:text="@string/actived_stretch"
         android:stateListAnimator="@null" />
 
     <Button
@@ -117,7 +134,7 @@
         android:layout_marginTop="20dp"
         android:textColor="@android:color/white"
         android:background="@drawable/button_background"
-        android:text="Pause"
+        android:text="@string/pause"
         android:stateListAnimator="@null" />
 
     <TextView
@@ -127,7 +144,7 @@
         android:layout_below="@id/btnPause"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="Ciclos concluídos: 0" />
+        android:text="@string/completed_cycles_0" />
 
     <TextView
         android:id="@+id/tvHoursWorked"
@@ -136,7 +153,7 @@
         android:layout_below="@id/tvCyclesCompleted"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:text="Horas trabalhadas: 00:00:00" />
+        android:text="@string/worked_hours_00_00_00" />
 
     <TextView
         android:id="@+id/tvIntervalsCompleted"
@@ -145,6 +162,6 @@
         android:layout_below="@id/tvHoursWorked"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:text="Intervalos ativos concluídos: 0" />
+        android:text="@string/completed_actived_stretchs_0" />
 
 </RelativeLayout>

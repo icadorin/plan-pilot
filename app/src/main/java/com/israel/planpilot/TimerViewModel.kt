@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import java.util.Timer
 
 class TimerViewModel : ViewModel() {
-    var mainTime: Int = 7200
+    var mainTime: Int = 0
     var isWorking = false
     var isResting = false
     var isPaused = false

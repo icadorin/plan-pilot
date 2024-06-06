@@ -63,4 +63,18 @@
     <string name="end">Fim</string>
     <string name="separator">•</string>
     <string name="dote">.</string>
+    <string name="completed_cycles">Ciclos concluídos: %1$d</string>
+    <string name="hours_worked">Horas trabalhadas: %1$s</string>
+    <string name="intervals_completed">Pomodoros concluídos: %1$d</string>
+    <string name="_00_00_00">00:00:00</string>
+    <string name="_00_02_00">00:02:00</string>
+    <string name="time_interval">Tempo intervalo:</string>
+    <string name="activity_time">Tempo atividade:</string>
+    <string name="_02_00_00">02:00:00</string>
+    <string name="actived_stretch">Intervalo ativo</string>
+    <string name="pause">Pause</string>
+    <string name="worked_hours_00_00_00">Horas trabalhadas: 00:00:00</string>
+    <string name="completed_cycles_0">Ciclos concluídos: 0</string>
+    <string name="completed_actived_stretchs_0">Intervalos ativos concluídos: 0</string>
+    <string name="start_stretch">Iniciar</string>
 </resources>
