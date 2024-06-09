@@ -64,8 +64,8 @@
     <string name="separator">•</string>
     <string name="dote">.</string>
     <string name="completed_cycles">Ciclos concluídos: %1$d</string>
-    <string name="hours_worked">Horas trabalhadas: %1$s</string>
-    <string name="intervals_completed">Pomodoros concluídos: %1$d</string>
+    <string name="hours_worked">Horas de atividade: %1$s</string>
+    <string name="intervals_completed">Intervalos ativos concluídos: %1$d</string>
     <string name="_00_00_00">00:00:00</string>
     <string name="_00_02_00">00:02:00</string>
     <string name="time_interval">Tempo intervalo:</string>

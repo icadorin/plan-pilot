@@ -10,9 +10,4 @@ object DateFormatterUtils {
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         return date.format(formatter)
     }
-
-    fun parseStringToLocalDate(date: String): LocalDate {
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        return LocalDate.parse(date, formatter)
-    }
 }
