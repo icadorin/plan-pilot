@@ -77,4 +77,11 @@
     <string name="completed_cycles_0">Ciclos concluídos: 0</string>
     <string name="completed_actived_stretchs_0">Intervalos ativos concluídos: 0</string>
     <string name="start_stretch">Iniciar</string>
+    <string name="activity_date">%1$s • %2$s</string>
+    <string name="activity_name_card">Activity Name</string>
+    <string name="date">Date</string>
+    <string name="unrelized">unrelized</string>
+    <string name="done">done</string>
+    <string name="today_activities">Atividades Para Hoje</string>
+    <string name="scroll_view_cards_description">Lista de cartões de atividades roláveis</string>
 </resources>

@@ -9,6 +9,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -16,6 +18,9 @@ import java.util.Locale
 class HomeFragment : Fragment() {
 
     private lateinit var repository: ActivityRepository
+    private lateinit var cardRepository: ActivityCardRepository
+    private var cachedActivities: List<Activity>? = null
+    private var cachedCards: List<View>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,7 +29,7 @@ class HomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         repository = ActivityRepository()
-        loadActivitiesAndGenerateCards(view)
+        cardRepository = ActivityCardRepository()
 
         val textViewMonthYear = view.findViewById<TextView>(R.id.textViewMonthYear)
         val textViewDay = view.findViewById<TextView>(R.id.textViewDay)
@@ -37,6 +42,16 @@ class HomeFragment : Fragment() {
         loadActivitiesAndDisplayNames(textViewActivityName)
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if (cachedActivities == null) {
+            loadActivitiesAndGenerateCards(view)
+        } else {
+            cachedCards?.let { displayCachedCards(view, it) }
+        }
     }
 
     private fun loadActivitiesAndGenerateCards(view: View) {
@@ -75,15 +90,21 @@ class HomeFragment : Fragment() {
         activities.forEach { activity ->
             if (activitiesCount < maxActivities) {
                 if (activitiesCount > 0) {
-                    activitiesStringBuilder.append(", ")
+                    activitiesStringBuilder.append("\n")
                 }
+
                 activitiesStringBuilder.append(activity.name)
+
+                activitiesStringBuilder.append(" - ${activity.alarmTriggerTime?.format(
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                )}")
+
                 activitiesCount++
             }
         }
 
         if (activities.size > maxActivities) {
-            activitiesStringBuilder.append("...")
+            activitiesStringBuilder.append("\n...")
         }
 
         textViewActivityName.text = activitiesStringBuilder.toString()
@@ -91,40 +112,92 @@ class HomeFragment : Fragment() {
 
     private fun generateCards(view: View, activities: List<Activity>) {
         val linearLayoutContainer = view.findViewById<LinearLayout>(R.id.linearlayoutCardsContainer)
+        linearLayoutContainer.removeAllViews()
+
+        val generatedCards = mutableListOf<View>()
 
         activities.forEach { activity ->
-            val cardView = layoutInflater.inflate(R.layout.card_activity, null) as CardView
-            val activityNameTextView = cardView.findViewById<TextView>(R.id.textViewActivityName)
-            val activityDateTextView = cardView.findViewById<TextView>(R.id.textViewActivityDate)
-            val checkButton = cardView.findViewById<ImageButton>(R.id.buttonCheck)
-            val uncheckButton = cardView.findViewById<ImageButton>(R.id.buttonUncheck)
+            val cardView = layoutInflater.inflate(R.layout.card_activity, linearLayoutContainer, false) as CardView
 
-            val startDate = activity.startDate?.let { LocalDate.parse(it) }
-            val endDate = activity.endDate?.let { LocalDate.parse(it) }
+            lifecycleScope.launch {
+                val existingCard = cardRepository.getActivityCardByActivityId(activity.id)
 
-            val formattedStartDate = startDate?.let { DateFormatterUtils.formatLocalDateToString(it) }
-            val formattedEndDate = endDate?.let { DateFormatterUtils.formatLocalDateToString(it) }
+                if (existingCard == null) {
+                    val activityNameTextView = cardView.findViewById<TextView>(R.id.textViewActivityName)
+                    val activityDateTextView = cardView.findViewById<TextView>(R.id.textViewActivityDate)
+                    val checkButton = cardView.findViewById<ImageButton>(R.id.buttonCheck)
+                    val uncheckButton = cardView.findViewById<ImageButton>(R.id.buttonUncheck)
 
-            activityNameTextView.text = activity.name
-            activityDateTextView.text = "${formattedStartDate} • ${formattedEndDate}"
+                    val startDate = activity.startDate?.let { LocalDate.parse(it) }
+                    val endDate = activity.endDate?.let { LocalDate.parse(it) }
 
-            checkButton.setOnClickListener {
-                //
+                    val formattedStartDate = startDate?.let { DateFormatterUtils.formatLocalDateToString(it) }
+                    val formattedEndDate = endDate?.let { DateFormatterUtils.formatLocalDateToString(it) }
+                    val formattedString = getString(R.string.activity_date, formattedStartDate, formattedEndDate)
+
+                    activityNameTextView.text = activity.name
+                    activityDateTextView.text = formattedString
+
+                    checkButton.setOnClickListener {
+                        activity.alarmTriggerTime?.let { it1 ->
+                            createAndSaveActivityCard(activity.id, activity.name,
+                                it1, true)
+                            loadActivitiesAndGenerateCards(view)
+                        }
+                    }
+
+                    uncheckButton.setOnClickListener {
+                        activity.alarmTriggerTime?.let { it1 ->
+                            createAndSaveActivityCard(activity.id, activity.name,
+                                it1, false)
+                            loadActivitiesAndGenerateCards(view)
+                        }
+                    }
+
+                    val margin = resources.getDimensionPixelSize(R.dimen.card_margin)
+                    val layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    layoutParams.setMargins(margin, margin, margin, margin)
+
+                    cardView.layoutParams = layoutParams
+                    linearLayoutContainer.addView(cardView)
+                }
             }
-
-            uncheckButton.setOnClickListener {
-                //
-            }
-
-            val margin = resources.getDimensionPixelSize(R.dimen.card_margin)
-            val layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            layoutParams.setMargins(margin, margin, margin, margin)
-
-            cardView.layoutParams = layoutParams
-            linearLayoutContainer.addView(cardView)
+            generatedCards.add(cardView)
         }
+        cachedCards = generatedCards
+        generatedCards.forEach { linearLayoutContainer.addView(it) }
+    }
+
+    private fun createAndSaveActivityCard(
+        activityId: String,
+        activityName: String,
+        alarmTriggerTime: String,
+        isCompleted: Boolean
+    ) {
+        val activityCard = ActivityCard(
+            id = generateUniqueId().toString(),
+            activityId = activityId,
+            activityName = activityName,
+            date = alarmTriggerTime,
+            isCompleted = isCompleted
+        )
+
+        lifecycleScope.launch {
+            cardRepository.addActivityCard(activityCard)
+        }
+    }
+
+    private fun displayCachedCards(view: View, cards: List<View>) {
+        val linearLayoutContainer = view.findViewById<LinearLayout>(R.id.linearlayoutCardsContainer)
+        linearLayoutContainer.removeAllViews()
+
+        cards.forEach { linearLayoutContainer.addView(it) }
+    }
+
+    private fun generateUniqueId(): Int {
+        return (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
     }
 }

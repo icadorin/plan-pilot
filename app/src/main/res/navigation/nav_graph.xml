@@ -63,7 +63,7 @@
 
     <fragment
         android:id="@+id/fragmentAddActivity"
-        android:name="com.israel.planpilot.FragmentAddActivity2"
-        tools:layout="@layout/fragment_add_activity2" />
+        android:name="com.israel.planpilot.FragmentAddActivity"
+        tools:layout="@layout/fragment_add_activity" />
 
 </navigation>
