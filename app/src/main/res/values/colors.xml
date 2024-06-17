@@ -1,7 +1,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="selected">#FF4081</color>
+    <color name="selected">#00FF4081</color>
     <color name="gray">#9C9B9B</color>
     <color name="text_default">#6E6C6C</color>
     <color name="gray_light">#DCDCDC</color>

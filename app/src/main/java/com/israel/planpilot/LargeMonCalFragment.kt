@@ -130,7 +130,6 @@ class LargeMonCalFragment : Fragment() {
 
         lastPagePosition?.let { viewPager.setCurrentItem(it, false) }
 
-        println("Montando Calendário")
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
@@ -389,7 +388,6 @@ class LargeMonCalFragment : Fragment() {
         }
 
         private suspend fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
-            println("Atualizando dados!!!!")
             return coroutineScope.async(Dispatchers.IO) {
                 allActivities.filter { activity ->
                     val startDate = LocalDate.parse(activity.startDate)

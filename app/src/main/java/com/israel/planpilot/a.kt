@@ -3,30 +3,36 @@ package com.israel.planpilot
 import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 import com.israel.planpilot.Constants.HORIZONTAL_CELLS
+import kotlinx.coroutines.launch
 
-class SmallMonCalFragment : BaseCalendarFragment() {
+class a : Fragment() {
 
     private lateinit var textYear: TextView
     private lateinit var btnPrev: ImageButton
     private lateinit var btnNext: ImageButton
+    private lateinit var gridView: GridView
+    private lateinit var selectedDate: Date
+    lateinit var calendar: Calendar
 
-    override fun onResume() {
-        super.onResume()
-        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
-    }
+    private val activityCardRepository = ActivityCardRepository()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,70 +47,71 @@ class SmallMonCalFragment : BaseCalendarFragment() {
         return view
     }
 
-    override fun getLayoutId(): Int {
+    private fun getLayoutId(): Int {
         return R.layout.fragment_small_mon_cal
     }
 
-    override fun initViews(view: View) {
+    private fun initViews(view: View) {
         gridView = view.findViewById(R.id.gridViewDays)
         textYear = view.findViewById(R.id.textYear)
         btnPrev = view.findViewById(R.id.btnPrev)
         btnNext = view.findViewById(R.id.btnNext)
     }
 
-    override fun updateCalendar() {
+    private fun updateCalendar() {
         val monthFormat = getDateFormat()
         textYear.text = monthFormat.format(calendar.time)
 
-        val days = getDaysInMonth()
-//        val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
+        lifecycleScope.launch {
+            val days = getDaysInMonth()
+//            val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
+//            gridView.adapter = adapter
 
-//        gridView.adapter = adapter
-//
-//        gridView.setOnItemClickListener { _, _, position, _ ->
-//            handleItemClick(position)
-//        }
+            gridView.setOnItemClickListener { _, _, position, _ ->
+                handleItemClick(position)
+            }
 
-        val firstDayOfWeek = firstDayOfWeek()
+            val firstDayOfWeek = firstDayOfWeek()
 
-        selectedDate.let {
-            val calendarSelected = Calendar.getInstance()
-            calendarSelected.time = it
+            selectedDate.let {
+                val calendarSelected = Calendar.getInstance()
+                calendarSelected.time = it
 
-            if (isSameMonth(calendarSelected, calendar)) {
-                val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
+                if (isSameMonth(calendarSelected, calendar)) {
+                    val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
 
-                if (selectedDay <= days.size) {
-                    val selectedIndex = calculateSelectedIndex(it, firstDayOfWeek)
-//                    adapter.setSelectedDay(selectedIndex)
+                    if (selectedDay <= days.size) {
+                        val selectedIndex = calculateSelectedIndex(it, firstDayOfWeek)
+//                        adapter.setSelectedDay(selectedIndex)
+                    }
                 }
             }
-        }
 
-//        adapter.notifyDataSetChanged()
+//            adapter.notifyDataSetChanged()
+        }
     }
 
-    override fun handleItemClick(position: Int) {
+    private fun handleItemClick(position: Int) {
         val firstDayOfWeek = firstDayOfWeek()
         val selectedDayOfMonth = position - firstDayOfWeek + 1
         selectedDate = calculateSelectedDate(selectedDayOfMonth)
         updateCalendar()
     }
 
-    override fun isToday(cal: Calendar, day: Int): Boolean {
+    private fun isToday(cal: Calendar, day: Int): Boolean {
         val today = Calendar.getInstance()
         return (
-            day == today.get(Calendar.DAY_OF_MONTH) &&
-            cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-            cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-        )
+                day == today.get(Calendar.DAY_OF_MONTH) &&
+                        cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                )
     }
 
-    override fun getDateFormat(): SimpleDateFormat {
+    private fun getDateFormat(): SimpleDateFormat {
         return SimpleDateFormat("MMMM yyyy", Locale.getDefault())
     }
 
-    override fun isSameCalendarType(calendar1: Calendar, calendar2: Calendar): Boolean {
+    private fun isSameCalendarType(calendar1: Calendar, calendar2: Calendar): Boolean {
         return isSameMonth(calendar1, calendar2)
     }
 
@@ -127,7 +134,7 @@ class SmallMonCalFragment : BaseCalendarFragment() {
         updateCalendar()
     }
 
-    private fun getDaysInMonth(): List<Pair<SpannableString, Boolean>> {
+    private suspend fun getDaysInMonth(): List<Pair<SpannableString, Boolean>> {
         val days = mutableListOf<Pair<SpannableString, Boolean>>()
         val cal = Calendar.getInstance()
         cal.timeInMillis = calendar.timeInMillis
@@ -139,33 +146,58 @@ class SmallMonCalFragment : BaseCalendarFragment() {
             days.add(Pair(SpannableString(""), false))
         }
 
-        val isSixthCellEmpty = days.getOrNull(6)?.second?: false
+        val isSixthCellEmpty = days.getOrNull(6)?.second ?: false
 
         if (isSixthCellEmpty) {
             days.clear()
         }
 
-        val highlightColor = context?.let {
-            ContextCompat.getColor(it, R.color.green)
-        }?: Color.BLACK
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+        val activityCards = activityCardRepository.getAllActivityCards()
 
         repeat(lastDayOfMonth) { day ->
             val dayOfMonth = day + 1
-            val isToday = isToday(cal, dayOfMonth)
-            val spannableString = if (isToday) {
-                highlightText(
-                    SpannableString(dayOfMonth.toString()),
-                    ForegroundColorSpan(highlightColor)
-                )
-            } else {
-                SpannableString(dayOfMonth.toString())
+            val calDay = Calendar.getInstance()
+            calDay.timeInMillis = calendar.timeInMillis
+            calDay.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+            val isCompleted = activityCards.any { card ->
+                val cardDate = card.date?.let { dateFormat.parse(it) }?.let {
+                    Calendar.getInstance().apply { time = it }
+                }
+
+                cardDate?.let {
+                    calDay.get(Calendar.DAY_OF_MONTH) == it.get(Calendar.DAY_OF_MONTH) &&
+                            calDay.get(Calendar.MONTH) == it.get(Calendar.MONTH) &&
+                            calDay.get(Calendar.YEAR) == it.get(Calendar.YEAR)
+                } ?: false && card.completed
             }
 
-            days.add(Pair(spannableString, isToday))
+
+            val highlightColorCompleted = ContextCompat.getColor(requireContext(), R.color.green)
+            val highlightColorNotCompleted = ContextCompat.getColor(requireContext(), R.color.red)
+
+            val spannableString = if (isCompleted) {
+                highlightText(
+                    SpannableString(dayOfMonth.toString()),
+                    BackgroundColorSpan(highlightColorCompleted),
+                    ForegroundColorSpan(Color.WHITE)
+                )
+            } else {
+                highlightText(
+                    SpannableString(dayOfMonth.toString()),
+                    BackgroundColorSpan(highlightColorNotCompleted),
+                    ForegroundColorSpan(Color.BLACK)
+                )
+            }
+
+            days.add(Pair(spannableString, isCompleted))
         }
 
         return days
     }
+
 
     private fun firstDayOfWeek(): Int {
         val cal = Calendar.getInstance()
@@ -204,4 +236,23 @@ class SmallMonCalFragment : BaseCalendarFragment() {
 
         return -1
     }
+
+    private fun createCalendarInstance(): Calendar {
+        return Calendar.getInstance()
+    }
+
+    private fun highlightText(
+        text: SpannableString,
+        span: Any,
+        foregroundColorSpan: ForegroundColorSpan
+    ): SpannableString {
+        text.setSpan(span, 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return text
+    }
+
+    private fun isSameMonth(date1: Calendar, date2: Calendar): Boolean {
+        return date1.get(Calendar.MONTH) == date2.get(Calendar.MONTH) &&
+                date1.get(Calendar.YEAR) == date2.get(Calendar.YEAR)
+    }
 }
+

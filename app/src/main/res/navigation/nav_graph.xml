@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_cal_mon_large">
+    app:startDestination="@id/nav_activity_frequency">
 
     <fragment
         android:id="@+id/nav_home"
@@ -12,17 +12,18 @@
         android:label="fragment_home"
         tools:layout="@layout/fragment_home"/>
 
-    <fragment
-        android:id="@+id/nav_login"
-        android:name="com.israel.planpilot.LoginFragment"
-        android:label="fragment_login"
-        tools:layout="@layout/fragment_login" />
 
     <fragment
         android:id="@+id/nav_stretch_break"
         android:name="com.israel.planpilot.FragmentStretchBreak"
         android:label="fragment_stretch_break"
         tools:layout="@layout/fragment_stretch_break" />
+
+    <fragment
+        android:id="@+id/nav_activity_frequency"
+        android:name="com.israel.planpilot.FragmentActivityFrequency"
+        android:label="fragment_activity_frequency"
+        tools:layout="@layout/fragment_activity_frequency" />
 
     <fragment
         android:id="@+id/nav_cal_mon_large"

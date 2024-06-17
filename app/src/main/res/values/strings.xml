@@ -29,7 +29,7 @@
     <string name="today">Hoje</string>
     <string name="nav_cal_mon_small">Cal. Mensal</string>
     <string name="nav_cal_week">Cal. Semanal</string>
-    <string name="nav_cal_mon_large">Cal. Mensal Full Screen</string>
+    <string name="nav_cal_mon_large">Calendário Mensal</string>
     <string name="nav_stretch_break">Intervalo Ativo</string>
     <string name="open_nav">Open Navigation Drawer</string>
     <string name="close_nav">Close Navigation Drawer</string>
@@ -84,4 +84,5 @@
     <string name="done">done</string>
     <string name="today_activities">Atividades Para Hoje</string>
     <string name="scroll_view_cards_description">Lista de cartões de atividades roláveis</string>
+    <string name="day_number">%d</string>
 </resources>

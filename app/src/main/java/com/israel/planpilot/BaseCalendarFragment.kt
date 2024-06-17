@@ -15,7 +15,7 @@ import java.util.Date
 abstract class BaseCalendarFragment : Fragment() {
 
     protected lateinit var calendar: Calendar
-    protected lateinit var gridView: GridView
+    protected open lateinit var gridView: GridView
     protected lateinit var selectedDate: Date
 
     protected abstract fun getLayoutId(): Int

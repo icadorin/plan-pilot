@@ -57,14 +57,18 @@ class HomeFragment : Fragment() {
     private fun loadActivitiesAndGenerateCards(view: View) {
         repository.readAllActivities { activities ->
             val filteredActivities = filterActivities(activities)
-            generateCards(view, filteredActivities)
+            view.post {
+                generateCards(view, filteredActivities)
+            }
         }
     }
 
     private fun loadActivitiesAndDisplayNames(textViewActivityName: TextView) {
         repository.readAllActivities { activities ->
             val filteredActivities = filterActivities(activities)
-            displayActivityNames(textViewActivityName, filteredActivities)
+            textViewActivityName.post {
+                displayActivityNames(textViewActivityName, filteredActivities)
+            }
         }
     }
 
@@ -117,7 +121,11 @@ class HomeFragment : Fragment() {
         val generatedCards = mutableListOf<View>()
 
         activities.forEach { activity ->
-            val cardView = layoutInflater.inflate(R.layout.card_activity, linearLayoutContainer, false) as CardView
+            val cardView = layoutInflater.inflate(
+                R.layout.card_activity,
+                linearLayoutContainer,
+                false
+            ) as CardView
 
             lifecycleScope.launch {
                 val existingCard = cardRepository.getActivityCardByActivityId(activity.id)
@@ -137,19 +145,19 @@ class HomeFragment : Fragment() {
 
                     activityNameTextView.text = activity.name
                     activityDateTextView.text = formattedString
+                    val selectedLocalDate = LocalDate.now()
+                    val dateString = DateFormatterUtils.formatLocalDateToString(selectedLocalDate)
 
                     checkButton.setOnClickListener {
                         activity.alarmTriggerTime?.let { it1 ->
-                            createAndSaveActivityCard(activity.id, activity.name,
-                                it1, true)
+                            createAndSaveActivityCard(activity.id, activity.name, it1, true, dateString)
                             loadActivitiesAndGenerateCards(view)
                         }
                     }
 
                     uncheckButton.setOnClickListener {
                         activity.alarmTriggerTime?.let { it1 ->
-                            createAndSaveActivityCard(activity.id, activity.name,
-                                it1, false)
+                            createAndSaveActivityCard(activity.id, activity.name, it1, false, dateString)
                             loadActivitiesAndGenerateCards(view)
                         }
                     }
@@ -162,27 +170,36 @@ class HomeFragment : Fragment() {
                     layoutParams.setMargins(margin, margin, margin, margin)
 
                     cardView.layoutParams = layoutParams
+
+                    cardView.parent?.let {
+                        (it as ViewGroup).removeView(cardView)
+                    }
+
                     linearLayoutContainer.addView(cardView)
+                    generatedCards.add(cardView)
                 }
             }
-            generatedCards.add(cardView)
         }
+
         cachedCards = generatedCards
         generatedCards.forEach { linearLayoutContainer.addView(it) }
     }
+
 
     private fun createAndSaveActivityCard(
         activityId: String,
         activityName: String,
         alarmTriggerTime: String,
-        isCompleted: Boolean
+        completed: Boolean,
+        dateString: String
     ) {
         val activityCard = ActivityCard(
             id = generateUniqueId().toString(),
             activityId = activityId,
             activityName = activityName,
-            date = alarmTriggerTime,
-            isCompleted = isCompleted
+            alarmTriggerTime = alarmTriggerTime,
+            completed = completed,
+            date = dateString
         )
 
         lifecycleScope.launch {
@@ -201,3 +218,4 @@ class HomeFragment : Fragment() {
         return (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
     }
 }
+

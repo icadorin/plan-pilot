@@ -83,9 +83,9 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_home,
-                R.id.nav_login,
                 R.id.nav_cal_mon_large,
-                R.id.nav_stretch_break
+                R.id.nav_stretch_break,
+                R.id.nav_activity_frequency
             ),
             drawerLayout
         )
@@ -139,11 +139,6 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.closeDrawers()
                 return true
             }
-            R.id.nav_login -> {
-                navController.navigate(R.id.nav_login)
-                drawerLayout.closeDrawers()
-                return true
-            }
             R.id.nav_cal_mon_large -> {
                 navController.navigate(R.id.nav_cal_mon_large)
                 drawerLayout.closeDrawers()
@@ -154,6 +149,11 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.closeDrawers()
                 return true
             }
+            R.id.nav_activity_frequency -> {
+                navController.navigate(R.id.nav_activity_frequency)
+                drawerLayout.closeDrawers()
+                return true
+            }
             else -> return false
         }
     }
@@ -161,11 +161,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupActionBarTitleListener() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             supportActionBar?.title = when (destination.id) {
-                R.id.nav_home -> "Home"
-                R.id.nav_login -> "Login"
-                R.id.nav_cal_mon_large -> "Cal. Mensal Full Screen"
+                R.id.nav_home -> "Acompanhar Atividades"
+                R.id.nav_cal_mon_large -> "Calendário Mensal"
                 R.id.nav_stretch_break -> "Intervalo Ativo"
-                R.id.fragmentAddActivity -> "Criar Atividade"
+                R.id.nav_activity_frequency -> "Controle de Atividade"
 
                 else -> "Plan Pilot"
             }

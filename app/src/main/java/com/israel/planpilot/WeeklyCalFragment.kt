@@ -78,8 +78,8 @@ class WeeklyCalFragment : BaseCalendarFragment() {
         textWeekYear.text = displayText
 
         val days = getDaysInWeek()
-        val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
-        gridView.adapter = adapter
+//        val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
+//        gridView.adapter = adapter
 
         gridView.setOnItemClickListener { _, _, position, _ ->
             handleItemClick(position)
@@ -93,11 +93,11 @@ class WeeklyCalFragment : BaseCalendarFragment() {
                 val selectedDay = calendarSelected.get(Calendar.DAY_OF_WEEK)
                 val selectedIndex = selectedDay + 1
 
-                adapter.setSelectedDay(selectedIndex)
+//                adapter.setSelectedDay(selectedIndex)
             }
         }
 
-        adapter.notifyDataSetChanged()
+//        adapter.notifyDataSetChanged()
     }
 
     override fun handleItemClick(position: Int) {

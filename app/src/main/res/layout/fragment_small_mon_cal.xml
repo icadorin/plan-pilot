@@ -11,22 +11,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <include
-        layout="@layout/weekdays_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
 
-    <GridView
-        android:id="@+id/gridViewDays"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="515dp"
-        android:layout_marginHorizontal="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_weight="1"
-        android:horizontalSpacing="1dp"
-        android:listSelector="@drawable/custom_selector_rounded"
-        android:numColumns="7"
-        android:stretchMode="columnWidth"
-        android:verticalSpacing="1dp" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp">
+
+        <include
+            layout="@layout/weekdays_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <GridView
+                android:id="@+id/gridViewDays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:listSelector="@drawable/custom_selector_rounded"
+                android:numColumns="7"
+                android:stretchMode="columnWidth" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
