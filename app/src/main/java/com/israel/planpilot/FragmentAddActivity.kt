@@ -50,11 +50,11 @@ class FragmentAddActivity : Fragment() {
         val endDateButton: Button = view.findViewById(R.id.endDateButton)
         timePicker = view.findViewById(R.id.timePicker)
 
-        val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
+//        val addDescriptionButton = view.findViewById<ImageButton>(R.id.addDescriptionButton)
 
-        val firstDescriptionField = view.findViewById<EditText>(R.id.firstDescriptionField)
-        val secondDescriptionField = view.findViewById<EditText>(R.id.secondDescriptionField)
-        val thirdDescriptionField = view.findViewById<EditText>(R.id.thirdDescriptionField)
+//        val firstDescriptionField = view.findViewById<EditText>(R.id.firstDescriptionField)
+//        val secondDescriptionField = view.findViewById<EditText>(R.id.secondDescriptionField)
+//        val thirdDescriptionField = view.findViewById<EditText>(R.id.thirdDescriptionField)
 
         val btnSunday = view.findViewById<Button>(R.id.btnSunday)
         val btnMonday = view.findViewById<Button>(R.id.btnMonday)
@@ -83,26 +83,26 @@ class FragmentAddActivity : Fragment() {
             btnSaturday to "saturday"
         )
 
-        addDescriptionButton.setOnClickListener {
-            when {
-                firstDescriptionField.visibility == View.GONE -> {
-                    firstDescriptionField.visibility = View.VISIBLE
-                }
-                secondDescriptionField.visibility == View.GONE -> {
-                    secondDescriptionField.visibility = View.VISIBLE
-                }
-                thirdDescriptionField.visibility == View.GONE -> {
-                    thirdDescriptionField.visibility = View.VISIBLE
-                }
-                else -> {
-                    Toast.makeText(
-                        requireContext(),
-                        "Você só pode adicionar até 3 descrições",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
+//        addDescriptionButton.setOnClickListener {
+//            when {
+//                firstDescriptionField.visibility == View.GONE -> {
+//                    firstDescriptionField.visibility = View.VISIBLE
+//                }
+//                secondDescriptionField.visibility == View.GONE -> {
+//                    secondDescriptionField.visibility = View.VISIBLE
+//                }
+//                thirdDescriptionField.visibility == View.GONE -> {
+//                    thirdDescriptionField.visibility = View.VISIBLE
+//                }
+//                else -> {
+//                    Toast.makeText(
+//                        requireContext(),
+//                        "Você só pode adicionar até 3 descrições",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                }
+//            }
+//        }
 
         fun updateWeekButtons(date1: LocalDate?, date2: LocalDate?) {
             buttonDayMap.keys.forEach { button ->
