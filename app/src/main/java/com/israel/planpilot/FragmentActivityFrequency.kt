@@ -1,13 +1,10 @@
 package com.israel.planpilot
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
@@ -132,10 +129,10 @@ class FragmentActivityFrequency : Fragment() {
         updateCalendar()
     }
 
-    data class DayInfo(val dayText: String, val backgroundColor: Int)
+    data class DayInfo(val dayOfMonth: Int, val drawable: Drawable?)
 
-    private suspend fun getDaysInMonth(): List<SpannableString> {
-        val days = mutableListOf<SpannableString>()
+    private suspend fun getDaysInMonth(): List<DayInfo> {
+        val days = mutableListOf<DayInfo>()
         val cal = Calendar.getInstance()
         cal.timeInMillis = calendar.timeInMillis
 
@@ -143,7 +140,7 @@ class FragmentActivityFrequency : Fragment() {
         val firstDayOfWeek = firstDayOfWeek()
 
         repeat(firstDayOfWeek) {
-            days.add(SpannableString(""))
+            days.add(DayInfo(0, null))
         }
 
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -165,36 +162,34 @@ class FragmentActivityFrequency : Fragment() {
                     calDay.get(Calendar.DAY_OF_MONTH) == it.get(Calendar.DAY_OF_MONTH) &&
                             calDay.get(Calendar.MONTH) == it.get(Calendar.MONTH) &&
                             calDay.get(Calendar.YEAR) == it.get(Calendar.YEAR)
-                } ?: false
+                }?: false
             }?.completed
 
-            val highlightColorCompleted = ContextCompat.getColor(requireContext(), R.color.green)
-            val highlightColorNotCompleted = ContextCompat.getColor(requireContext(), R.color.red)
+            val drawableDefault: Drawable? =
+                ContextCompat.getDrawable(requireContext(), R.drawable.highlight_default)
+            val drawableCompleted: Drawable? =
+                ContextCompat.getDrawable(requireContext(), R.drawable.highlight_color_completed)
+            val drawableNotCompleted: Drawable? =
+                ContextCompat.getDrawable(requireContext(), R.drawable.highlight_color_not_completed)
 
-            var spannableString = SpannableString(dayOfMonth.toString())
+            var drawable: Drawable = drawableDefault?:
+                throw IllegalStateException("Drawable cannot be null")
 
             if (isCompleted == true) {
-                spannableString = highlightText(
-                    SpannableString(dayOfMonth.toString()),
-                    BackgroundColorSpan(highlightColorCompleted),
-                    ForegroundColorSpan(Color.WHITE)
-                )
+                drawable= drawableCompleted?:
+                    throw IllegalStateException("Drawable cannot be null")
             }
 
             if (isCompleted == false) {
-                spannableString = highlightText(
-                    SpannableString(dayOfMonth.toString()),
-                    BackgroundColorSpan(highlightColorNotCompleted),
-                    ForegroundColorSpan(Color.BLACK)
-                )
+                drawable = drawableNotCompleted?:
+                    throw IllegalStateException("Drawable cannot be null")
             }
 
-            days.add(spannableString)
+            days.add(DayInfo(dayOfMonth, drawable))
         }
 
         return days
     }
-
 
     private fun isSameMonth(date1: Calendar, date2: Calendar): Boolean {
         return date1.get(Calendar.MONTH) == date2.get(Calendar.MONTH) &&
@@ -239,14 +234,6 @@ class FragmentActivityFrequency : Fragment() {
         return -1
     }
 
-    private fun createBackgroundDrawable(color: Int): Drawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            gradientType = GradientDrawable.LINEAR_GRADIENT
-            colors = intArrayOf(color, color)
-        }
-    }
-
     private fun createCalendarInstance(): Calendar {
         return Calendar.getInstance()
     }
@@ -263,52 +250,31 @@ class FragmentActivityFrequency : Fragment() {
     open class CalendarCell(
         context: Context,
         resource: Int,
-        objects: List<SpannableString>
-    ) : ArrayAdapter<SpannableString>(context, resource, objects) {
+        objects: List<DayInfo>
+    ) : ArrayAdapter<DayInfo>(context, resource, objects) {
 
-        private var disabledPositions = mutableSetOf<Int>()
         private var selectedDay: Int? = null
 
-        fun setSelectedDay(day: Int) {
+        fun setSelectedDay(day: Int?) {
             selectedDay = day
             notifyDataSetChanged()
         }
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_calendar_day, parent, false)
+            val view = convertView?: LayoutInflater.from(context).inflate(R.layout.item_calendar_day, parent, false)
             val textView = view.findViewById<TextView>(R.id.textDay)
 
-            val dayText = getItem(position)
-            textView.text = dayText
-
-            if (disabledPositions.contains(position)) {
-                textView.visibility = View.INVISIBLE
-            } else {
-                textView.visibility = View.VISIBLE
+            val dayInfo = getItem(position)
+            if (dayInfo!= null) {
+                if (dayInfo.dayOfMonth!= 0) {
+                    textView.text = dayInfo.dayOfMonth.toString()
+                    textView.background = dayInfo.drawable
+                } else {
+                    textView.text = ""
+                    textView.background = null
+                }
             }
-
-            if (position == selectedDay) {
-                textView.setTextColor(Color.BLACK)
-            } else {
-                textView.setTextColor(Color.DKGRAY)
-            }
-
             return view
-        }
-
-        fun setDayText(index: Int, text: SpannableString) {
-            setNotifyOnChange(false)
-            remove(getItem(index))
-            insert(text, index)
-            notifyDataSetChanged()
-        }
-
-        override fun areAllItemsEnabled(): Boolean {
-            return false
-        }
-
-        override fun isEnabled(position: Int): Boolean {
-            return !disabledPositions.contains(position)
         }
     }
 }

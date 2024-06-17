@@ -1,13 +1,17 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <TextView
-    android:id="@+id/textDay"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_centerInParent="true"
-    android:padding="10dp"
-    android:textSize="16sp" />
+        android:id="@+id/textDay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="14dp"
+        android:layout_margin="1dp"
+        android:paddingBottom="14dp"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
 </RelativeLayout>
