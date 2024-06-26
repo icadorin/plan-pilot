@@ -156,21 +156,24 @@ class LargeMonCalFragment : Fragment() {
         coroutineScope.launch {
             getUpdatedActivities { activities ->
                 val newHash = activities.hashCode()
-                if (newHash != activitiesHash) {
+                if (newHash!= activitiesHash) {
                     activitiesHash = newHash
                     allActivities = activities
-                    for (position in 0 until (viewPager.adapter as CalendarPagerAdapter).itemCount) {
-                        (viewPager.adapter as CalendarPagerAdapter).notifyItemChanged(position)
-                    }
+                    val diffResult = DiffUtil.calculateDiff(ActivitiesDiffCallback(allActivities, allActivities))
+                    diffResult.dispatchUpdatesTo((viewPager.adapter as CalendarPagerAdapter))
                 }
             }
         }
     }
 
     private fun getUpdatedActivities(onSuccess: (List<Activity>) -> Unit) {
-        activityRepository.readAllActivities { activities ->
-            allActivities = activities
-            onSuccess(activities)
+        if (allActivities.isEmpty()) {
+            activityRepository.readAllActivities { activities ->
+                allActivities = activities
+                onSuccess(activities)
+            }
+        } else {
+            onSuccess(allActivities)
         }
     }
 
@@ -338,7 +341,6 @@ class LargeMonCalFragment : Fragment() {
 
     private inner class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
 
-        private val activitiesCache = mutableMapOf<LocalDate, List<Activity>>()
         private var days: List<DayItem> = emptyList()
 
         init {
@@ -502,6 +504,27 @@ class LargeMonCalFragment : Fragment() {
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             return oldList[oldItemPosition] == newList[newItemPosition]
         }
+    }
+
+    private inner class ActivitiesDiffCallback(
+        private val oldActivities: List<Activity>,
+        private val newActivities: List<Activity>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int = oldActivities.size
+        override fun getNewListSize(): Int = newActivities.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldActivities[oldItemPosition].id == newActivities[newItemPosition].id
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            val oldActivity = oldActivities[oldItemPosition]
+            val newActivity = newActivities[newItemPosition]
+
+            return oldActivity.name == newActivity.name
+        }
+
     }
 
     class CustomPageTransformer : ViewPager2.PageTransformer {
