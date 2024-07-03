@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.activity
 
 import android.app.Activity
 import android.content.Intent
@@ -9,6 +9,8 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.israel.planpilot.R
+import com.israel.planpilot.utils.Constants
 
 class IconSelectionActivity : AppCompatActivity() {
 

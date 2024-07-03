@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.activity
 
 import android.app.DatePickerDialog
 import android.graphics.Color
@@ -11,10 +11,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.israel.planpilot.MainActivity
+import com.israel.planpilot.R
+import com.israel.planpilot.card.CreateActivityCard
+import com.israel.planpilot.utils.ActivityUtils
+import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -22,7 +26,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 
-class FragmentAddActivity : Fragment() {
+class CreateActivityFragment : Fragment() {
 
     private var selectedYear: Int = 0
     private var selectedMonth: Int = 0
@@ -278,6 +282,7 @@ class FragmentAddActivity : Fragment() {
                     lifecycleScope,
                     context
                 )
+                CreateActivityCard().createCardsForCurrentDate()
             }
         }
         return view

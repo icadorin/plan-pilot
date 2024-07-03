@@ -58,6 +58,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
     implementation("androidx.compose.ui:ui:1.6.8")
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.core:core-i18n:1.0.0-alpha01")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("com.jakewharton.threetenabp:threetenabp:1.3.1")

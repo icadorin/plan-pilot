@@ -1,14 +1,12 @@
-package com.israel.planpilot
+package com.israel.planpilot.model
 
-import java.time.LocalDate
-
-data class ActivityCard(
+data class ActivityCardModel(
     var id: String = "",
     var activityId: String = "",
     var activityName: String = "",
     var alarmTriggerTime: String = "",
-    var completed: Boolean = false,
+    var completed: Boolean? = null,
     var date: String? = null
 ) {
-    constructor() : this("", "", "", "", false)
+    constructor() : this("", "", "", "", null, null)
 }

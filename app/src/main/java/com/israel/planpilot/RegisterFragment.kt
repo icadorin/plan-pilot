@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
-class ActivityRegister : AppCompatActivity() {
+class RegisterFragment : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 

@@ -18,12 +18,14 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.israel.planpilot.Constants.CELLS_PER_PAGE
-import com.israel.planpilot.Constants.END_YEAR
-import com.israel.planpilot.Constants.HORIZONTAL_CELLS
-import com.israel.planpilot.Constants.MONTHS_IN_YEAR
-import com.israel.planpilot.Constants.START_YEAR
-import com.israel.planpilot.Constants.VERTICAL_CELLS
+import com.israel.planpilot.model.ActivityModel
+import com.israel.planpilot.repository.ActivityRepository
+import com.israel.planpilot.utils.Constants.CELLS_PER_PAGE
+import com.israel.planpilot.utils.Constants.END_YEAR
+import com.israel.planpilot.utils.Constants.HORIZONTAL_CELLS
+import com.israel.planpilot.utils.Constants.MONTHS_IN_YEAR
+import com.israel.planpilot.utils.Constants.START_YEAR
+import com.israel.planpilot.utils.Constants.VERTICAL_CELLS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -34,7 +36,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class LargeMonCalFragment : Fragment() {
+class MonthlyCalendarFragment : Fragment() {
 
     private lateinit var viewPager: ViewPager2
     private lateinit var selectedDate: Date
@@ -42,7 +44,7 @@ class LargeMonCalFragment : Fragment() {
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
     private lateinit var activityRepository: ActivityRepository
     private var coroutineScope = CoroutineScope(Dispatchers.Main)
-    private var allActivities = listOf<Activity>()
+    private var allActivities = listOf<ActivityModel>()
     private var activitiesHash: Int? = null
 
     private inner class DayItem(
@@ -166,7 +168,7 @@ class LargeMonCalFragment : Fragment() {
         }
     }
 
-    private fun getUpdatedActivities(onSuccess: (List<Activity>) -> Unit) {
+    private fun getUpdatedActivities(onSuccess: (List<ActivityModel>) -> Unit) {
         if (allActivities.isEmpty()) {
             activityRepository.readAllActivities { activities ->
                 allActivities = activities
@@ -379,7 +381,7 @@ class LargeMonCalFragment : Fragment() {
                 val selectedMonth = dayItem.month
                 val selectedYear = dayItem.year
 
-                val action = LargeMonCalFragmentDirections
+                val action = MonthlyCalendarFragmentDirections
                     .actionLargeMonCalFragmentToFragmentActivityList(
                         selectedDay,
                         selectedMonth,
@@ -389,7 +391,7 @@ class LargeMonCalFragment : Fragment() {
             }
         }
 
-        private suspend fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<Activity> {
+        private suspend fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<ActivityModel> {
             return coroutineScope.async(Dispatchers.IO) {
                 allActivities.filter { activity ->
                     val startDate = LocalDate.parse(activity.startDate)
@@ -507,8 +509,8 @@ class LargeMonCalFragment : Fragment() {
     }
 
     private inner class ActivitiesDiffCallback(
-        private val oldActivities: List<Activity>,
-        private val newActivities: List<Activity>
+        private val oldActivities: List<ActivityModel>,
+        private val newActivities: List<ActivityModel>
     ) : DiffUtil.Callback() {
 
         override fun getOldListSize(): Int = oldActivities.size

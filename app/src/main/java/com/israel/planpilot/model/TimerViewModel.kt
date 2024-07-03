@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.model
 
 import androidx.lifecycle.ViewModel
 import java.util.Timer

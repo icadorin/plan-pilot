@@ -8,26 +8,26 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.israel.planpilot.HomeFragment"
+        android:name="com.israel.planpilot.TrackActivityFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home"/>
+        tools:layout="@layout/fragment_track_activity"/>
 
 
     <fragment
         android:id="@+id/nav_stretch_break"
-        android:name="com.israel.planpilot.FragmentStretchBreak"
+        android:name="com.israel.planpilot.StretchBreakFragment"
         android:label="fragment_stretch_break"
         tools:layout="@layout/fragment_stretch_break" />
 
     <fragment
         android:id="@+id/nav_activity_frequency"
-        android:name="com.israel.planpilot.FragmentActivityFrequency"
+        android:name="com.israel.planpilot.ActivityFrequencyFragment"
         android:label="fragment_activity_frequency"
         tools:layout="@layout/fragment_activity_frequency" />
 
     <fragment
         android:id="@+id/nav_cal_mon_large"
-        android:name="com.israel.planpilot.LargeMonCalFragment"
+        android:name="com.israel.planpilot.MonthlyCalendarFragment"
         android:label="fragment_calendar_full_screen"
         tools:layout="@layout/fragment_large_mon_cal">
 
@@ -49,22 +49,22 @@
 
     <fragment
         android:id="@+id/fragmentActivityList"
-        android:name="com.israel.planpilot.FragmentActivityList"
+        android:name="com.israel.planpilot.activity.ListTodayActivitiesFragment"
         tools:layout="@layout/fragment_activity_list" />
 
     <fragment
         android:id="@+id/fragmentActivitiesList"
-        android:name="com.israel.planpilot.FragmentActivitiesList"
+        android:name="com.israel.planpilot.activity.ListAllActivitiesFragment"
         tools:layout="@layout/fragment_activities_list" />
 
     <fragment
         android:id="@+id/fragmentEdtActivity"
-        android:name="com.israel.planpilot.FragmentEdtActivity"
+        android:name="com.israel.planpilot.activity.EditActivityFragment"
         tools:layout="@layout/fragment_edt_activity" />
 
     <fragment
         android:id="@+id/fragmentAddActivity"
-        android:name="com.israel.planpilot.FragmentAddActivity"
+        android:name="com.israel.planpilot.activity.CreateActivityFragment"
         tools:layout="@layout/fragment_add_activity" />
 
 </navigation>

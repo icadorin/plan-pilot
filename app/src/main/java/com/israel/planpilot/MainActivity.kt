@@ -12,12 +12,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.navigation.NavigationView
+import com.israel.planpilot.activity.CreateActivityFragment
+import com.israel.planpilot.activity.ListAllActivitiesFragment
+import com.israel.planpilot.card.CreateActivityCard
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var toolbar: Toolbar
     private lateinit var btnReturnToToday: ImageButton
+    private lateinit var createActivityCard: CreateActivityCard
     lateinit var btnActivitiesList: ImageButton
     lateinit var btnAddActivity: ImageButton
 
@@ -40,6 +46,8 @@ class MainActivity : AppCompatActivity() {
 
         toolbar = findViewById(R.id.custom_toolbar)
         setSupportActionBar(toolbar)
+
+        createActivityCard = CreateActivityCard()
 
         btnActivitiesList = toolbar.findViewById(R.id.btnActivitiesList)
         btnAddActivity = toolbar.findViewById(R.id.btnAddActivity)
@@ -57,6 +65,10 @@ class MainActivity : AppCompatActivity() {
         initializeViews()
         setupNavigation()
         setupActionBarTitleListener()
+
+        lifecycleScope.launch {
+            createActivityCard.createCardsForCurrentDate()
+        }
     }
 
     private fun initializeViews() {
@@ -194,7 +206,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddActivityFragment() {
-        val fragment = FragmentAddActivity()
+        val fragment = CreateActivityFragment()
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, fragment)
         transaction.addToBackStack(null)
@@ -204,7 +216,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFragmentActivitiesList() {
-        val fragment = FragmentActivitiesList()
+        val fragment = ListAllActivitiesFragment()
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, fragment)
         transaction.addToBackStack(null)

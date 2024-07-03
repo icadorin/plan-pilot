@@ -18,11 +18,13 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.israel.planpilot.model.TimerViewModel
+import com.israel.planpilot.utils.Constants
 import java.util.Locale
 import java.util.Timer
 import kotlin.concurrent.timerTask
 
-class FragmentStretchBreak : Fragment() {
+class StretchBreakFragment : Fragment() {
 
     private lateinit var tvTimer: TextView
     private lateinit var btnWork: Button

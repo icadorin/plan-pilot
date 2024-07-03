@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.activity
 
 import android.app.DatePickerDialog
 import android.graphics.Color
@@ -17,6 +17,11 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.israel.planpilot.MainActivity
+import com.israel.planpilot.R
+import com.israel.planpilot.repository.ActivityRepository
+import com.israel.planpilot.utils.ActivityUtils
+import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,7 +30,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class FragmentEdtActivity : Fragment() {
+class EditActivityFragment : Fragment() {
 
     private var selectedYear: Int = 0
     private var selectedMonth: Int = 0
@@ -296,8 +301,8 @@ class FragmentEdtActivity : Fragment() {
                         startDateButton.text = DateFormatterUtils.formatLocalDateToString(startDate)
                         endDateButton.text = DateFormatterUtils.formatLocalDateToString(endDate)
 
-                        this@FragmentEdtActivity.startDate = startDate
-                        this@FragmentEdtActivity.endDate = endDate
+                        this@EditActivityFragment.startDate = startDate
+                        this@EditActivityFragment.endDate = endDate
 
                         val time = LocalTime.parse(timeString, timeFormatter)
                         val originalHour = time.hour

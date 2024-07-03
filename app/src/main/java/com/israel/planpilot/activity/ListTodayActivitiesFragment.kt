@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.activity
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -11,6 +11,11 @@ import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.israel.planpilot.MainActivity
+import com.israel.planpilot.R
+import com.israel.planpilot.model.ActivityModel
+import com.israel.planpilot.repository.ActivityRepository
+import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,10 +23,10 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.Locale
 
-class FragmentActivityList : Fragment() {
+class ListTodayActivitiesFragment : Fragment() {
     private lateinit var activityRepository: ActivityRepository
     private lateinit var activityListView: ListView
-    private lateinit var adapter: ArrayAdapter<Activity>
+    private lateinit var adapter: ArrayAdapter<ActivityModel>
 
     companion object {
         private const val ARG_SELECTED_DAY = "selected_day"
@@ -32,8 +37,8 @@ class FragmentActivityList : Fragment() {
             selectedDay: Int,
             selectedMonth: Int,
             selectedYear: Int
-        ): FragmentActivityList {
-            val fragment = FragmentActivityList()
+        ): ListTodayActivitiesFragment {
+            val fragment = ListTodayActivitiesFragment()
             val args = Bundle()
             args.putInt(ARG_SELECTED_DAY, selectedDay)
             args.putInt(ARG_SELECTED_MONTH, selectedMonth)
@@ -116,7 +121,7 @@ class FragmentActivityList : Fragment() {
                 isDateInRange && isDayOfWeekInActivityWeekDays
             }
 
-            adapter = object : ArrayAdapter<Activity>(
+            adapter = object : ArrayAdapter<ActivityModel>(
                 context,
                 R.layout.activity_item,
                 filteredActivities
@@ -159,7 +164,7 @@ class FragmentActivityList : Fragment() {
                     }
                     .setNegativeButton("Editar") { _, _ ->
                         val selectedActivity = adapter.getItem(position)
-                        val fragment = FragmentEdtActivity().apply {
+                        val fragment = EditActivityFragment().apply {
                             arguments = Bundle().apply {
                                 putString("activityId", selectedActivity?.id.toString())
                             }

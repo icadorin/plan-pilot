@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.utils
 
 import android.app.AlarmManager
 import android.app.AlertDialog
@@ -24,6 +24,10 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.snackbar.Snackbar
+import com.israel.planpilot.model.ActivityModel
+import com.israel.planpilot.repository.ActivityRepository
+import com.israel.planpilot.alarm.AlarmReceiver
+import com.israel.planpilot.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,9 +41,9 @@ import kotlin.text.*
 object ActivityUtils {
 
     private var alarmToneSelected: Uri? = null
-    var alarmTimestamp: Long? = null
     private var alarmActivated: Boolean = false
     private var currentMediaPlayer: MediaPlayer? = null
+    var alarmTimestamp: Long? = null
 
     fun setTimePicker(
         timePicker: TextView,
@@ -219,9 +223,9 @@ object ActivityUtils {
                     Locale.getDefault()
                 ).format(Date())
 
-                val alarmActivated = ActivityUtils.alarmActivated
+                val alarmActivated = alarmActivated
 
-                val activity = Activity(
+                val activity = ActivityModel(
                     name = name,
                     day = selectedDay,
                     month = selectedMonth,
@@ -318,9 +322,9 @@ object ActivityUtils {
                     Locale.getDefault()
                 ).format(Date())
 
-                val alarmActivated = ActivityUtils.alarmActivated
+                val alarmActivated = alarmActivated
                 println("TOM DE ALARM: $alarmToneString")
-                val activity = Activity(
+                val activity = ActivityModel(
                     id = activityId,
                     name = name,
                     day = selectedDay,
@@ -386,7 +390,7 @@ object ActivityUtils {
         val list = ArrayList<String>()
         val uriList = ArrayList<Uri>()
 
-        val tone = defaultTone(context)?: ""
+        val tone = defaultTone(context) ?: ""
         if (tone.isNotEmpty()) {
             list.add(tone)
         }

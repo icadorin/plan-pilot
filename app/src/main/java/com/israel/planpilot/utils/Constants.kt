@@ -1,9 +1,7 @@
-package com.israel.planpilot
+package com.israel.planpilot.utils
 
 object Constants {
     const val SELECTED_ICON_EXTRA = "selected_icon"
-    const val NO_ICON = 2131165355
-    const val ICON_TEXT = "ÍCONE"
     const val HORIZONTAL_CELLS = 7
     const val VERTICAL_CELLS = 6
     const val START_YEAR = 1900

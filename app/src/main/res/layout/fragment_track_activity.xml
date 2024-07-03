@@ -67,12 +67,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <LinearLayout
-            android:id="@+id/linearlayoutCardsContainer"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewCards"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-        </LinearLayout>
+            android:padding="16dp"/>
     </ScrollView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,10 +30,10 @@
         </activity>
 
         <activity
-            android:name=".IconSelectionActivity">
+            android:name=".activity.IconSelectionActivity">
         </activity>
 
-        <receiver android:name=".AlarmReceiver"
+        <receiver android:name=".alarm.AlarmReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="stop_alarm" />

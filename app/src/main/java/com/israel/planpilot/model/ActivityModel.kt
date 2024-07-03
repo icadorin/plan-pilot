@@ -1,8 +1,8 @@
-package com.israel.planpilot
+package com.israel.planpilot.model
 
 import java.util.UUID
 
-data class Activity(
+data class ActivityModel(
     val id: String = UUID.randomUUID().toString(),
     val name: String = "",
     val day: Int? = null,

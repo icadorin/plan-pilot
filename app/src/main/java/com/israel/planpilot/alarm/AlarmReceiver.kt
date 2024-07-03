@@ -1,4 +1,4 @@
-package com.israel.planpilot
+package com.israel.planpilot.alarm
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -13,6 +13,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.israel.planpilot.R
 
 class AlarmReceiver : BroadcastReceiver() {
 

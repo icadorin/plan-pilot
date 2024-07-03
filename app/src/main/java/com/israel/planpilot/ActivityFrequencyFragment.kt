@@ -16,13 +16,15 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.israel.planpilot.repository.ActivityCardRepository
+import com.israel.planpilot.utils.Constants
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class FragmentActivityFrequency : Fragment() {
+class ActivityFrequencyFragment : Fragment() {
 
     private lateinit var textYear: TextView
     private lateinit var btnPrev: ImageButton
