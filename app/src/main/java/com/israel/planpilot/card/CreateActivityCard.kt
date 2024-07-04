@@ -14,7 +14,7 @@ class CreateActivityCard @Inject constructor() {
 
     suspend fun createCardsForCurrentDate() {
         val activityRepository = ActivityRepository()
-        val activityCardRepository = ActivityCardRepository()
+        ActivityCardRepository()
 
         val today = LocalDate.now()
         val activities = activityRepository.getAllActivities()
@@ -32,7 +32,6 @@ class CreateActivityCard @Inject constructor() {
         if (existingCard == null) {
             val newCard = activity.alarmTriggerTime?.let {
                 ActivityCardModel(
-                    id = UUID.randomUUID().toString(),
                     activityId = activity.id,
                     activityName = activity.name,
                     alarmTriggerTime = it,
@@ -41,7 +40,11 @@ class CreateActivityCard @Inject constructor() {
                 )
             }
 
-            newCard?.let { activityCardRepository.addActivityCard(it) }
+            newCard?.let {
+                activityCardRepository.addActivityCard(it)
+            }
+        } else {
+            println("Card existente encontrado para atividade: ${activity.name} na data: $today")
         }
     }
 

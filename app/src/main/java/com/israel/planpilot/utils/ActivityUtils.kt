@@ -255,6 +255,20 @@ object ActivityUtils {
                                 alarmTriggerTime
                             )
                         }
+                        withContext(Dispatchers.Main) {
+                            nameActivity.text.clear()
+                            alarmSwitch.isChecked = false
+                            alarmToneSelected = null
+                            context?.let { nonNullContext ->
+                                defaultTone(nonNullContext)?.let { alarmToneNameTextView?.text = it }
+                            }
+
+                            Snackbar.make(
+                                view,
+                                "Atividade criada com sucesso!",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
@@ -265,20 +279,6 @@ object ActivityUtils {
                             ).show()
                         }
                     }
-                }
-                withContext(Dispatchers.Main) {
-                    nameActivity.text.clear()
-                    alarmSwitch.isChecked = false
-                    alarmToneSelected = null
-                    context?.let { nonNullContext ->
-                        defaultTone(nonNullContext)?.let { alarmToneNameTextView?.text = it }
-                    }
-
-                    Snackbar.make(
-                        view,
-                        "Atividade criada com sucesso!",
-                        Snackbar.LENGTH_LONG
-                    ).show()
                 }
             }
         } catch (e: Exception) {

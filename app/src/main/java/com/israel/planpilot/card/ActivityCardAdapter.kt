@@ -9,61 +9,58 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.israel.planpilot.R
+import com.israel.planpilot.TrackActivityViewModel
 import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.repository.ActivityCardRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class ActivityCardAdapter(
-    private val cardRepository: ActivityCardRepository,
-    private val scope: CoroutineScope
-) : ListAdapter<ActivityCardModel, ActivityCardAdapter.ActivityViewHolder>(ActivityCardDiffCallback()) {
+class ActivityCardAdapter(private val viewModel: TrackActivityViewModel) :
+    ListAdapter<ActivityCardModel, ActivityCardAdapter.ViewHolder>(ActivityCardDiffCallback()) {
 
-    inner class ActivityViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val activityNameTextView: TextView = itemView.findViewById(R.id.textViewActivityName)
-        val activityDateTextView: TextView = itemView.findViewById(R.id.textViewActivityDate)
-        val checkButton: ImageButton = itemView.findViewById(R.id.buttonCheck)
-        val uncheckButton: ImageButton = itemView.findViewById(R.id.buttonUncheck)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_card_activity, parent, false)
+        return ViewHolder(view)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActivityViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.card_activity, parent, false)
-        return ActivityViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ActivityViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val activityCard = getItem(position)
-        holder.activityNameTextView.text = activityCard.activityName
-        holder.activityDateTextView.text = activityCard.date?.let { formatDate(it) }
+        holder.bind(activityCard)
+    }
 
-        holder.checkButton.setOnClickListener {
-            scope.launch {
-                cardRepository.updateStatusActivityCard(activityCard, true)
-                activityCard.completed = true
-                withContext(Dispatchers.Main) {
-                    submitList(currentList.filterIndexed { index, _ -> index != position })
-                }
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val activityNameTextView: TextView = itemView.findViewById(R.id.textViewActivityName)
+        private val activityDateTextView: TextView = itemView.findViewById(R.id.textViewActivityDate)
+        private val uncheckButton: ImageButton = itemView.findViewById(R.id.buttonUncheck)
+        private val checkButton: ImageButton = itemView.findViewById(R.id.buttonCheck)
+
+        fun bind(activityCard: ActivityCardModel) {
+            activityNameTextView.text = activityCard.activityName
+            activityDateTextView.text = activityCard.date
+
+            uncheckButton.setOnClickListener {
+                updateCompletion(activityCard.id, false)
+            }
+
+            checkButton.setOnClickListener {
+                updateCompletion(activityCard.id, true)
             }
         }
 
-        holder.uncheckButton.setOnClickListener {
-            scope.launch {
-                cardRepository.updateStatusActivityCard(activityCard, false)
-                activityCard.completed = false
-                withContext(Dispatchers.Main) {
-                    submitList(currentList.filterIndexed { index, _ -> index != position })
+        private fun updateCompletion(activityCardId: String, completed: Boolean) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    viewModel.activityCardRepository.updateActivityCardCompletion(activityCardId, completed)
+                    viewModel.refreshActivityCards()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
     }
 
-    private fun formatDate(dateString: String): String {
-        return dateString
-    }
-
-    class ActivityCardDiffCallback : DiffUtil.ItemCallback<ActivityCardModel>() {
+    private class ActivityCardDiffCallback : DiffUtil.ItemCallback<ActivityCardModel>() {
         override fun areItemsTheSame(oldItem: ActivityCardModel, newItem: ActivityCardModel): Boolean {
             return oldItem.id == newItem.id
         }
@@ -73,3 +70,4 @@ class ActivityCardAdapter(
         }
     }
 }
+

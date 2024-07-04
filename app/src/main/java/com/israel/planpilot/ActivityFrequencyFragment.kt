@@ -31,7 +31,7 @@ class ActivityFrequencyFragment : Fragment() {
     private lateinit var btnNext: ImageButton
     private lateinit var gridView: GridView
     private lateinit var selectedDate: Date
-    lateinit var calendar: Calendar
+    private lateinit var calendar: Calendar
 
     private val activityCardRepository = ActivityCardRepository()
 
@@ -145,7 +145,7 @@ class ActivityFrequencyFragment : Fragment() {
             days.add(DayInfo(0, null))
         }
 
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         val activityCards = activityCardRepository.getAllActivityCards()
 
@@ -164,7 +164,7 @@ class ActivityFrequencyFragment : Fragment() {
                     calDay.get(Calendar.DAY_OF_MONTH) == it.get(Calendar.DAY_OF_MONTH) &&
                             calDay.get(Calendar.MONTH) == it.get(Calendar.MONTH) &&
                             calDay.get(Calendar.YEAR) == it.get(Calendar.YEAR)
-                }?: false
+                } ?: false
             }?.completed
 
             val drawableDefault: Drawable? =
@@ -174,17 +174,17 @@ class ActivityFrequencyFragment : Fragment() {
             val drawableNotCompleted: Drawable? =
                 ContextCompat.getDrawable(requireContext(), R.drawable.highlight_color_not_completed)
 
-            var drawable: Drawable = drawableDefault?:
-                throw IllegalStateException("Drawable cannot be null")
+            var drawable: Drawable = drawableDefault
+                ?: throw IllegalStateException("Drawable cannot be null")
 
             if (isCompleted == true) {
-                drawable= drawableCompleted?:
-                    throw IllegalStateException("Drawable cannot be null")
+                drawable = drawableCompleted
+                    ?: throw IllegalStateException("Drawable cannot be null")
             }
 
             if (isCompleted == false) {
-                drawable = drawableNotCompleted?:
-                    throw IllegalStateException("Drawable cannot be null")
+                drawable = drawableNotCompleted
+                    ?: throw IllegalStateException("Drawable cannot be null")
             }
 
             days.add(DayInfo(dayOfMonth, drawable))
@@ -263,12 +263,13 @@ class ActivityFrequencyFragment : Fragment() {
         }
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView?: LayoutInflater.from(context).inflate(R.layout.item_calendar_day, parent, false)
+            val view = convertView
+                ?: LayoutInflater.from(context).inflate(R.layout.item_calendar_day, parent, false)
             val textView = view.findViewById<TextView>(R.id.textDay)
 
             val dayInfo = getItem(position)
-            if (dayInfo!= null) {
-                if (dayInfo.dayOfMonth!= 0) {
+            if (dayInfo != null) {
+                if (dayInfo.dayOfMonth != 0) {
                     textView.text = dayInfo.dayOfMonth.toString()
                     textView.background = dayInfo.drawable
                 } else {
@@ -280,4 +281,5 @@ class ActivityFrequencyFragment : Fragment() {
         }
     }
 }
+
 

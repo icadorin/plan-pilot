@@ -4,21 +4,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.israel.planpilot.model.ActivityCardModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
 
 class ActivityCardRepository {
     private val db: FirebaseFirestore = Firebase.firestore
     private val collectionRef = db.collection("activityCards")
     private var activityCardsCache: MutableList<ActivityCardModel> = mutableListOf()
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            fetchActivityCards()
-        }
+    suspend fun initializeCache() {
+        fetchActivityCards()
     }
 
     private suspend fun fetchActivityCards() {
@@ -28,22 +22,18 @@ class ActivityCardRepository {
         }.toMutableList()
     }
 
-    fun getAllActivityCardsFromCache(): List<ActivityCardModel> {
-        return activityCardsCache.toList()
-    }
-
     suspend fun addActivityCard(activityCardModel: ActivityCardModel) {
-        collectionRef.add(activityCardModel).await()
-        activityCardsCache.add(activityCardModel)
+        try {
+            val documentRef = collectionRef.document(activityCardModel.id)
+            documentRef.set(activityCardModel).await()
+            activityCardsCache.add(activityCardModel)
+        } catch (e: Exception) {
+            throw Exception("Erro ao adicionar o cartão de atividade: ${e.message}")
+        }
     }
 
-    suspend fun getActivityCardById(id: Int): ActivityCardModel? {
-        val querySnapshot = collectionRef.whereEqualTo("id", id).get().await()
-        return if (querySnapshot.documents.isNotEmpty()) {
-            querySnapshot.documents[0].toObject(ActivityCardModel::class.java)
-        } else {
-            null
-        }
+    fun getUncompletedActivityCards(): List<ActivityCardModel> {
+        return activityCardsCache.filter { it.completed == null }
     }
 
     suspend fun getAllActivityCards(): List<ActivityCardModel> {
@@ -51,67 +41,37 @@ class ActivityCardRepository {
         return querySnapshot.documents.mapNotNull { it.toObject(ActivityCardModel::class.java) }
     }
 
-    suspend fun updateActivityCard(activityCardModel: ActivityCardModel) {
-        val querySnapshot = collectionRef.whereEqualTo("id", activityCardModel.id).get().await()
-        if (querySnapshot.documents.isNotEmpty()) {
-            val documentId = querySnapshot.documents[0].id
-            collectionRef.document(documentId).set(activityCardModel).await()
-            val index = activityCardsCache.indexOfFirst { it.id == activityCardModel.id }
-            if (index != -1) {
-                activityCardsCache[index] = activityCardModel
-            }
-        }
-    }
-
-    suspend fun updateStatusActivityCard(activityCardModel: ActivityCardModel, completed: Boolean) {
-        val querySnapshot = collectionRef.whereEqualTo("id", activityCardModel.id).get().await()
-        if (querySnapshot.documents.isNotEmpty()) {
-            val documentId = querySnapshot.documents[0].id
-            collectionRef.document(documentId).update("completed", completed).await()
-            val index = activityCardsCache.indexOfFirst { it.id == activityCardModel.id }
-            if (index != -1) {
-                activityCardsCache[index].completed = completed
-            }
-        }
-    }
-
-    suspend fun getActiveActivityCardsWithNullCompletion(): List<ActivityCardModel> {
-        val querySnapshot = collectionRef.whereEqualTo("completed", null)
-            .get().await()
-        return querySnapshot.documents.mapNotNull { it.toObject(ActivityCardModel::class.java) }
-    }
-
-    suspend fun deleteActivityCard(id: String) {
-        val querySnapshot = collectionRef.whereEqualTo("id", id).get().await()
-        if (querySnapshot.documents.isNotEmpty()) {
-            val documentId = querySnapshot.documents[0].id
-            collectionRef.document(documentId).delete().await()
-            activityCardsCache.removeIf { it.id == id }
-        }
-    }
-
-    suspend fun deleteActivityCardsForDate(date: LocalDate) {
-        val querySnapshot = collectionRef.whereEqualTo("date", date.toString()).get().await()
-        for (document in querySnapshot.documents) {
-            collectionRef.document(document.id).delete().await()
-        }
-    }
-
-    suspend fun getActivityCardByActivityId(activityId: String): ActivityCardModel? {
-        val querySnapshot = collectionRef.whereEqualTo("activityId", activityId).get().await()
-        return if (querySnapshot.documents.isNotEmpty()) {
-            querySnapshot.documents[0].toObject(ActivityCardModel::class.java)
-        } else {
-            null
-        }
-    }
-
     suspend fun findActivityCardByActivityAndDate(activityId: String, date: String): ActivityCardModel? {
-        val querySnapshot = collectionRef.whereEqualTo("activityId", activityId).whereEqualTo("date", date).get().await()
+        val querySnapshot = collectionRef
+            .whereEqualTo("activityId", activityId)
+            .whereEqualTo("date", date)
+            .get()
+            .await()
         return if (querySnapshot.documents.isNotEmpty()) {
             querySnapshot.documents[0].toObject(ActivityCardModel::class.java)
         } else {
             null
+        }
+    }
+
+    suspend fun updateActivityCardCompletion(activityCardId: String, completed: Boolean) {
+        try {
+            val cardRef = collectionRef.document(activityCardId)
+
+            cardRef.update("completed", completed).await()
+
+            val updatedCardSnapshot = cardRef.get().await()
+            val updatedCard = updatedCardSnapshot.toObject(ActivityCardModel::class.java)
+
+            updatedCard?.let {
+                val index = activityCardsCache.indexOfFirst { card -> card.id == it.id }
+                if (index != -1) {
+                    activityCardsCache[index] = it
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("Erro ao atualizar documento no Firestore: ${e.message}")
         }
     }
 

@@ -10,6 +10,7 @@ import java.time.LocalDate
 
 class ActivityRepository {
     private val firestore = FirebaseFirestore.getInstance()
+    private val activityCardRepository = ActivityCardRepository()
     private val activitiesCollection = firestore.collection("activities")
     private var activitiesCache: List<ActivityModel>? = null
 
@@ -48,6 +49,32 @@ class ActivityRepository {
             activitiesCache = updatedActivities
             onSuccess(updatedActivities)
         }
+    }
+
+    fun readTodayActivities(onSuccess: (List<ActivityModel>) -> Unit) {
+        val currentDate = LocalDate.now().toString()
+
+        activitiesCollection
+            .whereGreaterThanOrEqualTo("startDate", currentDate)
+            .whereLessThanOrEqualTo("endDate", currentDate)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val activities = querySnapshot.documents.mapNotNull { doc ->
+                    doc.toObject(ActivityModel::class.java)?.apply {
+                        startDate = LocalDate.parse(startDate).toString()
+                        endDate = LocalDate.parse(endDate).toString()
+                    }
+                }.take(3)
+
+                onSuccess(activities)
+            }
+            .addOnFailureListener { exception ->
+                println("Erro ao ler as atividades: ${exception.message}")
+            }
+    }
+
+    suspend fun readAllActivityCards(): List<ActivityCardModel> {
+        return activityCardRepository.getAllActivityCards()
     }
 
     suspend fun getAllActivities(): List<ActivityModel> {

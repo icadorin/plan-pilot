@@ -28,23 +28,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <include
-        android:id="@+id/displayActivities"
-        layout="@layout/display_activity_item"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewActivities"
+        android:layout_width="0dp"
+        android:layout_height="200sp"
+        android:paddingStart="100sp"
+        android:paddingEnd="100sp"
         app:layout_constraintTop_toBottomOf="@id/todayActivities"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <View
-        android:id="@+id/viewSpacer"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/displayActivities"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.2" />
+        android:padding="8dp"/>
 
     <View
         android:id="@+id/gradientLine"
@@ -53,7 +46,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/gradient_background"
-        app:layout_constraintTop_toBottomOf="@id/viewSpacer"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewActivities"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -73,6 +66,5 @@
             android:layout_height="wrap_content"
             android:padding="16dp"/>
     </ScrollView>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
