@@ -7,28 +7,31 @@ import com.israel.planpilot.repository.ActivityCardRepository
 import com.israel.planpilot.repository.ActivityRepository
 import java.time.LocalDate
 import java.util.Locale
-import java.util.UUID
 import javax.inject.Inject
 
 class CreateActivityCard @Inject constructor() {
 
     suspend fun createCardsForCurrentDate() {
         val activityRepository = ActivityRepository()
-        ActivityCardRepository()
+        val activityCardRepository = ActivityCardRepository()
 
         val today = LocalDate.now()
         val activities = activityRepository.getAllActivities()
         val filteredActivities = filterActivities(activities)
 
         filteredActivities.forEach { activity ->
-            createActivityCard(activity, today)
+            createActivityCard(activity, today, activityCardRepository)
         }
     }
 
-    private suspend fun createActivityCard(activity: ActivityModel, today: LocalDate) {
-        val activityCardRepository = ActivityCardRepository()
+    private suspend fun createActivityCard(
+        activity: ActivityModel,
+        today: LocalDate,
+        activityCardRepository: ActivityCardRepository
+    ) {
+        val existingCard = activityCardRepository.
+            findActivityCardByActivityAndDate(activity.id, today.toString())
 
-        val existingCard = activityCardRepository.findActivityCardByActivityAndDate(activity.id, today.toString())
         if (existingCard == null) {
             val newCard = activity.alarmTriggerTime?.let {
                 ActivityCardModel(
@@ -62,4 +65,3 @@ class CreateActivityCard @Inject constructor() {
         }
     }
 }
-

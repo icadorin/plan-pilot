@@ -28,8 +28,10 @@ import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityRepository
 import com.israel.planpilot.alarm.AlarmReceiver
 import com.israel.planpilot.R
+import com.israel.planpilot.card.CreateActivityCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -202,82 +204,79 @@ object ActivityUtils {
         context: Context?
     ) {
         val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
-        val repository = context?.let { ActivityRepository() }
+        val activityRepository = context?.let { ActivityRepository() }
+
         try {
             val name = nameActivity.text.toString().trim()
             if (TextUtils.isEmpty(name)) {
                 nameActivity.error = "Nome da atividade é obrigatório"
-            } else if (selectedWeekDays.isNullOrEmpty()) {
-                Toast.makeText(
-                    context,
-                    "Selecione pelo menos um dia da semana",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                val alarmTriggerTime = timePicker.text.toString()
-                val alarmToneString = alarmToneSelected?.toString()
-                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()
+                return
+            }
+            if (selectedWeekDays.isNullOrEmpty()) {
+                Toast.makeText(context, "Selecione pelo menos um dia da semana", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-                val currentTime = SimpleDateFormat(
-                    "HH:mm",
-                    Locale.getDefault()
-                ).format(Date())
+            val alarmTriggerTime = timePicker.text.toString()
+            val alarmToneString = alarmToneSelected?.toString()
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()
 
-                val alarmActivated = alarmActivated
+            val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+            val alarmActivated = alarmActivated
 
-                val activity = ActivityModel(
-                    name = name,
-                    day = selectedDay,
-                    month = selectedMonth,
-                    year = selectedYear,
-                    time = currentTime,
-                    startDate = startDate,
-                    endDate = endDate,
-                    contactForMessage = null,
-                    alarmTriggerTime = alarmTriggerTime,
-                    alarmActivated = alarmActivated,
-                    alarmTone = alarmToneString,
-                    category = null,
-                    weekDays = selectedWeekDays
-                )
+            val activity = ActivityModel(
+                name = name,
+                day = selectedDay,
+                month = selectedMonth,
+                year = selectedYear,
+                time = currentTime,
+                startDate = startDate,
+                endDate = endDate,
+                contactForMessage = null,
+                alarmTriggerTime = alarmTriggerTime,
+                alarmActivated = alarmActivated,
+                alarmTone = alarmToneString,
+                category = null,
+                weekDays = selectedWeekDays
+            )
 
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        repository?.createActivity(activity)
-                        if (alarmActivated && alarmTimestamp != null) {
-                            setAlarm(
-                                name,
-                                alarmToneString,
-                                context,
-                                startDate,
-                                endDate,
-                                selectedWeekDays,
-                                alarmTriggerTime
-                            )
+            scope.launch {
+                try {
+                    withContext(Dispatchers.IO) {
+                        activityRepository?.createActivity(activity)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        nameActivity.text.clear()
+                        alarmSwitch.isChecked = false
+                        alarmToneSelected = null
+                        context?.let { nonNullContext ->
+                            defaultTone(nonNullContext)?.let { alarmToneNameTextView?.text = it }
                         }
-                        withContext(Dispatchers.Main) {
-                            nameActivity.text.clear()
-                            alarmSwitch.isChecked = false
-                            alarmToneSelected = null
-                            context?.let { nonNullContext ->
-                                defaultTone(nonNullContext)?.let { alarmToneNameTextView?.text = it }
-                            }
+                        Snackbar.make(view, "Atividade criada com sucesso!", Snackbar.LENGTH_LONG).show()
+                    }
 
-                            Snackbar.make(
-                                view,
-                                "Atividade criada com sucesso!",
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        withContext(Dispatchers.Main) {
-                            Snackbar.make(
-                                view,
-                                "Erro ao criar a atividade: ${e.message}",
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
+                    val createActivityCard = CreateActivityCard()
+                    scope.async(Dispatchers.IO) {
+                        createActivityCard.createCardsForCurrentDate()
+                    }.await()
+
+                    if (alarmActivated && alarmTimestamp != null) {
+                        setAlarm(
+                            name,
+                            alarmToneString,
+                            context,
+                            startDate,
+                            endDate,
+                            selectedWeekDays,
+                            alarmTriggerTime
+                        )
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Snackbar.make(view, "Erro ao criar a atividade: ${e.message}", Snackbar.LENGTH_LONG).show()
                     }
                 }
             }

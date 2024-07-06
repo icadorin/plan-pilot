@@ -16,7 +16,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.israel.planpilot.MainActivity
 import com.israel.planpilot.R
-import com.israel.planpilot.card.CreateActivityCard
 import com.israel.planpilot.utils.ActivityUtils
 import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.launch
@@ -282,7 +281,6 @@ class CreateActivityFragment : Fragment() {
                     lifecycleScope,
                     context
                 )
-                CreateActivityCard().createCardsForCurrentDate()
             }
         }
         return view
