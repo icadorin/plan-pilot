@@ -3,9 +3,6 @@ package com.israel.planpilot
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -99,15 +96,6 @@ class ActivityFrequencyFragment : Fragment() {
         updateCalendar()
     }
 
-    private fun isToday(cal: Calendar, day: Int): Boolean {
-        val today = Calendar.getInstance()
-        return (
-                day == today.get(Calendar.DAY_OF_MONTH) &&
-                        cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-                )
-    }
-
     private fun getDateFormat(): SimpleDateFormat {
         return SimpleDateFormat("MMMM yyyy", Locale.getDefault())
     }
@@ -155,7 +143,7 @@ class ActivityFrequencyFragment : Fragment() {
             calDay.timeInMillis = calendar.timeInMillis
             calDay.set(Calendar.DAY_OF_MONTH, dayOfMonth)
 
-            val isCompleted: Boolean? = activityCards.find { card ->
+            val completedCards = activityCards.filter { card ->
                 val cardDate = card.date?.let { dateFormat.parse(it) }?.let {
                     Calendar.getInstance().apply { time = it }
                 }
@@ -165,7 +153,10 @@ class ActivityFrequencyFragment : Fragment() {
                             calDay.get(Calendar.MONTH) == it.get(Calendar.MONTH) &&
                             calDay.get(Calendar.YEAR) == it.get(Calendar.YEAR)
                 } ?: false
-            }?.completed
+            }
+
+            val isCompleted = completedCards.any { it.completed == true }
+            val isNotCompleted = completedCards.any { it.completed == false }
 
             val drawableDefault: Drawable? =
                 ContextCompat.getDrawable(requireContext(), R.drawable.highlight_default)
@@ -177,12 +168,10 @@ class ActivityFrequencyFragment : Fragment() {
             var drawable: Drawable = drawableDefault
                 ?: throw IllegalStateException("Drawable cannot be null")
 
-            if (isCompleted == true) {
+            if (isCompleted) {
                 drawable = drawableCompleted
                     ?: throw IllegalStateException("Drawable cannot be null")
-            }
-
-            if (isCompleted == false) {
+            } else if (isNotCompleted) {
                 drawable = drawableNotCompleted
                     ?: throw IllegalStateException("Drawable cannot be null")
             }
@@ -240,15 +229,6 @@ class ActivityFrequencyFragment : Fragment() {
         return Calendar.getInstance()
     }
 
-    private fun highlightText(
-        text: SpannableString,
-        span: Any,
-        foregroundColorSpan: ForegroundColorSpan
-    ): SpannableString {
-        text.setSpan(span, 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return text
-    }
-
     open class CalendarCell(
         context: Context,
         resource: Int,
@@ -281,5 +261,3 @@ class ActivityFrequencyFragment : Fragment() {
         }
     }
 }
-
-
