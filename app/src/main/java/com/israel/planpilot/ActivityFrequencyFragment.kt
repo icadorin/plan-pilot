@@ -23,14 +23,18 @@ import java.util.Locale
 
 class ActivityFrequencyFragment : Fragment() {
 
+    private lateinit var calendar: Calendar
+    private lateinit var gridView: GridView
+    private lateinit var selectedDate: Date
     private lateinit var textYear: TextView
     private lateinit var btnPrev: ImageButton
     private lateinit var btnNext: ImageButton
-    private lateinit var gridView: GridView
-    private lateinit var selectedDate: Date
-    private lateinit var calendar: Calendar
 
     private val activityCardRepository = ActivityCardRepository()
+
+    private val adapter: CalendarCell by lazy {
+        CalendarCell(requireContext(), R.layout.item_calendar_day, mutableListOf())
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,6 +45,7 @@ class ActivityFrequencyFragment : Fragment() {
         setupListeners()
         calendar = createCalendarInstance()
         selectedDate = createCalendarInstance().time
+        gridView.adapter = adapter
         updateCalendar()
         return view
     }
@@ -56,44 +61,15 @@ class ActivityFrequencyFragment : Fragment() {
         btnNext = view.findViewById(R.id.btnNext)
     }
 
+
     private fun updateCalendar() {
         val monthFormat = getDateFormat()
         textYear.text = monthFormat.format(calendar.time)
 
         lifecycleScope.launch {
             val days = getDaysInMonth()
-            val adapter = CalendarCell(requireContext(), R.layout.item_calendar_day, days)
-            gridView.adapter = adapter
-
-            gridView.setOnItemClickListener { _, _, position, _ ->
-                handleItemClick(position)
-            }
-
-            val firstDayOfWeek = firstDayOfWeek()
-
-            selectedDate.let {
-                val calendarSelected = Calendar.getInstance()
-                calendarSelected.time = it
-
-                if (isSameMonth(calendarSelected, calendar)) {
-                    val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
-
-                    if (selectedDay <= days.size) {
-                        val selectedIndex = calculateSelectedIndex(it, firstDayOfWeek)
-                        adapter.setSelectedDay(selectedIndex)
-                    }
-                }
-            }
-
-            adapter.notifyDataSetChanged()
+            adapter.updateData(days)
         }
-    }
-
-    private fun handleItemClick(position: Int) {
-        val firstDayOfWeek = firstDayOfWeek()
-        val selectedDayOfMonth = position - firstDayOfWeek + 1
-        selectedDate = calculateSelectedDate(selectedDayOfMonth)
-        updateCalendar()
     }
 
     private fun getDateFormat(): SimpleDateFormat {
@@ -105,18 +81,20 @@ class ActivityFrequencyFragment : Fragment() {
         btnNext.setOnClickListener { showNextMonth() }
     }
 
-    private fun getMonthAndYear(calendar: Calendar): Pair<Int, Int> {
-        return Pair(calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR))
-    }
-
     private fun showPreviousMonth() {
         calendar.add(Calendar.MONTH, -1)
-        updateCalendar()
+        lifecycleScope.launch {
+            activityCardRepository.initializeCache()
+            updateCalendar()
+        }
     }
 
     private fun showNextMonth() {
         calendar.add(Calendar.MONTH, 1)
-        updateCalendar()
+        lifecycleScope.launch {
+            activityCardRepository.initializeCache()
+            updateCalendar()
+        }
     }
 
     data class DayInfo(val dayOfMonth: Int, val drawable: Drawable?)
@@ -182,11 +160,6 @@ class ActivityFrequencyFragment : Fragment() {
         return days
     }
 
-    private fun isSameMonth(date1: Calendar, date2: Calendar): Boolean {
-        return date1.get(Calendar.MONTH) == date2.get(Calendar.MONTH) &&
-                date1.get(Calendar.YEAR) == date2.get(Calendar.YEAR)
-    }
-
     private fun firstDayOfWeek(): Int {
         val cal = Calendar.getInstance()
         cal.timeInMillis = calendar.timeInMillis
@@ -195,7 +168,6 @@ class ActivityFrequencyFragment : Fragment() {
         val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
         val firstDayOfWeek = (((dayOfWeek - 1) - cal.firstDayOfWeek + 7) % 7) + 1
 
-        // Caso o dia 1 seja uma segunda-feira, reseta o índice
         if (firstDayOfWeek == Constants.HORIZONTAL_CELLS) {
             return 0
         }
@@ -203,42 +175,19 @@ class ActivityFrequencyFragment : Fragment() {
         return firstDayOfWeek
     }
 
-    private fun calculateSelectedDate(selectedDay: Int): Date {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = calendar.timeInMillis
-        cal.set(Calendar.DAY_OF_MONTH, selectedDay)
-        return cal.time
-    }
-
-    private fun calculateSelectedIndex(selectedDate: Date, firstDayOfWeek: Int): Int {
-        val calendarSelected = Calendar.getInstance()
-        calendarSelected.time = selectedDate
-
-        val (selectedMonth, selectedYear) = getMonthAndYear(calendarSelected)
-        val (currentMonth, currentYear) = getMonthAndYear(calendar)
-
-        if (selectedMonth == currentMonth && selectedYear == currentYear) {
-            val selectedDay = calendarSelected.get(Calendar.DAY_OF_MONTH)
-            return selectedDay + firstDayOfWeek + 1
-        }
-
-        return -1
-    }
-
     private fun createCalendarInstance(): Calendar {
         return Calendar.getInstance()
     }
 
-    open class CalendarCell(
+    inner class CalendarCell(
         context: Context,
         resource: Int,
-        objects: List<DayInfo>
-    ) : ArrayAdapter<DayInfo>(context, resource, objects) {
+        private var dayInfos: MutableList<DayInfo>
+    ) : ArrayAdapter<DayInfo>(context, resource, dayInfos) {
 
-        private var selectedDay: Int? = null
-
-        fun setSelectedDay(day: Int?) {
-            selectedDay = day
+        fun updateData(newData: List<DayInfo>) {
+            dayInfos.clear()
+            dayInfos.addAll(newData)
             notifyDataSetChanged()
         }
 
