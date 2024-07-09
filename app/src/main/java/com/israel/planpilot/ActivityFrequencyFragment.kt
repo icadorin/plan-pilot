@@ -12,6 +12,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import com.israel.planpilot.repository.ActivityCardRepository
 import com.israel.planpilot.utils.Constants
@@ -31,6 +32,7 @@ class ActivityFrequencyFragment : Fragment() {
     private lateinit var btnNext: ImageButton
 
     private val activityCardRepository = ActivityCardRepository()
+    private val daysLiveData = MutableLiveData<List<DayInfo>>()
 
     private val adapter: CalendarCell by lazy {
         CalendarCell(requireContext(), R.layout.item_calendar_day, mutableListOf())
@@ -47,6 +49,18 @@ class ActivityFrequencyFragment : Fragment() {
         selectedDate = createCalendarInstance().time
         gridView.adapter = adapter
         updateCalendar()
+
+        lifecycleScope.launch {
+            activityCardRepository.initializeCache()
+            val days = getDaysInMonth()
+            daysLiveData.value = days
+        }
+
+        daysLiveData.observe(viewLifecycleOwner) { days ->
+            adapter.updateData(days)
+            adapter.notifyDataSetChanged()
+        }
+
         return view
     }
 
@@ -61,14 +75,13 @@ class ActivityFrequencyFragment : Fragment() {
         btnNext = view.findViewById(R.id.btnNext)
     }
 
-
     private fun updateCalendar() {
         val monthFormat = getDateFormat()
         textYear.text = monthFormat.format(calendar.time)
 
         lifecycleScope.launch {
             val days = getDaysInMonth()
-            adapter.updateData(days)
+            daysLiveData.value = days
         }
     }
 
@@ -83,23 +96,17 @@ class ActivityFrequencyFragment : Fragment() {
 
     private fun showPreviousMonth() {
         calendar.add(Calendar.MONTH, -1)
-        lifecycleScope.launch {
-            activityCardRepository.initializeCache()
-            updateCalendar()
-        }
+        updateCalendar()
     }
 
     private fun showNextMonth() {
         calendar.add(Calendar.MONTH, 1)
-        lifecycleScope.launch {
-            activityCardRepository.initializeCache()
-            updateCalendar()
-        }
+        updateCalendar()
     }
 
     data class DayInfo(val dayOfMonth: Int, val drawable: Drawable?)
 
-    private suspend fun getDaysInMonth(): List<DayInfo> {
+    private fun getDaysInMonth(): List<DayInfo> {
         val days = mutableListOf<DayInfo>()
         val cal = Calendar.getInstance()
         cal.timeInMillis = calendar.timeInMillis
@@ -114,6 +121,7 @@ class ActivityFrequencyFragment : Fragment() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         val activityCards = activityCardRepository.getAllActivityCards()
+        println("Total de activityCards recebidos: ${activityCards.size}")
 
         repeat(lastDayOfMonth) { day ->
             val dayOfMonth = day + 1
@@ -143,15 +151,12 @@ class ActivityFrequencyFragment : Fragment() {
             val drawableNotCompleted: Drawable? =
                 ContextCompat.getDrawable(requireContext(), R.drawable.highlight_color_not_completed)
 
-            var drawable: Drawable = drawableDefault
-                ?: throw IllegalStateException("Drawable cannot be null")
+            var drawable: Drawable? = drawableDefault
 
             if (isCompleted) {
                 drawable = drawableCompleted
-                    ?: throw IllegalStateException("Drawable cannot be null")
             } else if (isNotCompleted) {
                 drawable = drawableNotCompleted
-                    ?: throw IllegalStateException("Drawable cannot be null")
             }
 
             days.add(DayInfo(dayOfMonth, drawable))
@@ -192,21 +197,27 @@ class ActivityFrequencyFragment : Fragment() {
         }
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView
-                ?: LayoutInflater.from(context).inflate(R.layout.item_calendar_day, parent, false)
-            val textView = view.findViewById<TextView>(R.id.textDay)
+            var view = convertView
+
+            if (view == null) {
+                val inflater = LayoutInflater.from(context)
+                view = inflater.inflate(R.layout.item_calendar_day, parent, false)
+            }
 
             val dayInfo = getItem(position)
-            if (dayInfo != null) {
-                if (dayInfo.dayOfMonth != 0) {
-                    textView.text = dayInfo.dayOfMonth.toString()
-                    textView.background = dayInfo.drawable
+            val textDay = view?.findViewById<TextView>(R.id.textDay)
+
+            dayInfo?.let {
+                if (it.dayOfMonth > 0) {
+                    textDay?.text = it.dayOfMonth.toString()
+                    textDay?.background = it.drawable
                 } else {
-                    textView.text = ""
-                    textView.background = null
+                    textDay?.text = ""
+                    textDay?.background = null
                 }
             }
-            return view
+
+            return view!!
         }
     }
 }

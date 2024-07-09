@@ -11,15 +11,27 @@ class ActivityCardRepository {
     private val collectionRef = db.collection("activityCards")
     private var activityCardsCache: MutableList<ActivityCardModel> = mutableListOf()
 
+    private var isCacheInitialized = false
+
     suspend fun initializeCache() {
-        fetchActivityCards()
+        if (!isCacheInitialized) {
+            fetchActivityCards()
+            isCacheInitialized = true
+        }
     }
 
     private suspend fun fetchActivityCards() {
-        val querySnapshot = collectionRef.get().await()
-        activityCardsCache = querySnapshot.documents.mapNotNull {
-            it.toObject(ActivityCardModel::class.java)
-        }.toMutableList()
+        try {
+            val querySnapshot = collectionRef.get().await()
+            activityCardsCache = querySnapshot.documents.mapNotNull {
+                it.toObject(ActivityCardModel::class.java)
+            }.toMutableList()
+            println("Cards resgatados com sucesso")
+        } catch (e: Exception) {
+            println("Erro ao buscar activityCards do Firestore: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
     }
 
     suspend fun addActivityCard(activityCardModel: ActivityCardModel) {
@@ -36,9 +48,8 @@ class ActivityCardRepository {
         return activityCardsCache.filter { it.completed == null }
     }
 
-    suspend fun getAllActivityCards(): List<ActivityCardModel> {
-        val querySnapshot = collectionRef.get().await()
-        return querySnapshot.documents.mapNotNull { it.toObject(ActivityCardModel::class.java) }
+    fun getAllActivityCards(): List<ActivityCardModel> {
+        return activityCardsCache
     }
 
     suspend fun findActivityCardByActivityAndDate(activityId: String, date: String): ActivityCardModel? {
