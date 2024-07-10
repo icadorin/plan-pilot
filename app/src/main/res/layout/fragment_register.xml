@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".RegisterFragment">
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/registrar"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:textColor="@color/midnight_purple_3"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/editTextName"
@@ -50,9 +59,12 @@
         android:visibility="gone" />
 
     <Button
+        android:id="@+id/btnRegister"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/register"
-        android:id="@+id/btnRegister" />
+        android:textColor="@android:color/white"
+        android:background="@drawable/button_background"
+        android:stateListAnimator="@null" />
 
 </LinearLayout>

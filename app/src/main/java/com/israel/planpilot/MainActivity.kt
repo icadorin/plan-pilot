@@ -1,7 +1,6 @@
 package com.israel.planpilot
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -14,13 +13,14 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.navigation.NavigationView
-import com.israel.planpilot.activity.CreateActivityFragment
-import com.israel.planpilot.activity.ListAllActivitiesFragment
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.card.CreateActivityCard
 import kotlinx.coroutines.launch
 
@@ -35,18 +35,46 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnActivitiesList: ImageButton
     lateinit var btnAddActivity: ImageButton
 
-    override fun onResume() {
-        super.onResume()
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
-    }
+    private lateinit var auth: FirebaseAuth
+    private lateinit var authStateListener: FirebaseAuth.AuthStateListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        auth = FirebaseAuth.getInstance()
+
         toolbar = findViewById(R.id.custom_toolbar)
         setSupportActionBar(toolbar)
 
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+
+        authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user == null) {
+                navigateToLogin()
+            } else {
+                initializeViews()
+                setupMainActivity()
+                if (navController.currentDestination?.id != R.id.nav_home) {
+                    navigateToHome()
+                }
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        auth.addAuthStateListener(authStateListener)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        auth.removeAuthStateListener(authStateListener)
+    }
+
+    private fun setupMainActivity() {
         createActivityCard = CreateActivityCard()
 
         btnActivitiesList = toolbar.findViewById(R.id.btnActivitiesList)
@@ -62,52 +90,46 @@ class MainActivity : AppCompatActivity() {
             showAddActivityFragment()
         }
 
-        initializeViews()
         setupNavigation()
         setupActionBarTitleListener()
 
         lifecycleScope.launch {
             createActivityCard.createCardsForCurrentDate()
         }
+
+        toolbar.visibility = View.VISIBLE
+    }
+
+    private fun navigateToLogin() {
+        val navController = findNavController(R.id.nav_host_fragment)
+        val options = NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph, true)
+            .build()
+        navController.navigate(R.id.loginFragment, null, options)
+        toolbar.visibility = View.GONE
     }
 
     private fun initializeViews() {
         drawerLayout = findViewById(R.id.homeDrawerLayout)
-
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-
-        navController = navHostFragment.navController
-
-
-        toolbar.setTitleTextColor(Color.WHITE)
         setSupportActionBar(toolbar)
-
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
     private fun setupNavigation() {
-        setupActionBar()
-        setupDrawerMenu()
-    }
-
-    private fun setupActionBar() {
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_home,
                 R.id.nav_cal_mon_large,
                 R.id.nav_stretch_break,
-                R.id.nav_activity_frequency
+                R.id.nav_activity_frequency,
+                R.id.fragmentAddActivity,
+                R.id.fragmentActivitiesList
             ),
             drawerLayout
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
-    }
 
-    private fun setupDrawerMenu() {
         val navigationView = findViewById<NavigationView>(R.id.navigationView)
-
         val toggle = ActionBarDrawerToggle(
             this,
             drawerLayout,
@@ -116,20 +138,11 @@ class MainActivity : AppCompatActivity() {
             R.string.navigation_drawer_close
         )
 
-        toggle.isDrawerIndicatorEnabled = false
-
-        drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
-            override fun onDrawerOpened(drawerView: View) {
-                hideKeyboard()
-                supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
-            }
-
-            override fun onDrawerClosed(drawerView: View) {
-                supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
-            }
-        })
-
+        drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
 
         toolbar.setNavigationOnClickListener {
             if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
@@ -147,7 +160,7 @@ class MainActivity : AppCompatActivity() {
     private fun handleNavigationItemSelected(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
             R.id.nav_home -> {
-                navController.navigate(R.id.nav_home)
+                navigateToHome()
                 drawerLayout.closeDrawers()
                 return true
             }
@@ -166,21 +179,36 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.closeDrawers()
                 return true
             }
+            R.id.nav_logout -> {
+                logoutUser()
+                drawerLayout.closeDrawers()
+                return true
+            }
             else -> return false
         }
     }
 
     private fun setupActionBarTitleListener() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            supportActionBar?.title = when (destination.id) {
-                R.id.nav_home -> "Acompanhar Atividades"
-                R.id.nav_cal_mon_large -> "Calendário Mensal"
-                R.id.nav_stretch_break -> "Intervalo Ativo"
-                R.id.nav_activity_frequency -> "Controle de Atividade"
-
-                else -> "Plan Pilot"
+            supportActionBar?.apply {
+                title = when (destination.id) {
+                    R.id.nav_home -> "Acompanhar Atividades"
+                    R.id.nav_cal_mon_large -> "Calendário Mensal"
+                    R.id.nav_stretch_break -> "Intervalo Ativo"
+                    R.id.nav_activity_frequency -> "Controle de Atividade"
+                    else -> "Plan Pilot"
+                }
             }
         }
+    }
+
+    private fun logoutUser() {
+        auth.signOut()
+        navigateToLogin()
+    }
+
+    private fun navigateToHome() {
+        navController.navigate(R.id.nav_home)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -206,22 +234,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddActivityFragment() {
-        val fragment = CreateActivityFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-
-        supportActionBar?.title = "Criar atividade"
+        navController.navigate(R.id.fragmentAddActivity)
     }
 
     private fun showFragmentActivitiesList() {
-        val fragment = ListAllActivitiesFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-
-        supportActionBar?.title = "Todas atividades"
+        navController.navigate(R.id.fragmentActivitiesList)
     }
 }

@@ -85,4 +85,17 @@
     <string name="today_activities">Atividades Para Hoje</string>
     <string name="scroll_view_cards_description">Lista de cartões de atividades roláveis</string>
     <string name="day_number">%d</string>
+    <string name="acompanhar_de_atividade">Acompanhar de Atividade</string>
+    <string name="calend_rio_mensal">Calendário Mensal</string>
+    <string name="intervo_ativo">Intervo Ativo</string>
+    <string name="controle_de_atividade">Controle de Atividade</string>
+    <string name="e_mail_do_usu_rio">E-mail do Usuário</string>
+    <string name="sair">Sair</string>
+    <string name="lembrar_senha">Lembrar senha</string>
+    <string name="lembrar_email">Lembrar email</string>
+    <string name="logo">Logo</string>
+    <string name="plan_pilot">Plan Pilot</string>
+    <string name="activities_list">activities_list</string>
+    <string name="registrar">Registrar</string>
+    <string name="cards_atualizadas">Cards atualizadas ;)</string>
 </resources>

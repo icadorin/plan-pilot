@@ -1,14 +1,12 @@
 package com.israel.planpilot.repository
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.israel.planpilot.fireStoreInstance.FirestoreManager
 import com.israel.planpilot.model.ActivityCardModel
 import kotlinx.coroutines.tasks.await
 
 class ActivityCardRepository {
-    private val db: FirebaseFirestore = Firebase.firestore
-    private val collectionRef = db.collection("activityCards")
+    private val firestore = FirestoreManager.getFirestoreInstance()
+    private val collectionRef = firestore.collection("activityCards")
     private var activityCardsCache: MutableList<ActivityCardModel> = mutableListOf()
 
     private var isCacheInitialized = false

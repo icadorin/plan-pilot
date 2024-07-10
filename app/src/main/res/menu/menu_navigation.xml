@@ -2,20 +2,33 @@
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <group android:id="@+id/nav_header">
+        <item
+            android:id="@+id/nav_email"
+            android:title="@string/e_mail_do_usu_rio"
+            android:enabled="false"
+            android:visible="false"
+            android:titleCondensed="E-mail do Usuário" />
+    </group>
+
     <item
         android:id="@+id/nav_home"
-        android:title="Acompanhar de Atividade" />
+        android:title="@string/acompanhar_de_atividade" />
 
     <item
         android:id="@+id/nav_cal_mon_large"
-        android:title="@string/nav_cal_mon_large" />
+        android:title="@string/calend_rio_mensal" />
 
     <item
         android:id="@+id/nav_stretch_break"
-        android:title="@string/nav_stretch_break" />
+        android:title="@string/intervo_ativo" />
 
     <item
         android:id="@+id/nav_activity_frequency"
-        android:title="Controle de Atividades" />
+        android:title="@string/controle_de_atividade" />
+
+    <item
+        android:id="@+id/nav_logout"
+        android:title="@string/sair" />
 
 </menu>

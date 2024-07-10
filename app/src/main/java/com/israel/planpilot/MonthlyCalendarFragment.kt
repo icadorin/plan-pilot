@@ -101,7 +101,6 @@ class MonthlyCalendarFragment : Fragment() {
     private fun setupMainActivity() {
         (activity as MainActivity).apply {
             showReturnToTodayButton()
-            setActionBarIcon(R.drawable.ic_menu_white)
         }
     }
 

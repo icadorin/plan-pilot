@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_home">
+    app:startDestination="@id/loginFragment">
 
     <fragment
         android:id="@+id/nav_home"
@@ -66,5 +66,20 @@
         android:id="@+id/fragmentAddActivity"
         android:name="com.israel.planpilot.activity.CreateActivityFragment"
         tools:layout="@layout/fragment_add_activity" />
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.israel.planpilot.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_global_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_register"
+        android:name="com.israel.planpilot.RegisterFragment"
+        tools:layout="@layout/fragment_register" />
 
 </navigation>

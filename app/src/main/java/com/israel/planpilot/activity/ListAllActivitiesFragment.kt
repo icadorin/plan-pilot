@@ -36,11 +36,6 @@ class ListAllActivitiesFragment : Fragment() {
         return view
     }
 
-    override fun onResume() {
-        super.onResume()
-        (activity as MainActivity).setActionBarIcon(R.drawable.ic_menu_white)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 

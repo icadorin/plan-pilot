@@ -1,15 +1,15 @@
 package com.israel.planpilot.repository
 
 import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.israel.planpilot.fireStoreInstance.FirestoreManager
 import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
 class ActivityRepository {
-    private val firestore = FirebaseFirestore.getInstance()
+    private val firestore = FirestoreManager.getFirestoreInstance()
     private val activityCardRepository = ActivityCardRepository()
     private val activitiesCollection = firestore.collection("activities")
     private var activitiesCache: List<ActivityModel>? = null

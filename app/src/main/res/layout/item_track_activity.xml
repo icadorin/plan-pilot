@@ -12,9 +12,8 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_weight="1"
-        android:gravity="left"
+        android:gravity="start"
         android:layout_marginEnd="16dp"
-        android:text="Activity Name"
         android:maxLength="10" />
 
     <TextView
@@ -23,6 +22,5 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:gravity="end"
-        android:text="10:00 AM" />
+        android:gravity="end" />
 </LinearLayout>

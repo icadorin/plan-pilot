@@ -36,9 +36,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginEnd="16dp"
-        android:contentDescription="@string/return_to_today"
-        android:src="@drawable/ic_view_list"
         android:background="@null"
+        android:contentDescription="@string/activities_list"
+        android:src="@drawable/ic_view_list"
         tools:ignore="TouchTargetSizeCheck" />
 
 </com.google.android.material.appbar.MaterialToolbar>
