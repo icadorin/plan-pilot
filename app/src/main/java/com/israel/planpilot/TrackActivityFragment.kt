@@ -1,6 +1,7 @@
 package com.israel.planpilot
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityCardRepository
@@ -69,6 +71,8 @@ class TrackActivityFragment : Fragment() {
 
     class TrackActivityViewModel : ViewModel() {
 
+        private var userId: String? = null
+
         private val activityRepository = ActivityRepository()
         val activityCardRepository = ActivityCardRepository()
 
@@ -79,14 +83,25 @@ class TrackActivityFragment : Fragment() {
         val activityCards: LiveData<List<ActivityCardModel>> = _activityCards
 
         init {
-            fetchTodayActivities()
-            initializeAndFetchActivityCards()
+
+            userId = FirebaseAuth.getInstance().currentUser?.uid
+
+
+            if (userId.isNullOrEmpty()) {
+                Log.d("TrackActivityViewModel", "UserId is null or empty")
+                userId = null
+            } else {
+                fetchTodayActivities()
+                initializeAndFetchActivityCards()
+            }
         }
 
         private fun fetchTodayActivities() {
             viewModelScope.launch {
-                activityRepository.readTodayActivities { activities ->
-                    _todayActivities.postValue(activities.take(3))
+                userId?.let { id ->
+                    activityRepository.readTodayActivities(id) { activities ->
+                        _todayActivities.postValue(activities.take(3))
+                    }
                 }
             }
         }
@@ -100,7 +115,7 @@ class TrackActivityFragment : Fragment() {
 
         fun refreshActivityCards() {
             viewModelScope.launch {
-                val activityCards = activityCardRepository.getUncompletedActivityCards()
+                val activityCards = activityCardRepository.getUncompletedActivityCards(userId!!)
                 println("Activity cards fetched no ViewModel: ${activityCards.size}")
                 _activityCards.postValue(activityCards)
             }
@@ -115,7 +130,7 @@ class TrackActivityFragment : Fragment() {
 
         fun refreshTodayActivities() {
             viewModelScope.launch {
-                activityRepository.readTodayActivities { activities ->
+                activityRepository.readTodayActivities(userId!!) { activities ->
                     _todayActivities.postValue(activities.take(3))
                 }
             }
@@ -136,12 +151,17 @@ class TrackActivityFragment : Fragment() {
         }
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+            private var userId: String? = null
+
             private val activityNameTextView: TextView = itemView.findViewById(R.id.textViewActivityName)
             private val activityDateTextView: TextView = itemView.findViewById(R.id.textViewActivityDate)
             private val uncheckButton: ImageButton = itemView.findViewById(R.id.buttonUncheck)
             private val checkButton: ImageButton = itemView.findViewById(R.id.buttonCheck)
 
             fun bind(activityCard: ActivityCardModel) {
+                userId = FirebaseAuth.getInstance().currentUser?.uid
+
                 activityNameTextView.text = activityCard.activityName
                 activityDateTextView.text = activityCard.date
 
@@ -155,12 +175,18 @@ class TrackActivityFragment : Fragment() {
             }
 
             private fun updateCompletion(activityCardId: String, completed: Boolean) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        viewModel.activityCardRepository.updateActivityCardCompletion(activityCardId, completed)
-                        viewModel.refreshActivityCards()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                userId?.let { id ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            viewModel.activityCardRepository.updateActivityCardCompletion(
+                                activityCardId,
+                                completed,
+                                id
+                            )
+                            viewModel.refreshActivityCards()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }

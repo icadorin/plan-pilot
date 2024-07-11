@@ -32,8 +32,10 @@ class ActivityCardRepository {
         }
     }
 
-    suspend fun addActivityCard(activityCardModel: ActivityCardModel) {
+    suspend fun addActivityCard(activityCardModel: ActivityCardModel, userId: String) {
         try {
+            activityCardModel.createdBy = userId
+
             val documentRef = collectionRef.document(activityCardModel.id)
             documentRef.set(activityCardModel).await()
             activityCardsCache.add(activityCardModel)
@@ -42,12 +44,12 @@ class ActivityCardRepository {
         }
     }
 
-    fun getUncompletedActivityCards(): List<ActivityCardModel> {
-        return activityCardsCache.filter { it.completed == null }
+    fun getUncompletedActivityCards(userId: String): List<ActivityCardModel> {
+        return activityCardsCache.filter { it.completed == null && it.createdBy == userId }
     }
 
-    fun getAllActivityCards(): List<ActivityCardModel> {
-        return activityCardsCache
+    fun getAllActivityCards(userId: String): List<ActivityCardModel> {
+        return activityCardsCache.filter { it.createdBy == userId }
     }
 
     suspend fun findActivityCardByActivityAndDate(activityId: String, date: String): ActivityCardModel? {
@@ -63,20 +65,27 @@ class ActivityCardRepository {
         }
     }
 
-    suspend fun updateActivityCardCompletion(activityCardId: String, completed: Boolean) {
+    suspend fun updateActivityCardCompletion(activityCardId: String, completed: Boolean, userId: String) {
         try {
             val cardRef = collectionRef.document(activityCardId)
 
-            cardRef.update("completed", completed).await()
+            val cardSnapshot = cardRef.get().await()
+            val card = cardSnapshot.toObject(ActivityCardModel::class.java)
 
-            val updatedCardSnapshot = cardRef.get().await()
-            val updatedCard = updatedCardSnapshot.toObject(ActivityCardModel::class.java)
+            if (card?.createdBy == userId) {
+                cardRef.update("completed", completed).await()
 
-            updatedCard?.let {
-                val index = activityCardsCache.indexOfFirst { card -> card.id == it.id }
-                if (index != -1) {
-                    activityCardsCache[index] = it
+                val updatedCardSnapshot = cardRef.get().await()
+                val updatedCard = updatedCardSnapshot.toObject(ActivityCardModel::class.java)
+
+                updatedCard?.let {
+                    val index = activityCardsCache.indexOfFirst { it.id == updatedCard.id }
+                    if (index != -1) {
+                        activityCardsCache[index] = updatedCard
+                    }
                 }
+            } else {
+                println("Usuário não tem permissão para atualizar este card de atividade.")
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -84,11 +93,21 @@ class ActivityCardRepository {
         }
     }
 
-    suspend fun deleteActivityCardsByActivityId(activityId: String) {
-        val querySnapshot = collectionRef.whereEqualTo("activityId", activityId).get().await()
-        for (document in querySnapshot.documents) {
-            collectionRef.document(document.id).delete().await()
-            activityCardsCache.removeIf { it.id == document.id }
+    suspend fun deleteActivityCardsByActivityId(activityId: String, userId: String) {
+        try {
+            val querySnapshot = collectionRef
+                .whereEqualTo("activityId", activityId)
+                .whereEqualTo("createdBy", userId)
+                .get()
+                .await()
+
+            for (document in querySnapshot.documents) {
+                collectionRef.document(document.id).delete().await()
+                activityCardsCache.removeIf { it.id == document.id }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("Erro ao excluir cards de atividade do Firestore: ${e.message}")
         }
     }
 }

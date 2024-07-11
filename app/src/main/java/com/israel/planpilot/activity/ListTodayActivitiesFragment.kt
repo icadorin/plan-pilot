@@ -11,7 +11,7 @@ import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.israel.planpilot.MainActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.R
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityRepository
@@ -24,6 +24,9 @@ import java.time.LocalDate
 import java.util.Locale
 
 class ListTodayActivitiesFragment : Fragment() {
+
+    private val userId = FirebaseAuth.getInstance().currentUser?.uid
+
     private lateinit var activityRepository: ActivityRepository
     private lateinit var activityListView: ListView
     private lateinit var adapter: ArrayAdapter<ActivityModel>
@@ -94,83 +97,92 @@ class ListTodayActivitiesFragment : Fragment() {
 
         val selectedDate = LocalDate.of(selectedYear!!, selectedMonth!!, selectedDay!!)
 
-        activityRepository.readAllActivities { activities ->
-            val filteredActivities = activities.filter { activity ->
-                val startDate = LocalDate.parse(activity.startDate)
-                val endDate = LocalDate.parse(activity.endDate)
-                val activityWeekDays = activity.weekDays
+        userId?.let { id ->
+            activityRepository.readAllActivities(id) { activities ->
+                val filteredActivities = activities.filter { activity ->
+                    val startDate = LocalDate.parse(activity.startDate)
+                    val endDate = LocalDate.parse(activity.endDate)
+                    val activityWeekDays = activity.weekDays
 
-                val isStartDate = selectedDate.isEqual(startDate)
-                val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
-                val isEndDate = selectedDate.isEqual(endDate)
+                    val isStartDate = selectedDate.isEqual(startDate)
+                    val isBetween =
+                        selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
+                    val isEndDate = selectedDate.isEqual(endDate)
 
-                val isDateInRange = isStartDate || isBetween || isEndDate
+                    val isDateInRange = isStartDate || isBetween || isEndDate
 
-                val isDayOfWeekInActivityWeekDays =
-                    activityWeekDays?.contains(
-                        selectedDate.dayOfWeek.toString().lowercase(
-                            Locale.ROOT
-                        )
-                    ) == true
+                    val isDayOfWeekInActivityWeekDays =
+                        activityWeekDays?.contains(
+                            selectedDate.dayOfWeek.toString().lowercase(
+                                Locale.ROOT
+                            )
+                        ) == true
 
-                isDateInRange && isDayOfWeekInActivityWeekDays
-            }
-
-            adapter = object : ArrayAdapter<ActivityModel>(
-                context,
-                R.layout.activity_item,
-                filteredActivities
-            ) {
-                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                    val view = convertView
-                        ?: LayoutInflater
-                            .from(context)
-                            .inflate(R.layout.activity_item, parent, false)
-
-                    val activityName = view.findViewById<TextView>(R.id.activityName)
-                    val activityStartDate = view.findViewById<TextView>(R.id.activityStartDate)
-                    val activityEndDate = view.findViewById<TextView>(R.id.activityEndDate)
-
-                    val activity = getItem(position)
-                    activityName.text = activity?.name
-
-                    val startDate = LocalDate.parse(activity?.startDate)
-                    val endDate = LocalDate.parse(activity?.endDate)
-                    activityStartDate.text = DateFormatterUtils.formatLocalDateToString(startDate)
-                    activityEndDate.text = DateFormatterUtils.formatLocalDateToString(endDate)
-
-                    return view
+                    isDateInRange && isDayOfWeekInActivityWeekDays
                 }
-            }
-            activityListView.adapter = adapter
 
-            activityListView.setOnItemLongClickListener { _, _, position, _ ->
-                val activity = adapter.getItem(position)
-                AlertDialog.Builder(context)
-                    .setTitle("Opções")
-                    .setMessage("Escolha uma opção para a atividade ${activity?.name}")
-                    .setPositiveButton("Deletar") { _, _ ->
-                        CoroutineScope(Dispatchers.IO).launch {
-                            activityRepository.deleteActivity(activity?.id.toString())
-                            withContext(Dispatchers.Main) {
-                                reloadActivities()
+                adapter = object : ArrayAdapter<ActivityModel>(
+                    context,
+                    R.layout.activity_item,
+                    filteredActivities
+                ) {
+                    override fun getView(
+                        position: Int,
+                        convertView: View?,
+                        parent: ViewGroup
+                    ): View {
+                        val view = convertView
+                            ?: LayoutInflater
+                                .from(context)
+                                .inflate(R.layout.activity_item, parent, false)
+
+                        val activityName = view.findViewById<TextView>(R.id.activityName)
+                        val activityStartDate = view.findViewById<TextView>(R.id.activityStartDate)
+                        val activityEndDate = view.findViewById<TextView>(R.id.activityEndDate)
+
+                        val activity = getItem(position)
+                        activityName.text = activity?.name
+
+                        val startDate = LocalDate.parse(activity?.startDate)
+                        val endDate = LocalDate.parse(activity?.endDate)
+                        activityStartDate.text =
+                            DateFormatterUtils.formatLocalDateToString(startDate)
+                        activityEndDate.text = DateFormatterUtils.formatLocalDateToString(endDate)
+
+                        return view
+                    }
+                }
+                activityListView.adapter = adapter
+
+                activityListView.setOnItemLongClickListener { _, _, position, _ ->
+                    val activity = adapter.getItem(position)
+                    AlertDialog.Builder(context)
+                        .setTitle("Opções")
+                        .setMessage("Escolha uma opção para a atividade ${activity?.name}")
+                        .setPositiveButton("Deletar") { _, _ ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                activityRepository.deleteActivity(activity?.id.toString(), id)
+                                withContext(Dispatchers.Main) {
+                                    reloadActivities()
+                                }
                             }
                         }
-                    }
-                    .setNegativeButton("Editar") { _, _ ->
-                        val selectedActivity = adapter.getItem(position)
-                        val fragment = EditActivityFragment().apply {
-                            arguments = Bundle().apply {
-                                putString("activityId", selectedActivity?.id.toString())
+                        .setNegativeButton("Editar") { _, _ ->
+                            val selectedActivity = adapter.getItem(position)
+                            val fragment = EditActivityFragment().apply {
+                                arguments = Bundle().apply {
+                                    putString("activityId", selectedActivity?.id.toString())
+                                }
                             }
+                            val transaction =
+                                requireActivity().supportFragmentManager.beginTransaction()
+                            transaction.replace(R.id.nav_host_fragment, fragment)
+                            transaction.addToBackStack(null)
+                            transaction.commit()
                         }
-                        val transaction = requireActivity().supportFragmentManager.beginTransaction()
-                        transaction.replace(R.id.nav_host_fragment, fragment)
-                        transaction.addToBackStack(null)
-                        transaction.commit()
-                    }
-                    .show()
-                true
+                        .show()
+                    true
+                }
             }
         }
     }
@@ -182,31 +194,34 @@ class ListTodayActivitiesFragment : Fragment() {
 
         val selectedDate = LocalDate.of(selectedYear!!, selectedMonth!!, selectedDay!!)
 
-        activityRepository.readAllActivities { activities ->
-            val filteredActivities = activities.filter { activity ->
-                val startDate = LocalDate.parse(activity.startDate)
-                val endDate = LocalDate.parse(activity.endDate)
-                val activityWeekDays = activity.weekDays
+        userId?.let { id ->
+            activityRepository.readAllActivities(id) { activities ->
+                val filteredActivities = activities.filter { activity ->
+                    val startDate = LocalDate.parse(activity.startDate)
+                    val endDate = LocalDate.parse(activity.endDate)
+                    val activityWeekDays = activity.weekDays
 
-                val isStartDate = selectedDate.isEqual(startDate)
-                val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
-                val isEndDate = selectedDate.isEqual(endDate)
+                    val isStartDate = selectedDate.isEqual(startDate)
+                    val isBetween =
+                        selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
+                    val isEndDate = selectedDate.isEqual(endDate)
 
-                val isDateInRange = isStartDate || isBetween || isEndDate
+                    val isDateInRange = isStartDate || isBetween || isEndDate
 
-                val isDayOfWeekInActivityWeekDays =
-                    activityWeekDays?.contains(
-                        selectedDate.dayOfWeek.toString().lowercase(
-                            Locale.ROOT
-                        )
-                    ) == true
+                    val isDayOfWeekInActivityWeekDays =
+                        activityWeekDays?.contains(
+                            selectedDate.dayOfWeek.toString().lowercase(
+                                Locale.ROOT
+                            )
+                        ) == true
 
-                isDateInRange && isDayOfWeekInActivityWeekDays
+                    isDateInRange && isDayOfWeekInActivityWeekDays
+                }
+
+                adapter.clear()
+                adapter.addAll(filteredActivities)
+                adapter.notifyDataSetChanged()
             }
-
-            adapter.clear()
-            adapter.addAll(filteredActivities)
-            adapter.notifyDataSetChanged()
         }
     }
 }

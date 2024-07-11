@@ -12,6 +12,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,21 +25,20 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.israel.planpilot.R
+import com.israel.planpilot.alarm.AlarmReceiver
+import com.israel.planpilot.card.CreateActivityCard
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityRepository
-import com.israel.planpilot.alarm.AlarmReceiver
-import com.israel.planpilot.R
-import com.israel.planpilot.card.CreateActivityCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import kotlin.text.*
 
 object ActivityUtils {
 
@@ -206,6 +206,12 @@ object ActivityUtils {
         val alarmToneNameTextView = view.findViewById<TextView>(R.id.alarmToneName)
         val activityRepository = context?.let { ActivityRepository() }
 
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            Log.d("saveActivity", "UserId is null or empty")
+            return
+        }
+
         try {
             val name = nameActivity.text.toString().trim()
             if (TextUtils.isEmpty(name)) {
@@ -243,7 +249,7 @@ object ActivityUtils {
             scope.launch {
                 try {
                     withContext(Dispatchers.IO) {
-                        activityRepository?.createActivity(activity)
+                        activityRepository?.createActivity(activity, userId)
                     }
 
                     withContext(Dispatchers.Main) {
@@ -257,9 +263,7 @@ object ActivityUtils {
                     }
 
                     val createActivityCard = CreateActivityCard()
-                    scope.async(Dispatchers.IO) {
-                        createActivityCard.createCardsForCurrentDate()
-                    }.await()
+                    createActivityCard.createCardsForCurrentDate()
 
                     if (alarmActivated && alarmTimestamp != null) {
                         setAlarm(
@@ -302,77 +306,80 @@ object ActivityUtils {
         context: Context?
     ) {
         val repository = context?.let { ActivityRepository() }
+
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            Log.d("edtActivity", "UserId is null or empty")
+            return
+        }
+
         try {
             val name = nameActivity.text.toString().trim()
             if (TextUtils.isEmpty(name)) {
                 nameActivity.error = "Nome da atividade é obrigatório"
+                return
             } else if (selectedWeekDays.isNullOrEmpty()) {
-                Toast.makeText(
-                    context,
-                    "Selecione pelo menos um dia da semana",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                val alarmTriggerTime = timePicker.text.toString()
-                val alarmToneString = alarmToneSelected?.toString() ?: tone
+                Toast.makeText(context, "Selecione pelo menos um dia da semana", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-                val currentTime = SimpleDateFormat(
-                    "HH:mm",
-                    Locale.getDefault()
-                ).format(Date())
+            val alarmTriggerTime = timePicker.text.toString()
+            val alarmToneString = alarmToneSelected?.toString() ?: tone
 
-                val alarmActivated = alarmActivated
-                println("TOM DE ALARM: $alarmToneString")
-                val activity = ActivityModel(
-                    id = activityId,
-                    name = name,
-                    day = selectedDay,
-                    month = selectedMonth,
-                    year = selectedYear,
-                    time = currentTime,
-                    startDate = startDate,
-                    endDate = endDate,
-                    contactForMessage = null,
-                    alarmTriggerTime = alarmTriggerTime,
-                    alarmActivated = alarmActivated,
-                    alarmTone = alarmToneString,
-                    category = null,
-                    weekDays = selectedWeekDays
-                )
+            val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+            val alarmActivated = alarmActivated
 
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        repository?.updateActivity(activity)
-                        if (alarmActivated && alarmTimestamp != null) {
-                            setAlarm(
-                                name,
-                                alarmToneString,
-                                context,
-                                startDate,
-                                endDate,
-                                selectedWeekDays,
-                                alarmTriggerTime
-                            )
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        withContext(Dispatchers.Main) {
-                            Snackbar.make(
-                                view,
-                                "Erro ao atualizar a atividade: ${e.message}",
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
+            val activity = ActivityModel(
+                id = activityId,
+                name = name,
+                day = selectedDay,
+                month = selectedMonth,
+                year = selectedYear,
+                time = currentTime,
+                startDate = startDate,
+                endDate = endDate,
+                contactForMessage = null,
+                alarmTriggerTime = alarmTriggerTime,
+                alarmActivated = alarmActivated,
+                alarmTone = alarmToneString,
+                category = null,
+                weekDays = selectedWeekDays
+            )
+
+            scope.launch(Dispatchers.IO) {
+                try {
+                    repository?.updateActivity(activity, userId)
+                    if (alarmActivated && alarmTimestamp != null) {
+                        setAlarm(
+                            name,
+                            alarmToneString,
+                            context,
+                            startDate,
+                            endDate,
+                            selectedWeekDays,
+                            alarmTriggerTime
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Snackbar.make(
+                            view,
+                            "Erro ao atualizar a atividade: ${e.message}",
+                            Snackbar.LENGTH_LONG
+                        ).show()
                     }
                 }
-                withContext(Dispatchers.Main) {
-                    Snackbar.make(
-                        view,
-                        "Atividade atualizada com sucesso!",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
             }
+
+            withContext(Dispatchers.Main) {
+                Snackbar.make(
+                    view,
+                    "Atividade atualizada com sucesso!",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
         }

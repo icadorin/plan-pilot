@@ -8,5 +8,6 @@ data class ActivityCardModel(
     var activityName: String = "",
     var alarmTriggerTime: String = "",
     var completed: Boolean? = null,
-    var date: String? = null
+    var date: String? = null,
+    var createdBy: String? = null
 )

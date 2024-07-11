@@ -1,6 +1,8 @@
 package com.israel.planpilot.card
 
 
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityCardRepository
@@ -11,12 +13,22 @@ import javax.inject.Inject
 
 class CreateActivityCard @Inject constructor() {
 
+    private var userId: String? = null
+
     suspend fun createCardsForCurrentDate() {
+        userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (userId.isNullOrEmpty()) {
+            Log.d("CreateActivityCard", "UserId is null or empty")
+            return
+        }
+
         val activityRepository = ActivityRepository()
         val activityCardRepository = ActivityCardRepository()
 
         val today = LocalDate.now()
-        val activities = activityRepository.getAllActivities()
+
+        val activities = activityRepository.getAllActivities(userId!!)
         val filteredActivities = filterActivities(activities)
 
         filteredActivities.forEach { activity ->
@@ -44,7 +56,7 @@ class CreateActivityCard @Inject constructor() {
             }
 
             newCard?.let {
-                activityCardRepository.addActivityCard(it)
+                activityCardRepository.addActivityCard(it, userId!!)
             }
         } else {
             println("Card existente encontrado para atividade: ${activity.name} na data: $today")

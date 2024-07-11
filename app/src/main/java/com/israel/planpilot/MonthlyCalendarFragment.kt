@@ -46,6 +46,7 @@ class MonthlyCalendarFragment : Fragment() {
     private var coroutineScope = CoroutineScope(Dispatchers.Main)
     private var allActivities = listOf<ActivityModel>()
     private var activitiesHash: Int? = null
+    private var userId: String? = null
 
     private inner class DayItem(
         val day: String,
@@ -65,6 +66,7 @@ class MonthlyCalendarFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view, savedInstanceState)
         coroutineScope = CoroutineScope(Dispatchers.Main)
         activityRepository = ActivityRepository()
@@ -72,9 +74,11 @@ class MonthlyCalendarFragment : Fragment() {
         (activity as MainActivity).showReturnToTodayButton()
         setupReturnToTodayButton()
 
-        activityRepository.readAllActivities { activities ->
-            allActivities = activities
-            updateCalendarData()
+        userId?.let { id ->
+            activityRepository.readAllActivities(id) { activities ->
+                allActivities = activities
+                updateCalendarData()
+            }
         }
     }
 
@@ -114,6 +118,7 @@ class MonthlyCalendarFragment : Fragment() {
     }
 
     private fun initCalendarViewPager(view: View) {
+
         viewPager = view.findViewById(R.id.viewPager)
         selectedDate = Calendar.getInstance().time
         viewPager.setPageTransformer(CustomPageTransformer())
@@ -168,10 +173,13 @@ class MonthlyCalendarFragment : Fragment() {
     }
 
     private fun getUpdatedActivities(onSuccess: (List<ActivityModel>) -> Unit) {
+
         if (allActivities.isEmpty()) {
-            activityRepository.readAllActivities { activities ->
-                allActivities = activities
-                onSuccess(activities)
+            userId?.let { id ->
+                activityRepository.readAllActivities(id) { activities ->
+                    allActivities = activities
+                    onSuccess(activities)
+                }
             }
         } else {
             onSuccess(allActivities)

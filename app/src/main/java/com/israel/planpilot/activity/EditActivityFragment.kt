@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.MainActivity
 import com.israel.planpilot.R
 import com.israel.planpilot.repository.ActivityRepository
@@ -31,6 +32,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class EditActivityFragment : Fragment() {
+
+    private val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     private var selectedYear: Int = 0
     private var selectedMonth: Int = 0
@@ -283,7 +286,9 @@ class EditActivityFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val activity = withContext(Dispatchers.IO) {
-                    activityRepository.getActivityById(activityId)
+                    userId?.let { id ->
+                        activityRepository.getActivityById(activityId, id)
+                    }
                 }
                 activity?.let {
                     nameActivity.setText(it.name)
@@ -323,7 +328,9 @@ class EditActivityFragment : Fragment() {
 
                     withContext(Dispatchers.Main) {
                         selectedWeekDays.clear()
-                        it.weekDays?.let { it1 -> selectedWeekDays.addAll(it1) }
+                        it.weekDays?.let { weekDays ->
+                            selectedWeekDays.addAll(weekDays)
+                        }
 
                         val buttonDayMap = mapOf(
                             btnSunday to "sunday",
@@ -356,7 +363,9 @@ class EditActivityFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val activity = withContext(Dispatchers.IO) {
-                    activityRepository.getActivityById(activityId)
+                    userId?.let { id ->
+                        activityRepository.getActivityById(activityId, id)
+                    }
                 }
                 activity?.let {
                     val alarmToneUri = it.alarmTone

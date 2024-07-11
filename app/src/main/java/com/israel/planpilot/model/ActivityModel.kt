@@ -16,5 +16,6 @@ data class ActivityModel(
     val alarmActivated: Boolean = false,
     val alarmTone: String? = null,
     val category: String? = null,
-    val weekDays: List<String>? = null
+    val weekDays: List<String>? = null,
+    var createdBy: String? = null
 )

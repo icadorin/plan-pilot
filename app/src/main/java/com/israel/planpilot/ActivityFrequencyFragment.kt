@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.repository.ActivityCardRepository
 import com.israel.planpilot.utils.Constants
 import kotlinx.coroutines.launch
@@ -107,6 +108,9 @@ class ActivityFrequencyFragment : Fragment() {
     data class DayInfo(val dayOfMonth: Int, val drawable: Drawable?)
 
     private fun getDaysInMonth(): List<DayInfo> {
+
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
         val days = mutableListOf<DayInfo>()
         val cal = Calendar.getInstance()
         cal.timeInMillis = calendar.timeInMillis
@@ -120,46 +124,54 @@ class ActivityFrequencyFragment : Fragment() {
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-        val activityCards = activityCardRepository.getAllActivityCards()
-        println("Total de activityCards recebidos: ${activityCards.size}")
+        userId?.let { id ->
+            val activityCards = activityCardRepository.getAllActivityCards(id)
+            println("Total de activityCards recebidos: ${activityCards.size}")
 
-        repeat(lastDayOfMonth) { day ->
-            val dayOfMonth = day + 1
-            val calDay = Calendar.getInstance()
-            calDay.timeInMillis = calendar.timeInMillis
-            calDay.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+            repeat(lastDayOfMonth) { day ->
+                val dayOfMonth = day + 1
+                val calDay = Calendar.getInstance()
+                calDay.timeInMillis = calendar.timeInMillis
+                calDay.set(Calendar.DAY_OF_MONTH, dayOfMonth)
 
-            val completedCards = activityCards.filter { card ->
-                val cardDate = card.date?.let { dateFormat.parse(it) }?.let {
-                    Calendar.getInstance().apply { time = it }
+                val completedCards = activityCards.filter { card ->
+                    val cardDate = card.date?.let { dateFormat.parse(it) }?.let {
+                        Calendar.getInstance().apply { time = it }
+                    }
+
+                    cardDate?.let {
+                        calDay.get(Calendar.DAY_OF_MONTH) == it.get(Calendar.DAY_OF_MONTH) &&
+                                calDay.get(Calendar.MONTH) == it.get(Calendar.MONTH) &&
+                                calDay.get(Calendar.YEAR) == it.get(Calendar.YEAR)
+                    } ?: false
                 }
 
-                cardDate?.let {
-                    calDay.get(Calendar.DAY_OF_MONTH) == it.get(Calendar.DAY_OF_MONTH) &&
-                            calDay.get(Calendar.MONTH) == it.get(Calendar.MONTH) &&
-                            calDay.get(Calendar.YEAR) == it.get(Calendar.YEAR)
-                } ?: false
+                val isCompleted = completedCards.any { it.completed == true }
+                val isNotCompleted = completedCards.any { it.completed == false }
+
+                val drawableDefault: Drawable? =
+                    ContextCompat.getDrawable(requireContext(), R.drawable.highlight_default)
+                val drawableCompleted: Drawable? =
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.highlight_color_completed
+                    )
+                val drawableNotCompleted: Drawable? =
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.highlight_color_not_completed
+                    )
+
+                var drawable: Drawable? = drawableDefault
+
+                if (isCompleted) {
+                    drawable = drawableCompleted
+                } else if (isNotCompleted) {
+                    drawable = drawableNotCompleted
+                }
+
+                days.add(DayInfo(dayOfMonth, drawable))
             }
-
-            val isCompleted = completedCards.any { it.completed == true }
-            val isNotCompleted = completedCards.any { it.completed == false }
-
-            val drawableDefault: Drawable? =
-                ContextCompat.getDrawable(requireContext(), R.drawable.highlight_default)
-            val drawableCompleted: Drawable? =
-                ContextCompat.getDrawable(requireContext(), R.drawable.highlight_color_completed)
-            val drawableNotCompleted: Drawable? =
-                ContextCompat.getDrawable(requireContext(), R.drawable.highlight_color_not_completed)
-
-            var drawable: Drawable? = drawableDefault
-
-            if (isCompleted) {
-                drawable = drawableCompleted
-            } else if (isNotCompleted) {
-                drawable = drawableNotCompleted
-            }
-
-            days.add(DayInfo(dayOfMonth, drawable))
         }
 
         return days
