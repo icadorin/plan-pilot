@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityRepository
 import com.israel.planpilot.utils.Constants.CELLS_PER_PAGE
@@ -61,6 +62,7 @@ class MonthlyCalendarFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_large_mon_cal, container, false)
         currentDate = Calendar.getInstance()
+        userId = FirebaseAuth.getInstance().currentUser?.uid
         initViews(view)
         return view
     }
@@ -165,7 +167,8 @@ class MonthlyCalendarFragment : Fragment() {
                 if (newHash!= activitiesHash) {
                     activitiesHash = newHash
                     allActivities = activities
-                    val diffResult = DiffUtil.calculateDiff(ActivitiesDiffCallback(allActivities, allActivities))
+                    val diffResult = DiffUtil.
+                        calculateDiff(ActivitiesDiffCallback(allActivities, allActivities))
                     diffResult.dispatchUpdatesTo((viewPager.adapter as CalendarPagerAdapter))
                 }
             }
