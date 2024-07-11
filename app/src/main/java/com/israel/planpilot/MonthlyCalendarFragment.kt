@@ -173,16 +173,17 @@ class MonthlyCalendarFragment : Fragment() {
     }
 
     private fun getUpdatedActivities(onSuccess: (List<ActivityModel>) -> Unit) {
-
         if (allActivities.isEmpty()) {
             userId?.let { id ->
                 activityRepository.readAllActivities(id) { activities ->
                     allActivities = activities
                     onSuccess(activities)
+                    println("Atividades recuperadas: $activities")
                 }
             }
         } else {
             onSuccess(allActivities)
+            println("Atividades já em cache: $allActivities")
         }
     }
 
@@ -456,8 +457,7 @@ class MonthlyCalendarFragment : Fragment() {
                 CoroutineScope(Dispatchers.Main).launch {
                     val selectedDate = LocalDate.of(dayItem.year, dayItem.month, dayItem.day.toInt())
                     val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
-
-                    println("Escrevendo dados!!!!")
+                    println("Atividades para a data $selectedDate: $activitiesForSelectedDate")
 
                     for (i in activitiesForSelectedDate.indices) {
                         val activity = activitiesForSelectedDate[i]

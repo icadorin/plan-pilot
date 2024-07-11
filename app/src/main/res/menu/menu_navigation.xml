@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/nav_home"
-        android:title="@string/acompanhar_de_atividade" />
+        android:title="@string/acompanhar_atividade" />
 
     <item
         android:id="@+id/nav_cal_mon_large"

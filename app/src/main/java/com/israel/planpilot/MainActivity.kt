@@ -47,8 +47,25 @@ class MainActivity : AppCompatActivity() {
         toolbar = findViewById(R.id.custom_toolbar)
         setSupportActionBar(toolbar)
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navHostFragment = supportFragmentManager.
+            findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+
         navController = navHostFragment.navController
+
+        drawerLayout = findViewById(R.id.homeDrawerLayout)
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.nav_home,
+                R.id.nav_cal_mon_large,
+                R.id.nav_stretch_break,
+                R.id.nav_activity_frequency,
+                R.id.fragmentAddActivity,
+                R.id.fragmentActivitiesList,
+                R.id.fragmentActivityList
+            ),
+            drawerLayout
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
@@ -58,7 +75,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_activity_frequency,
                 R.id.fragmentAddActivity,
                 R.id.fragmentActivitiesList,
-                R.id.fragmentActivityList-> {
+                R.id.fragmentActivityList -> {
                     toolbar.visibility = View.VISIBLE
                 }
                 else -> {
@@ -67,13 +84,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             supportActionBar?.apply {
-                title = when (destination.id) {
-                    R.id.nav_home -> "Acompanhar Atividades"
-                    R.id.nav_cal_mon_large -> "Calendário Mensal"
-                    R.id.nav_stretch_break -> "Intervalo Ativo"
-                    R.id.nav_activity_frequency -> "Controle de Atividade"
-                    else -> "Plan Pilot"
-                }
+                title = destination.label?.toString() ?: "Plan Pilot"
             }
         }
 
@@ -262,3 +273,4 @@ class MainActivity : AppCompatActivity() {
         navController.navigate(R.id.fragmentActivitiesList)
     }
 }
+
