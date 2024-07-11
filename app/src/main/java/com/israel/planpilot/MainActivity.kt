@@ -50,6 +50,33 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.nav_home,
+                R.id.nav_cal_mon_large,
+                R.id.nav_stretch_break,
+                R.id.nav_activity_frequency,
+                R.id.fragmentAddActivity,
+                R.id.fragmentActivitiesList,
+                R.id.fragmentActivityList-> {
+                    toolbar.visibility = View.VISIBLE
+                }
+                else -> {
+                    toolbar.visibility = View.GONE
+                }
+            }
+
+            supportActionBar?.apply {
+                title = when (destination.id) {
+                    R.id.nav_home -> "Acompanhar Atividades"
+                    R.id.nav_cal_mon_large -> "Calendário Mensal"
+                    R.id.nav_stretch_break -> "Intervalo Ativo"
+                    R.id.nav_activity_frequency -> "Controle de Atividade"
+                    else -> "Plan Pilot"
+                }
+            }
+        }
+
         authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             if (user == null) {
@@ -57,9 +84,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 initializeViews()
                 setupMainActivity()
-                if (navController.currentDestination?.id != R.id.nav_home) {
-                    navigateToHome()
-                }
             }
         }
     }
@@ -67,6 +91,10 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         auth.addAuthStateListener(authStateListener)
+
+        if (auth.currentUser != null && navController.currentDestination?.id != R.id.nav_home) {
+            navigateToHome()
+        }
     }
 
     override fun onStop() {
@@ -91,13 +119,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupNavigation()
-        setupActionBarTitleListener()
 
         lifecycleScope.launch {
             createActivityCard.createCardsForCurrentDate()
         }
-
-        toolbar.visibility = View.VISIBLE
     }
 
     private fun navigateToLogin() {
@@ -111,7 +136,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeViews() {
         drawerLayout = findViewById(R.id.homeDrawerLayout)
-        setSupportActionBar(toolbar)
     }
 
     private fun setupNavigation() {
@@ -122,7 +146,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_stretch_break,
                 R.id.nav_activity_frequency,
                 R.id.fragmentAddActivity,
-                R.id.fragmentActivitiesList
+                R.id.fragmentActivitiesList,
+                R.id.fragmentActivityList
             ),
             drawerLayout
         )
@@ -138,11 +163,21 @@ class MainActivity : AppCompatActivity() {
             R.string.navigation_drawer_close
         )
 
-        drawerLayout.addDrawerListener(toggle)
+        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
+
+            override fun onDrawerOpened(drawerView: View) {
+                hideKeyboard()
+            }
+
+            override fun onDrawerClosed(drawerView: View) {}
+
+            override fun onDrawerStateChanged(newState: Int) {}
+        })
+
         toggle.syncState()
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white)
 
         toolbar.setNavigationOnClickListener {
             if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
@@ -185,20 +220,6 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
             else -> return false
-        }
-    }
-
-    private fun setupActionBarTitleListener() {
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            supportActionBar?.apply {
-                title = when (destination.id) {
-                    R.id.nav_home -> "Acompanhar Atividades"
-                    R.id.nav_cal_mon_large -> "Calendário Mensal"
-                    R.id.nav_stretch_break -> "Intervalo Ativo"
-                    R.id.nav_activity_frequency -> "Controle de Atividade"
-                    else -> "Plan Pilot"
-                }
-            }
         }
     }
 

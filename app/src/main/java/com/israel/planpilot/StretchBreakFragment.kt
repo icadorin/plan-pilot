@@ -214,6 +214,10 @@ class StretchBreakFragment : Fragment() {
 
     private fun updateUI() {
 
+        if (!isAdded) {
+            return
+        }
+
         if (viewModel.isWorking) {
             tvTimer.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_default))
         } else if (viewModel.isResting) {

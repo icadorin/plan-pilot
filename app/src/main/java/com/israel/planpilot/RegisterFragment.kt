@@ -64,16 +64,18 @@ class RegisterFragment : Fragment() {
                 progressBar.visibility = View.GONE
 
                 if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    user?.let {
-                        val userModel = UserModel(it.uid, name, email)
-                        userRepository.addUser(userModel, it.uid).addOnSuccessListener {
-                            sendEmailVerification()
-                            Toast.makeText(requireContext(), "Registro bem-sucedido. Verifique seu e-mail para confirmação.", Toast.LENGTH_SHORT).show()
-                        }.addOnFailureListener { e ->
-                            Toast.makeText(requireContext(), "Erro ao adicionar usuário", Toast.LENGTH_SHORT).show()
-                            Log.e("RegisterFragment", "Erro ao adicionar usuário", e)
-                        }
+                    val userModel = UserModel(auth.uid ?: "", name, email)
+                    userRepository.addUser(userModel, auth.uid ?: "").addOnSuccessListener {
+                        sendEmailVerification()
+                        Toast.makeText(requireContext(), "Registro bem-sucedido. Verifique seu e-mail para confirmação.", Toast.LENGTH_SHORT).show()
+
+                        editTextName.text.clear()
+                        editTextEmail.text.clear()
+                        editTextPassword.text.clear()
+                        editTextConfirmPassword.text.clear()
+                    }.addOnFailureListener { e ->
+                        Toast.makeText(requireContext(), "Erro ao adicionar usuário", Toast.LENGTH_SHORT).show()
+                        Log.e("RegisterFragment", "Erro ao adicionar usuário", e)
                     }
                 } else {
                     handleRegisterError(task.exception)

@@ -35,7 +35,6 @@
         android:minHeight="48dp"
         android:autofillHints="" />
 
-    <!-- LinearLayout para CheckBox "Lembrar Email" -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -66,17 +65,23 @@
 
     </LinearLayout>
 
+    <!-- Espaçamento reservado para o ProgressBar -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:visibility="gone" />
 
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="70sp"
+        android:layout_marginTop="45dp"
         android:text="@string/login"
         android:textColor="@color/white"
         android:background="@drawable/button_background"
@@ -86,6 +91,7 @@
         android:id="@+id/btnCreateAccount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="@string/create_account"
         android:textColor="@color/white"
         android:background="@drawable/button_background"
