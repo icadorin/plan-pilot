@@ -32,6 +32,24 @@ class ActivityCardRepository {
         }
     }
 
+    suspend fun fetchUncompletedActivityCardsFromFirestore(userId: String): List<ActivityCardModel> {
+        return try {
+            val querySnapshot = collectionRef
+                .whereEqualTo("createdBy", userId)
+                .whereEqualTo("completed", null) // Filtrando apenas os cards não completados
+                .get()
+                .await()
+
+            querySnapshot.documents.mapNotNull {
+                it.toObject(ActivityCardModel::class.java)
+            }
+        } catch (e: Exception) {
+            println("Erro ao buscar activityCards do Firestore: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
+    }
+
     suspend fun addActivityCard(activityCardModel: ActivityCardModel, userId: String) {
         try {
             activityCardModel.createdBy = userId

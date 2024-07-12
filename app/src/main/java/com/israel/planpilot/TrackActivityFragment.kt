@@ -52,6 +52,7 @@ class TrackActivityFragment : Fragment() {
 
         val recyclerViewCards: RecyclerView = view.findViewById(R.id.recyclerViewCards)
         recyclerViewCards.layoutManager = LinearLayoutManager(context)
+
         activityCardAdapter = ActivityCardAdapter(viewModel)
         recyclerViewCards.adapter = activityCardAdapter
     }
@@ -67,6 +68,7 @@ class TrackActivityFragment : Fragment() {
         viewModel.activityCards.observe(viewLifecycleOwner) { activityCards ->
             activityCards?.let {
                 activityCardAdapter.submitList(it)
+                Log.d("TrackActivityFragment", "Today cards: $it")
             }
         }
     }
@@ -123,16 +125,19 @@ class TrackActivityFragment : Fragment() {
             userId?.let { id ->
                 viewModelScope.launch {
                     activityCardRepository.initializeCache(id)
-                    refreshActivityCards()
+                    refreshActivityCards(id)
                 }
             }
         }
 
-        fun refreshActivityCards() {
-            userId?.let { id ->
-                viewModelScope.launch {
-                    val activityCards = activityCardRepository.getUncompletedActivityCards(id)
+
+        fun refreshActivityCards(userId: String) {
+            viewModelScope.launch {
+                try {
+                    val activityCards = activityCardRepository.fetchUncompletedActivityCardsFromFirestore(userId)
                     _activityCards.postValue(activityCards)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -141,7 +146,7 @@ class TrackActivityFragment : Fragment() {
             userId?.let { id ->
                 viewModelScope.launch {
                     activityCardRepository.initializeCache(id)
-                    refreshActivityCards()
+                    refreshActivityCards(id)
                 }
             }
         }
@@ -214,7 +219,7 @@ class TrackActivityFragment : Fragment() {
                                 completed,
                                 id
                             )
-                            viewModel.refreshActivityCards()
+                            viewModel.refreshActivityCards(id)
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
