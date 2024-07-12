@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.israel.planpilot.MainActivity
 import com.israel.planpilot.R
@@ -35,7 +37,12 @@ class ListAllActivitiesFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_activities_list, container, false)
 
         val mainActivity = activity as MainActivity
+        mainActivity.btnAddActivity.visibility = View.GONE
         mainActivity.btnActivitiesList.visibility = View.GONE
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            findNavController().popBackStack()
+        }
 
         return view
     }
@@ -125,5 +132,6 @@ class ListAllActivitiesFragment : Fragment() {
 
         val mainActivity = activity as MainActivity
         mainActivity.btnActivitiesList.visibility = View.VISIBLE
+        mainActivity.btnAddActivity.visibility = View.VISIBLE
     }
 }

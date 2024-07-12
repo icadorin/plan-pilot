@@ -11,9 +11,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.israel.planpilot.MainActivity
 import com.israel.planpilot.R
 import com.israel.planpilot.utils.ActivityUtils
@@ -44,6 +46,11 @@ class CreateActivityFragment : Fragment() {
 
         val mainActivity = activity as MainActivity
         mainActivity.btnAddActivity.visibility = View.GONE
+        mainActivity.btnActivitiesList.visibility = View.GONE
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            findNavController().popBackStack()
+        }
 
         val nameActivity = view.findViewById<EditText>(R.id.nameActivity)
         val alarmSwitch = view.findViewById<SwitchCompat>(R.id.alarmSwitch)
@@ -311,5 +318,6 @@ class CreateActivityFragment : Fragment() {
 
         val mainActivity = activity as MainActivity
         mainActivity.btnAddActivity.visibility = View.VISIBLE
+        mainActivity.btnActivitiesList.visibility = View.VISIBLE
     }
 }

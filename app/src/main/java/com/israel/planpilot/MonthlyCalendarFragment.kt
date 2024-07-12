@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -93,9 +94,7 @@ class MonthlyCalendarFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        if (isAdded) {
-            coroutineScope.cancel()
-        }
+        coroutineScope.cancel()
         (activity as MainActivity).hideReturnToTodayButton()
     }
 
@@ -113,10 +112,21 @@ class MonthlyCalendarFragment : Fragment() {
     private fun calculateDate() {
         val sharedPreferences = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val currentPagePosition = sharedPreferences?.getInt("lastPagePosition", 0) ?: 0
-        val year = START_YEAR + currentPagePosition / MONTHS_IN_YEAR
-        val month = (currentPagePosition % MONTHS_IN_YEAR) + 1
 
-        updateToolbar(year, month)
+        if (currentPagePosition == 0) {
+            val currentYear = currentDate.get(Calendar.YEAR)
+            val currentMonth = currentDate.get(Calendar.MONTH) + 1
+            updateToolbar(currentYear, currentMonth)
+
+            sharedPreferences?.edit()?.apply {
+                putInt("lastPagePosition", currentPagePosition)
+                apply()
+            }
+        } else {
+            val year = START_YEAR + currentPagePosition / MONTHS_IN_YEAR
+            val month = (currentPagePosition % MONTHS_IN_YEAR) + 1
+            updateToolbar(year, month)
+        }
     }
 
     private fun initCalendarViewPager(view: View) {
@@ -164,11 +174,10 @@ class MonthlyCalendarFragment : Fragment() {
         coroutineScope.launch {
             getUpdatedActivities { activities ->
                 val newHash = activities.hashCode()
-                if (newHash!= activitiesHash) {
+                if (newHash != activitiesHash) {
                     activitiesHash = newHash
-                    allActivities = activities
-                    val diffResult = DiffUtil.
-                        calculateDiff(ActivitiesDiffCallback(allActivities, allActivities))
+                    allActivities = activities.toMutableList()
+                    val diffResult = DiffUtil.calculateDiff(ActivitiesDiffCallback(allActivities, activities))
                     diffResult.dispatchUpdatesTo((viewPager.adapter as CalendarPagerAdapter))
                 }
             }
@@ -179,7 +188,6 @@ class MonthlyCalendarFragment : Fragment() {
         if (allActivities.isEmpty()) {
             userId?.let { id ->
                 activityRepository.readAllActivities(id) { activities ->
-                    allActivities = activities
                     onSuccess(activities)
                     println("Atividades recuperadas: $activities")
                 }
@@ -456,11 +464,20 @@ class MonthlyCalendarFragment : Fragment() {
                 updateActivitiesView(dayItem)
             }
 
+            private fun isCurrentDate(year: Int, month: Int, day: Int, isCurrentMonth: Boolean): Boolean {
+                val currentDate = LocalDate.now()
+                return currentDate.year == year && currentDate.monthValue - 1 == month && currentDate.dayOfMonth == day && isCurrentMonth
+            }
+
             private fun updateActivitiesView(dayItem: DayItem) {
-                CoroutineScope(Dispatchers.Main).launch {
+                coroutineScope.launch {
                     val selectedDate = LocalDate.of(dayItem.year, dayItem.month, dayItem.day.toInt())
                     val activitiesForSelectedDate = getActivitiesForSelectedDate(selectedDate)
                     println("Atividades para a data $selectedDate: $activitiesForSelectedDate")
+
+                    for (i in activitiesContainer.childCount - 1 downTo activitiesForSelectedDate.size) {
+                        activitiesContainer.removeViewAt(i)
+                    }
 
                     for (i in activitiesForSelectedDate.indices) {
                         val activity = activitiesForSelectedDate[i]
@@ -479,26 +496,31 @@ class MonthlyCalendarFragment : Fragment() {
                             activitiesContainer.addView(activityTextView)
                         }
                     }
-
-                    for (i in activitiesForSelectedDate.size until activityTextViews.size) {
-                        activitiesContainer.removeView(activityTextViews[i])
-                    }
                 }
             }
 
-            private fun isCurrentDate(
-                itemYear: Int,
-                itemMonth: Int,
-                itemDay: Int,
-                isCurrentMonth: Boolean
-            ): Boolean {
-                val currentDate = Calendar.getInstance()
-                return currentDate.get(Calendar.YEAR) == itemYear &&
-                        currentDate.get(Calendar.MONTH) == itemMonth &&
-                        currentDate.get(Calendar.DAY_OF_MONTH) == itemDay &&
-                        isCurrentMonth
+            private suspend fun getActivitiesForSelectedDate(selectedDate: LocalDate): List<ActivityModel> {
+                return coroutineScope.async(Dispatchers.IO) {
+                    allActivities.filter { activity ->
+                        val startDate = LocalDate.parse(activity.startDate)
+                        val endDate = LocalDate.parse(activity.endDate)
+                        val activityWeekDays = activity.weekDays
+
+                        val isStartDate = selectedDate.isEqual(startDate)
+                        val isBetween = selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)
+                        val isEndDate = selectedDate.isEqual(endDate)
+
+                        val isDateInRange = isStartDate || isBetween || isEndDate
+
+                        val isDayOfWeekInActivityWeekDays =
+                            activityWeekDays?.contains(selectedDate.dayOfWeek.toString().lowercase(Locale.ROOT)) == true
+
+                        isDateInRange && isDayOfWeekInActivityWeekDays
+                    }
+                }.await()
             }
         }
+
     }
 
     private inner class DiffCallback(
