@@ -22,13 +22,19 @@ import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityCardRepository
 import com.israel.planpilot.repository.ActivityRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.launch
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class TrackActivityFragment : Fragment() {
 
     private val viewModel: TrackActivityViewModel by viewModels()
+
+    private lateinit var activityAdapter: ActivityAdapter
+    private lateinit var activityCardAdapter: ActivityCardAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,31 +42,37 @@ class TrackActivityFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track_activity, container, false)
 
+        setupRecyclerViews(view)
+        observeViewModel()
+
+        return view
+    }
+
+    private fun setupRecyclerViews(view: View) {
         val recyclerViewActivities: RecyclerView = view.findViewById(R.id.recyclerViewActivities)
         recyclerViewActivities.layoutManager = LinearLayoutManager(context)
-
-        val activityAdapter = ActivityAdapter()
+        activityAdapter = ActivityAdapter()
         recyclerViewActivities.adapter = activityAdapter
-
-        viewModel.todayActivities.observe(viewLifecycleOwner) { activities ->
-            activities?.let {
-                activityAdapter.submitList(it.take(3))
-            }
-        }
 
         val recyclerViewCards: RecyclerView = view.findViewById(R.id.recyclerViewCards)
         recyclerViewCards.layoutManager = LinearLayoutManager(context)
-
-        val activityCardAdapter = ActivityCardAdapter(viewModel)
+        activityCardAdapter = ActivityCardAdapter(viewModel)
         recyclerViewCards.adapter = activityCardAdapter
+    }
+
+    private fun observeViewModel() {
+        viewModel.todayActivities.observe(viewLifecycleOwner) { activities ->
+            activities?.let {
+                activityAdapter.submitList(it.take(3))
+                Log.d("TrackActivityFragment", "Today Activities: $it")
+            }
+        }
 
         viewModel.activityCards.observe(viewLifecycleOwner) { activityCards ->
             activityCards?.let {
                 activityCardAdapter.submitList(it)
             }
         }
-
-        return view
     }
 
     override fun onResume() {
@@ -72,7 +84,6 @@ class TrackActivityFragment : Fragment() {
     class TrackActivityViewModel : ViewModel() {
 
         private var userId: String? = null
-
         private val activityRepository = ActivityRepository()
         val activityCardRepository = ActivityCardRepository()
 
@@ -83,22 +94,28 @@ class TrackActivityFragment : Fragment() {
         val activityCards: LiveData<List<ActivityCardModel>> = _activityCards
 
         init {
+            initializeUserId()
+            fetchInitialData()
+        }
 
+        private fun initializeUserId() {
             userId = FirebaseAuth.getInstance().currentUser?.uid
-
-
             if (userId.isNullOrEmpty()) {
                 Log.d("TrackActivityViewModel", "UserId is null or empty")
                 userId = null
-            } else {
+            }
+        }
+
+        private fun fetchInitialData() {
+            userId?.let {
                 fetchTodayActivities()
                 initializeAndFetchActivityCards()
             }
         }
 
         private fun fetchTodayActivities() {
-            viewModelScope.launch {
-                userId?.let { id ->
+            userId?.let { id ->
+                viewModelScope.launch {
                     activityRepository.readTodayActivities(id) { activities ->
                         _todayActivities.postValue(activities.take(3))
                     }
@@ -107,33 +124,45 @@ class TrackActivityFragment : Fragment() {
         }
 
         private fun initializeAndFetchActivityCards() {
-            viewModelScope.launch {
-                activityCardRepository.initializeCache()
-                refreshActivityCards()
+            userId?.let { id ->
+                viewModelScope.launch {
+                    activityCardRepository.initializeCache(id)
+                    refreshActivityCards()
+                }
             }
         }
 
         fun refreshActivityCards() {
-            viewModelScope.launch {
-                val activityCards = activityCardRepository.getUncompletedActivityCards(userId!!)
-                println("Activity cards fetched no ViewModel: ${activityCards.size}")
-                _activityCards.postValue(activityCards)
+            userId?.let { id ->
+                viewModelScope.launch {
+                    val activityCards = activityCardRepository.getUncompletedActivityCards(id)
+                    _activityCards.postValue(activityCards)
+                }
             }
         }
 
         fun forceRefreshActivityCards() {
-            viewModelScope.launch {
-                activityCardRepository.initializeCache()
-                refreshActivityCards()
+            userId?.let { id ->
+                viewModelScope.launch {
+                    activityCardRepository.initializeCache(id)
+                    refreshActivityCards()
+                }
             }
         }
 
         fun refreshTodayActivities() {
-            viewModelScope.launch {
-                activityRepository.readTodayActivities(userId!!) { activities ->
-                    _todayActivities.postValue(activities.take(3))
+            userId?.let { id ->
+                viewModelScope.launch {
+                    activityRepository.readTodayActivities(id) { activities ->
+                        _todayActivities.postValue(activities.take(3))
+                    }
                 }
             }
+        }
+
+        override fun onCleared() {
+            super.onCleared()
+            //
         }
     }
 
@@ -141,7 +170,8 @@ class TrackActivityFragment : Fragment() {
         ListAdapter<ActivityCardModel, ActivityCardAdapter.ViewHolder>(ActivityCardDiffCallback()) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_card_activity, parent, false)
+            val view = LayoutInflater.from(parent.context).
+            inflate(R.layout.item_card_activity, parent, false)
             return ViewHolder(view)
         }
 
@@ -154,10 +184,14 @@ class TrackActivityFragment : Fragment() {
 
             private var userId: String? = null
 
-            private val activityNameTextView: TextView = itemView.findViewById(R.id.textViewActivityName)
-            private val activityDateTextView: TextView = itemView.findViewById(R.id.textViewActivityDate)
-            private val uncheckButton: ImageButton = itemView.findViewById(R.id.buttonUncheck)
-            private val checkButton: ImageButton = itemView.findViewById(R.id.buttonCheck)
+            private val activityNameTextView: TextView =
+                itemView.findViewById(R.id.textViewActivityName)
+            private val activityDateTextView: TextView =
+                itemView.findViewById(R.id.textViewActivityDate)
+            private val uncheckButton: ImageButton =
+                itemView.findViewById(R.id.buttonUncheck)
+            private val checkButton: ImageButton =
+                itemView.findViewById(R.id.buttonCheck)
 
             fun bind(activityCard: ActivityCardModel) {
                 userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -176,7 +210,7 @@ class TrackActivityFragment : Fragment() {
 
             private fun updateCompletion(activityCardId: String, completed: Boolean) {
                 userId?.let { id ->
-                    CoroutineScope(Dispatchers.IO).launch {
+                    viewModel.viewModelScope.launch {
                         try {
                             viewModel.activityCardRepository.updateActivityCardCompletion(
                                 activityCardId,
@@ -193,20 +227,26 @@ class TrackActivityFragment : Fragment() {
         }
 
         private class ActivityCardDiffCallback : DiffUtil.ItemCallback<ActivityCardModel>() {
-            override fun areItemsTheSame(oldItem: ActivityCardModel, newItem: ActivityCardModel): Boolean {
+            override fun areItemsTheSame(
+                oldItem: ActivityCardModel, newItem: ActivityCardModel
+            ): Boolean {
                 return oldItem.id == newItem.id
             }
 
-            override fun areContentsTheSame(oldItem: ActivityCardModel, newItem: ActivityCardModel): Boolean {
+            override fun areContentsTheSame(
+                oldItem: ActivityCardModel, newItem: ActivityCardModel
+            ): Boolean {
                 return oldItem == newItem
             }
         }
     }
 
-    class ActivityAdapter : ListAdapter<ActivityModel, ActivityAdapter.ActivityViewHolder>(ActivityDiffCallback()) {
+    class ActivityAdapter :
+        ListAdapter<ActivityModel, ActivityAdapter.ActivityViewHolder>(ActivityDiffCallback()) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActivityViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_track_activity, parent, false)
+            val view = LayoutInflater.from(parent.context).
+            inflate(R.layout.item_track_activity, parent, false)
             return ActivityViewHolder(view)
         }
 
@@ -226,11 +266,15 @@ class TrackActivityFragment : Fragment() {
         }
 
         private class ActivityDiffCallback : DiffUtil.ItemCallback<ActivityModel>() {
-            override fun areItemsTheSame(oldItem: ActivityModel, newItem: ActivityModel): Boolean {
+            override fun areItemsTheSame(
+                oldItem: ActivityModel, newItem: ActivityModel
+            ): Boolean {
                 return oldItem.id == newItem.id
             }
 
-            override fun areContentsTheSame(oldItem: ActivityModel, newItem: ActivityModel): Boolean {
+            override fun areContentsTheSame(
+                oldItem: ActivityModel, newItem: ActivityModel
+            ): Boolean {
                 return oldItem == newItem
             }
         }

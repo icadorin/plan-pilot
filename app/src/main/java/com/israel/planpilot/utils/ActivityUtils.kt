@@ -155,33 +155,35 @@ object ActivityUtils {
                         set(Calendar.MILLISECOND, 0)
                     }
 
-                    val intent = Intent(context, AlarmReceiver::class.java).apply {
-                        putExtra("alarm_id", UUID.randomUUID().toString())
-                        putExtra("activity_name", activityName)
-                        putExtra("alarm_time", formatter.format(calendar.time))
-                        putExtra("alarm_tone", alarmTone)
-                    }
+                    if (calendar.timeInMillis > System.currentTimeMillis()) {
+                        val intent = Intent(context, AlarmReceiver::class.java).apply {
+                            putExtra("alarm_id", UUID.randomUUID().toString())
+                            putExtra("activity_name", activityName)
+                            putExtra("alarm_time", formatter.format(calendar.time))
+                            putExtra("alarm_tone", alarmTone)
+                        }
 
-                    val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        context,
-                        uniqueRequestCode,
-                        intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                    )
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-                        Toast.makeText(
+                        val uniqueRequestCode = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+                        val pendingIntent = PendingIntent.getBroadcast(
                             context,
-                            "Este aplicativo não tem as permissão para definir alarmes exatos.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        alarmManager.setExact(
-                            AlarmManager.RTC_WAKEUP,
-                            calendar.timeInMillis,
-                            pendingIntent
+                            uniqueRequestCode,
+                            intent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
                         )
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                            Toast.makeText(
+                                context,
+                                "Este aplicativo não tem as permissão para definir alarmes exatos.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            alarmManager.setExact(
+                                AlarmManager.RTC_WAKEUP,
+                                calendar.timeInMillis,
+                                pendingIntent
+                            )
+                        }
                     }
                 }
             }
@@ -511,5 +513,17 @@ object ActivityUtils {
         val defaultRingtoneTitle = defaultRingtone.getTitle(context)
 
         return defaultRingtoneTitle
+    }
+
+    fun cancelAlarm(context: Context, alarmId: String) {
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            putExtra("alarm_id", alarmId)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, alarmId.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+        pendingIntent.cancel()
     }
 }

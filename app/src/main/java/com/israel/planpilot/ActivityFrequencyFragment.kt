@@ -31,6 +31,7 @@ class ActivityFrequencyFragment : Fragment() {
     private lateinit var textYear: TextView
     private lateinit var btnPrev: ImageButton
     private lateinit var btnNext: ImageButton
+    private lateinit var userId: String
 
     private val activityCardRepository = ActivityCardRepository()
     private val daysLiveData = MutableLiveData<List<DayInfo>>()
@@ -51,8 +52,10 @@ class ActivityFrequencyFragment : Fragment() {
         gridView.adapter = adapter
         updateCalendar()
 
+        userId = FirebaseAuth.getInstance().currentUser?.uid.toString()
+
         lifecycleScope.launch {
-            activityCardRepository.initializeCache()
+            activityCardRepository.initializeCache(userId)
             val days = getDaysInMonth()
             daysLiveData.value = days
         }

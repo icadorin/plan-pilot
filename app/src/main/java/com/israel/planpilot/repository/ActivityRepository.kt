@@ -1,10 +1,13 @@
 package com.israel.planpilot.repository
 
+import android.content.Context
+import android.util.Log
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.israel.planpilot.fireStoreInstance.FirestoreManager
 import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
+import com.israel.planpilot.utils.ActivityUtils
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
@@ -98,13 +101,15 @@ class ActivityRepository {
         activitiesCache = null
     }
 
-    suspend fun deleteActivity(id: String, userId: String) {
+    suspend fun deleteActivity(id: String, userId: String, context: Context) {
         try {
+            ActivityUtils.cancelAlarm(context, id)
+
             activityCardRepository.deleteActivityCardsByActivityId(id, userId)
             activitiesCollection.document(id).delete().await()
             activitiesCache = null
         } catch (e: Exception) {
-            println("Erro ao excluir atividade: ${e.message}")
+            Log.e("DeleteActivity", "Erro ao excluir atividade: ${e.message}")
             throw e
         }
     }

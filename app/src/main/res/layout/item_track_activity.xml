@@ -4,18 +4,17 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="8dp"
-    android:background="@drawable/rounded_background">
+    android:gravity="center_horizontal">
 
     <TextView
         android:id="@+id/activityName"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:layout_weight="1"
-        android:gravity="start"
-        android:layout_marginEnd="16dp"
+        android:gravity="center"
         android:maxLength="10"
+        android:layout_marginEnd="12sp"
         android:textColor="@color/black" />
 
     <TextView
@@ -24,6 +23,7 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:gravity="end"
+        android:gravity="center"
+        android:layout_marginStart="12dp"
         android:textColor="@color/black" />
 </LinearLayout>

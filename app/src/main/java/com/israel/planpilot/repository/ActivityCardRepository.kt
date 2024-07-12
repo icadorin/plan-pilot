@@ -7,23 +7,23 @@ import kotlinx.coroutines.tasks.await
 class ActivityCardRepository {
     private val firestore = FirestoreManager.getFirestoreInstance()
     private val collectionRef = firestore.collection("activityCards")
-    private var activityCardsCache: MutableList<ActivityCardModel> = mutableListOf()
-
+    private val activityCardsCacheMap = mutableMapOf<String, MutableList<ActivityCardModel>>()
     private var isCacheInitialized = false
 
-    suspend fun initializeCache() {
+    suspend fun initializeCache(userId: String) {
         if (!isCacheInitialized) {
-            fetchActivityCards()
+            fetchActivityCards(userId)
             isCacheInitialized = true
         }
     }
 
-    private suspend fun fetchActivityCards() {
+    private suspend fun fetchActivityCards(userId: String) {
         try {
-            val querySnapshot = collectionRef.get().await()
-            activityCardsCache = querySnapshot.documents.mapNotNull {
+            val querySnapshot = collectionRef.whereEqualTo("createdBy", userId).get().await()
+            val activityCards = querySnapshot.documents.mapNotNull {
                 it.toObject(ActivityCardModel::class.java)
             }.toMutableList()
+            activityCardsCacheMap[userId] = activityCards
             println("Cards resgatados com sucesso")
         } catch (e: Exception) {
             println("Erro ao buscar activityCards do Firestore: ${e.message}")
@@ -35,21 +35,20 @@ class ActivityCardRepository {
     suspend fun addActivityCard(activityCardModel: ActivityCardModel, userId: String) {
         try {
             activityCardModel.createdBy = userId
-
             val documentRef = collectionRef.document(activityCardModel.id)
             documentRef.set(activityCardModel).await()
-            activityCardsCache.add(activityCardModel)
+            activityCardsCacheMap[userId]?.add(activityCardModel)
         } catch (e: Exception) {
             throw Exception("Erro ao adicionar o cartão de atividade: ${e.message}")
         }
     }
 
     fun getUncompletedActivityCards(userId: String): List<ActivityCardModel> {
-        return activityCardsCache.filter { it.completed == null && it.createdBy == userId }
+        return activityCardsCacheMap[userId]?.filter { it.completed == null } ?: listOf()
     }
 
     fun getAllActivityCards(userId: String): List<ActivityCardModel> {
-        return activityCardsCache.filter { it.createdBy == userId }
+        return activityCardsCacheMap[userId] ?: listOf()
     }
 
     suspend fun findActivityCardByActivityAndDate(activityId: String, date: String): ActivityCardModel? {
@@ -68,7 +67,6 @@ class ActivityCardRepository {
     suspend fun updateActivityCardCompletion(activityCardId: String, completed: Boolean, userId: String) {
         try {
             val cardRef = collectionRef.document(activityCardId)
-
             val cardSnapshot = cardRef.get().await()
             val card = cardSnapshot.toObject(ActivityCardModel::class.java)
 
@@ -79,9 +77,10 @@ class ActivityCardRepository {
                 val updatedCard = updatedCardSnapshot.toObject(ActivityCardModel::class.java)
 
                 updatedCard?.let {
-                    val index = activityCardsCache.indexOfFirst { it.id == updatedCard.id }
-                    if (index != -1) {
-                        activityCardsCache[index] = updatedCard
+                    val cache = activityCardsCacheMap[userId]
+                    val index = cache?.indexOfFirst { it.id == updatedCard.id }
+                    if (index != null && index != -1) {
+                        cache[index] = updatedCard
                     }
                 }
             } else {
@@ -103,11 +102,15 @@ class ActivityCardRepository {
 
             for (document in querySnapshot.documents) {
                 collectionRef.document(document.id).delete().await()
-                activityCardsCache.removeIf { it.id == document.id }
+                activityCardsCacheMap[userId]?.removeIf { it.id == document.id }
             }
         } catch (e: Exception) {
             e.printStackTrace()
             println("Erro ao excluir cards de atividade do Firestore: ${e.message}")
         }
+    }
+
+    fun clearUserCache(userId: String) {
+        activityCardsCacheMap.remove(userId)
     }
 }

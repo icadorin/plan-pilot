@@ -161,7 +161,7 @@ class ListTodayActivitiesFragment : Fragment() {
                         .setMessage("Escolha uma opção para a atividade ${activity?.name}")
                         .setPositiveButton("Deletar") { _, _ ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                activityRepository.deleteActivity(activity?.id.toString(), id)
+                                activityRepository.deleteActivity(activity?.id.toString(), id, requireContext())
                                 withContext(Dispatchers.Main) {
                                     reloadActivities()
                                 }
