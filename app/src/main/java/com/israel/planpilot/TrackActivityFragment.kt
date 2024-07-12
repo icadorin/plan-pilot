@@ -22,6 +22,7 @@ import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityCardRepository
 import com.israel.planpilot.repository.ActivityRepository
+import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.launch
 
 class TrackActivityFragment : Fragment() {
@@ -192,7 +193,8 @@ class TrackActivityFragment : Fragment() {
                 userId = FirebaseAuth.getInstance().currentUser?.uid
 
                 activityNameTextView.text = activityCard.activityName
-                activityDateTextView.text = activityCard.date
+                val formattedDate = activityCard.date?.let { DateFormatterUtils.formatDateToDefault(it) }
+                activityDateTextView.text = formattedDate
 
                 uncheckButton.setOnClickListener {
                     updateCompletion(activityCard.id, false)
