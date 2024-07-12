@@ -22,12 +22,7 @@ import com.israel.planpilot.model.ActivityCardModel
 import com.israel.planpilot.model.ActivityModel
 import com.israel.planpilot.repository.ActivityCardRepository
 import com.israel.planpilot.repository.ActivityRepository
-import com.israel.planpilot.utils.DateFormatterUtils
 import kotlinx.coroutines.launch
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class TrackActivityFragment : Fragment() {
 
